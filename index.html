@@ -60,7 +60,6 @@
         .capsule:active { transform: scale(0.95); }
         .capsule.wallet { border-color: rgba(0, 230, 118, 0.15); color: var(--green); }
 
-        /* АНИМАЦИЯ ПЛАВНЫХ ПЕРЕХОДОВ МЕЖДУ ЭКРАНАМИ */
         .main-container {
             flex: 1; margin-top: 75px; margin-bottom: 75px;
             position: relative; width: 100%; z-index: 2; overflow-x: hidden; overflow-y: auto;
@@ -81,7 +80,24 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 15px;
         }
 
-        /* СОЧНЫЕ СЛОТЫ С ЭФФЕКТОМ ОТСКОКА */
+        /* КЛИКЕР СТИЛИ */
+        .clicker-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1; min-height: 320px;
+        }
+        .click-coin {
+            width: 170px; height: 170px; background: linear-gradient(135deg, var(--gold), #d4af37);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 5rem; cursor: pointer; user-select: none;
+            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255,255,255,0.4);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+            will-change: transform; border: 6px solid #1c1917;
+        }
+        .click-coin:active {
+            transform: scale(0.92);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
         .reels { display: flex; gap: 12px; margin: 25px 0; background: #0c0c0e; padding: 15px 25px; border-radius: 16px; width: 100%; justify-content: center; }
         .reel { 
             font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; 
@@ -92,7 +108,6 @@
             transform: scale(1.08) translateY(-5px);
         }
         
-        /* ПЛАВНАЯ РАКЕТКА (CRASH ARENA) */
         .crash-arena {
             width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px;
             position: relative; overflow: hidden; margin: 15px 0;
@@ -218,6 +233,14 @@
             </div>
         </div>
 
+        <div id="screen-clicker" class="screen">
+            <div class="clicker-container">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom: 25px;">Майнинг кликами</div>
+                <div class="click-coin" onclick="executeCoinClick()">🟡</div>
+                <div style="margin-top:25px; font-weight:700; font-size:0.9rem; color:var(--text-secondary);">+1 $RJC за каждый тап</div>
+            </div>
+        </div>
+
         <div id="screen-market" class="screen">
             <div class="shop-section">
                 <div class="shop-title">🌍 Паспорта и Инвестиции</div>
@@ -296,6 +319,10 @@
             <svg viewBox="0 0 24 24"><path d="M13.13 2.18c-.38-.38-1.01-.38-1.39 0L2.35 11.56c-.47.47-.14 1.28.53 1.28H7v7c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-7h4.12c.67 0 1-.81.53-1.28L13.13 2.18z"/></svg>
             Ракетка
         </button>
+        <button class="nav-item" id="tab-clicker" onclick="switchScreen('clicker')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/></svg>
+            Кликер
+        </button>
         <button class="nav-item" id="tab-market" onclick="switchScreen('market')">
             <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
             Маркет
@@ -307,7 +334,6 @@
     </nav>
 
     <script>
-        // 🔗 ВСТАВЬ СЮДА URL СВОЕГО АПИ ПОСЛЕ ДЕПЛОЯ НА RENDER / RAILWAY
         const API_URL = "https://rejewcas-backend.onrender.com"; 
 
         let tg;
@@ -315,6 +341,10 @@
         let userId = '777777'; 
         let nickname = 'Создатель';
         let currentUser = { balance: 0, stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[] };
+
+        // Буфер для оптимизации кликов (чтобы не душить сервер)
+        let accumulatedClicks = 0;
+        let clickSyncTimeout = null;
 
         try {
             tg = window.Telegram.WebApp;
@@ -513,8 +543,13 @@
             } catch(e) { showToast("Ошибка отправки перевода", "error"); }
         }
 
-        // АНИМАЦИЯ ПЛАВНОГО ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК
         function switchScreen(screenName) {
+            // Если игрок уходит с экрана кликера, принудительно сохраняем накопленные клики сразу
+            if (accumulatedClicks > 0) {
+                clearTimeout(clickSyncTimeout);
+                syncClicksWithBackend();
+            }
+
             const activeScreen = document.querySelector('.screen.active');
             const nextScreen = document.getElementById(`screen-${screenName}`);
             
@@ -543,7 +578,40 @@
             document.getElementById(inputId).value = currentUser.balance;
         }
 
-        // КИНЕМАТОГРАФИЧНЫЕ СЛОТЫ С MOTION BLUR И ОТСКОКОМ
+        // ЛОГИКА КЛИКЕРА С ОПТИМИЗИРОВАННЫМ СОРЕВНОВАНИЕМ С СЕРВЕРОМ
+        function executeCoinClick() {
+            currentUser.balance += 1;
+            accumulatedClicks += 1;
+            
+            // Моментально обновляем интерфейс для плавности (60fps ощущение)
+            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
+
+            // Откладываем отправку на сервер на 1.5 секунды, накапливая клики
+            clearTimeout(clickSyncTimeout);
+            clickSyncTimeout = setTimeout(syncClicksWithBackend, 1500);
+        }
+
+        async function syncClicksWithBackend() {
+            if (accumulatedClicks === 0) return;
+            let clicksToSend = accumulatedClicks;
+            accumulatedClicks = 0; // Сбрасываем буфер
+
+            try {
+                // Используем существующий эндпоинт результатов игр для начисления баланса (отправляем как чистый выигрыш с нулевой ставкой)
+                let res = await fetch(`${API_URL}/api/game/result`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, bet: 0, winAmount: clicksToSend, isWin: true })
+                });
+                currentUser = await res.json();
+                updateUI();
+            } catch(e) {
+                // Если сеть упала, возвращаем клики обратно в буфер для следующей попытки
+                accumulatedClicks += clicksToSend;
+            }
+        }
+
+        // СЛОТЫ 
         function triggerSpin() {
             const betInput = document.getElementById('slot-bet');
             let bet = parseInt(betInput.value);
@@ -578,7 +646,6 @@
             }
 
             const reels = [document.getElementById('r1'), document.getElementById('r2'), document.getElementById('r3')];
-            
             reels.forEach(r => r.classList.add('spinning'));
 
             let i1 = setInterval(() => { reels[0].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
@@ -597,8 +664,8 @@
             }, 1500);
         }
 
-        // ЛОГИКА ДЛЯ ПЛАВНОЙ РАКЕТКИ (60 FPS) С НОРМАЛЬНЫМ РАНДОМОМ
-        let crashState = 'idle'; // idle, flying, crashed
+        // РАКЕТКА (CRASH)
+        let crashState = 'idle'; 
         let crashAnimationId;
         let crashBetAmount = 0;
         let currentMultiplier = 1.00;
@@ -619,23 +686,18 @@
                 btn.innerText = 'ЗАБРАТЬ';
                 btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
                 
-                // --- СБАЛАНСИРОВАННЫЙ АЛГОРИТМ РАНДОМА РАКЕТКИ ---
-                const E = 100; // Множитель округления
+                const E = 100; 
                 const random = Math.random();
 
                 if (random < 0.03) { 
-                    // 3% шанс моментального взрыва на старте (мгновенный луз для баланса)
                     crashPoint = 1.00; 
                 } else {
-                    // Экспоненциальная формула: много мелких иксов, но реальный шанс улететь высоко
                     crashPoint = Math.floor((100 * E) / (100 - random * 99)) / E;
                 }
 
-                // Защитный лимит для казино, чтобы ракетка не улетела в бесконечность
                 if (crashPoint > 50) {
                     crashPoint = parseFloat((30 + Math.random() * 20).toFixed(2));
                 }
-                // ------------------------------------------------
 
                 startTime = performance.now();
                 requestAnimationFrame(updateCrashLoop);
@@ -655,7 +717,6 @@
             if (crashState !== 'flying') return;
 
             let elapsed = (now - startTime) / 1000; 
-            
             currentMultiplier = parseFloat(Math.pow(1.07, elapsed * 6).toFixed(2));
             if (currentMultiplier < 1.00) currentMultiplier = 1.00;
 
