@@ -177,7 +177,6 @@
     </header>
 
     <div class="main-container">
-        <!-- СЛОТЫ -->
         <div id="screen-spins" class="screen active">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Classic Slots</div>
@@ -197,7 +196,6 @@
             </div>
         </div>
 
-        <!-- РАКЕТКА (CRASH) -->
         <div id="screen-crash" class="screen">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Ракетка (Crash)</div>
@@ -221,7 +219,6 @@
             </div>
         </div>
 
-        <!-- КЛИКЕР -->
         <div id="screen-clicker" class="screen">
             <div class="clicker-container">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom: 25px;">Майнинг кликами</div>
@@ -230,7 +227,6 @@
             </div>
         </div>
 
-        <!-- МАРКЕТ -->
         <div id="screen-market" class="screen">
             <div class="shop-section">
                 <div class="shop-title">🌍 Паспорта и Инвестиции</div>
@@ -244,7 +240,6 @@
             </div>
         </div>
 
-        <!-- ПРОФИЛЬ -->
         <div id="screen-profile" class="screen">
             <div class="profile-card">
                 <div class="profile-header">
@@ -276,14 +271,12 @@
                 </div>
             </div>
 
-            <!-- АДМИН-ПАНЕЛЬ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
                 <button class="action-btn" onclick="adminExecute()">Нарисовать бабки</button>
             </div>
 
-            <!-- СИСТЕМА ПЕРЕВОДОВ -->
             <div class="panel-card">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--text-secondary);">Безопасный перевод $RJC</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -294,7 +287,6 @@
                 </div>
             </div>
 
-            <!-- ПОЛНАЯ ИСТОРИЯ ТРАНЗАКЦИЙ -->
             <div class="panel-card" style="max-height: 320px; display: flex; flex-direction: column;">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold); margin-bottom: 12px;">История транзакций</h4>
                 <div id="transactions-list" style="overflow-y: auto; flex: 1; padding-right: 4px;">
@@ -713,15 +705,14 @@
                 btn.innerText = 'ЗАБРАТЬ';
                 btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
                 
-                // НОВАЯ МАТЕМАТИКА: Честный логарифмический алгоритм без слома на 1.05
-                let houseEdge = 0.03; // Всего 3% шанс моментального краша на 1.00x
-                if (Math.random() < houseEdge) {
-                    crashPoint = 1.00;
-                } else {
-                    // Классическое распределение Crash игр (позволяет улетать высоко)
-                    let rand = Math.random();
-                    crashPoint = parseFloat((0.99 / (1 - rand)).toFixed(2));
-                    if (crashPoint < 1.01) crashPoint = 1.01;
+                // Честная математика: инвертированное распределение
+                // Позволяет ракете улетать далеко, убирая лимит 1.05
+                let rand = Math.random();
+                crashPoint = parseFloat((1 / (1 - rand + 0.05)).toFixed(2));
+                
+                // Гарантируем, что полет длится хотя бы до 1.10x, чтобы не было "мгновенного краша"
+                if (crashPoint < 1.10) {
+                    crashPoint = 1.10 + (Math.random() * 0.4);
                 }
 
                 crashStartTime = performance.now();
