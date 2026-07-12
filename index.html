@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RejewCas Premium</title>
+    <title>RejewCas Ultimate</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -85,7 +85,6 @@
         }
         .reel.spinning { filter: blur(5px); transform: scale(1.08) translateY(-5px); }
         
-        /* ПЛАВНАЯ РАКЕТКА АРЕНА */
         .crash-arena {
             width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px;
             position: relative; overflow: hidden; margin: 15px 0;
@@ -93,15 +92,14 @@
         }
         .rocket {
             position: absolute; bottom: 15px; left: 15px; font-size: 2.5rem;
-            z-index: 5; will-change: transform; transform-origin: center;
-            transition: transform 0.05s linear;
+            z-index: 5; will-change: transform; transform-origin: center center;
         }
         .crash-multiplier {
             position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
             font-size: 3rem; font-weight: 900; color: #fff; z-index: 4;
             text-shadow: 0 0 20px rgba(255,255,255,0.2);
         }
-        .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
 
         .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
         .click-coin {
@@ -146,7 +144,8 @@
         .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; transform: none; }
         .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; transform: none; }
 
-        .msg-box { background: #0c0c0e; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px; text-align: left; font-size: 0.8rem; }
+        .msg-box { background: #0c0c0e; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px; text-align: left; font-size: 0.82rem; }
+        .user-link { color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; }
 
         nav {
             position: fixed; bottom: 0; width: 100%; height: 68px;
@@ -207,7 +206,7 @@
                     <div class="crash-multiplier" id="crash-mult">1.00x</div>
                     <div class="rocket" id="rocket-obj">🚀</div>
                     <svg class="crash-svg-path">
-                        <path id="flight-line" d="M 15 185 Q 15 185 15 185" stroke="rgba(255, 215, 0, 0.5)" stroke-width="3" fill="none" />
+                        <path id="flight-line" d="M 15 185 Q 15 185 15 185" stroke="rgba(255, 215, 0, 0.6)" stroke-width="3" fill="none" />
                     </svg>
                 </div>
 
@@ -295,9 +294,10 @@
                 </div>
             </div>
 
-            <div class="panel-card" style="max-height: 250px; overflow-y: auto;">
-                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--green);">Входящие переводы</h4>
-                <div id="incoming-messages-list">
+            <!-- ПОЛНАЯ ИСТОРИЯ ТРАНЗАКЦИЙ -->
+            <div class="panel-card" style="max-height: 320px; display: flex; flex-direction: column;">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold); margin-bottom: 12px;">История транзакций</h4>
+                <div id="transactions-list" style="overflow-y: auto; flex: 1; padding-right: 4px;">
                     <div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>
                 </div>
             </div>
@@ -427,6 +427,15 @@
             }, 3000);
         }
 
+        function quickFillTransfer(id) {
+            const targetInput = document.getElementById('transfer-target');
+            if (targetInput) {
+                targetInput.value = id;
+                showToast(`ID ${id} подставлен для перевода!`, 'success');
+                targetInput.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
         function updateUI() {
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
             document.getElementById('prof-name').innerText = currentUser.nickname;
@@ -453,21 +462,39 @@
                 document.getElementById('stat-losses').innerText = currentUser.stats.losses;
             }
 
-            const msgListBlock = document.getElementById('incoming-messages-list');
+            const transListBlock = document.getElementById('transactions-list');
             if (currentUser.messages && currentUser.messages.length > 0) {
-                msgListBlock.innerHTML = '';
+                transListBlock.innerHTML = '';
                 [...currentUser.messages].reverse().forEach(msg => {
                     const div = document.createElement('div');
                     div.className = 'msg-box';
+                    
+                    const isOutgoing = String(msg.fromId) === String(userId) || String(msg.senderId) === String(userId);
+                    const color = isOutgoing ? 'var(--red)' : 'var(--green)';
+                    const prefix = isOutgoing ? '-' : '+';
+                    
+                    const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
+                    const partnerId = isOutgoing ? (msg.toUserId || msg.targetId) : (msg.fromUserId || msg.senderId || msg.fromId);
+
                     div.innerHTML = `
-                        <div style="color:var(--green); font-weight:700; font-size:0.85rem;">+${msg.amount.toLocaleString()} $RJC</div>
-                        <div style="color:var(--text-secondary); font-size:0.7rem; margin-top:2px;">От: ${msg.from}</div>
-                        <div style="margin-top:4px; font-style:italic; color:#fff;">"${msg.comment}"</div>
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${msg.amount.toLocaleString()} $RJC</span>
+                            <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
+                                ${isOutgoing ? 'Исходящий' : 'Входящий'}
+                            </span>
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:4px;">
+                            ${isOutgoing ? 'Кому' : 'От'}: 
+                            <span class="user-link" onclick="quickFillTransfer('${partnerId || ''}')">${partnerName}</span>
+                        </div>
+                        <div style="margin-top:6px; font-style:italic; color:#fff; font-size:0.78rem; border-left:2px solid var(--surface-accent); padding-left:6px;">
+                            "${msg.comment || 'Без комментария'}"
+                        </div>
                     `;
-                    msgListBlock.appendChild(div);
+                    transListBlock.appendChild(div);
                 });
             } else {
-                msgListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
+                transListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
             }
 
             renderCategoryShop('citizenship-shop', citizenshipList, 'citizen');
@@ -664,12 +691,13 @@
             }, 1500);
         }
 
-        /* ПОЛНОСТЬЮ ПЕРЕПИСАННАЯ 60 FPS РАКЕТКА НА РЕНДЕР-ЦИКЛЕ */
+        /* ПОЛНОСТЬЮ ПЕРЕПИСАННАЯ ЧЕСТНАЯ МЕХАНИКА И МАТЕМАТИКА CRASH ПОЛЕТА */
         let crashState = 'idle'; 
         let crashBetAmount = 0;
         let currentMultiplier = 1.00;
         let crashPoint = 0;
         let crashStartTime = 0;
+        let crashAnimFrame = null;
 
         function triggerCrashAction() {
             const btn = document.getElementById('crash-btn');
@@ -685,15 +713,21 @@
                 btn.innerText = 'ЗАБРАТЬ';
                 btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
                 
-                // Рандомим точку взрыва
-                let e = Math.random();
-                if (e < 0.05) crashPoint = 1.00; 
-                else crashPoint = parseFloat((1.01 + (0.01 / (Math.random() + 0.001)) * 0.6).toFixed(2));
-                if (crashPoint > 40) crashPoint = 25 + Math.random() * 10;
+                // НОВАЯ МАТЕМАТИКА: Честный логарифмический алгоритм без слома на 1.05
+                let houseEdge = 0.03; // Всего 3% шанс моментального краша на 1.00x
+                if (Math.random() < houseEdge) {
+                    crashPoint = 1.00;
+                } else {
+                    // Классическое распределение Crash игр (позволяет улетать высоко)
+                    let rand = Math.random();
+                    crashPoint = parseFloat((0.99 / (1 - rand)).toFixed(2));
+                    if (crashPoint < 1.01) crashPoint = 1.01;
+                }
 
                 crashStartTime = performance.now();
-                requestAnimationFrame(updateCrashEngine);
+                crashAnimFrame = requestAnimationFrame(updateCrashEngine);
             } else if (crashState === 'flying') {
+                if (crashAnimFrame) cancelAnimationFrame(crashAnimFrame);
                 crashState = 'idle';
                 
                 let winAmount = Math.floor(crashBetAmount * currentMultiplier);
@@ -708,9 +742,9 @@
             if (crashState !== 'flying') return;
 
             let elapsed = (now - crashStartTime) / 1000;
-            // Экспоненциальный рост икса от времени
-            currentMultiplier = parseFloat(Math.pow(1.09, elapsed * 6.5).toFixed(2));
-            if (currentMultiplier < 1.00) currentMultiplier = 1.00;
+            
+            // Плавный рост, ускоряющийся со временем (экспоненциально)
+            currentMultiplier = parseFloat((1.00 + Math.pow(elapsed, 1.6) * 0.08).toFixed(2));
 
             if (currentMultiplier >= crashPoint) {
                 crashState = 'crashed';
@@ -718,7 +752,7 @@
                 document.getElementById('crash-mult').style.color = 'var(--red)';
                 document.getElementById('rocket-obj').innerText = '💥';
                 
-                showToast(`Ракета взорвалась на ${crashPoint.toFixed(2)}x. Бабки сгорели.`, 'error');
+                showToast(`Ракета взорвалась на ${crashPoint.toFixed(2)}x!`, 'error');
                 
                 setTimeout(() => {
                     resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
@@ -733,21 +767,27 @@
             document.getElementById('crash-mult').innerText = currentMultiplier.toFixed(2) + 'x';
 
             const arena = document.querySelector('.crash-arena');
-            let arenaWidth = arena.clientWidth - 50;
-            let arenaHeight = 200 - 50;
+            let maxW = arena.clientWidth - 50;
+            let maxH = 200 - 50;
 
-            // Расчет идеальной траектории без рывков
-            let progress = Math.min(elapsed / 7, 1);
-            let targetX = 15 + (arenaWidth * progress);
-            let targetY = 185 - (arenaHeight * Math.pow(progress, 1.8));
+            // Визуальный прогресс движения зависит от текущего икса, чтобы ракета летела адекватно множителю
+            let progress = Math.min((currentMultiplier - 1) / 5, 0.95); 
+            
+            let curX = Math.floor(maxW * progress);
+            let curY = Math.floor(maxH * Math.sin(progress * Math.PI / 2));
 
             const rocket = document.getElementById('rocket-obj');
-            rocket.style.transform = `translate(${targetX - 15}px, ${targetY - 185 + 15}px) rotate(${-progress * 22}deg)`;
+            rocket.style.transform = `translate(${curX}px, ${-curY}px) rotate(${-progress * 30}deg)`;
 
             const path = document.getElementById('flight-line');
-            path.setAttribute('d', `M 15 185 Q ${(15 + targetX) / 2} 185 ${targetX} ${targetY}`);
+            let startX = 15;
+            let startY = 185;
+            let currentPathX = startX + curX;
+            let currentPathY = startY - curY;
+            
+            path.setAttribute('d', `M ${startX} ${startY} Q ${(startX + currentPathX)/1.6} ${startY} ${currentPathX} ${currentPathY}`);
 
-            requestAnimationFrame(updateCrashEngine);
+            crashAnimFrame = requestAnimationFrame(updateCrashEngine);
         }
 
         function resetCrashUI(text, background) {
