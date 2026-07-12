@@ -126,6 +126,7 @@
         .user-id-badge { background: #0c0c0e; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; border: 1px solid rgba(255,255,255,0.04); display: inline-flex; align-items: center; gap: 4px; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .stats-box { background: #0c0c0e; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
         .stat-box { background: #0c0c0e; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
         .stat-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
         .stat-val.win { color: var(--green); }
@@ -175,7 +176,6 @@
     </header>
 
     <div class="main-container">
-        <!-- СЛОТЫ -->
         <div id="screen-spins" class="screen active">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Classic Slots</div>
@@ -195,7 +195,6 @@
             </div>
         </div>
 
-        <!-- РАКЕТКА (CRASH) -->
         <div id="screen-crash" class="screen">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Ракетка (Crash)</div>
@@ -219,7 +218,6 @@
             </div>
         </div>
 
-        <!-- МАРКЕТ -->
         <div id="screen-market" class="screen">
             <div class="shop-section">
                 <div class="shop-title">🌍 Паспорта и Инвестиции</div>
@@ -233,7 +231,6 @@
             </div>
         </div>
 
-        <!-- ПРОФИЛЬ -->
         <div id="screen-profile" class="screen">
             <div class="profile-card">
                 <div class="profile-header">
@@ -265,14 +262,12 @@
                 </div>
             </div>
 
-            <!-- АДМИН-ПАНЕЛЬ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
                 <button class="action-btn" onclick="adminExecute()">Нарисовать бабки</button>
             </div>
 
-            <!-- СИСТЕМА ПЕРЕВОДОВ -->
             <div class="panel-card">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--text-secondary);">Безопасный перевод $RJC</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -529,7 +524,6 @@
                 setTimeout(() => {
                     activeScreen.classList.remove('active');
                     nextScreen.classList.add('active');
-                    // Юзаем таймаут для плавного рендеринга
                     setTimeout(() => {
                         nextScreen.style.opacity = '1';
                         nextScreen.style.transform = 'translateY(0)';
@@ -585,14 +579,12 @@
 
             const reels = [document.getElementById('r1'), document.getElementById('r2'), document.getElementById('r3')];
             
-            // Врубаем размытие и скейл
             reels.forEach(r => r.classList.add('spinning'));
 
             let i1 = setInterval(() => { reels[0].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
             let i2 = setInterval(() => { reels[1].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
             let i3 = setInterval(() => { reels[2].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
 
-            // Поэтапная остановка с отскоком (убираем класс spinning и даем встать)
             setTimeout(() => { clearInterval(i1); reels[0].classList.remove('spinning'); reels[0].innerText = r1; }, 500);
             setTimeout(() => { clearInterval(i2); reels[1].classList.remove('spinning'); reels[1].innerText = r2; }, 1000);
             setTimeout(() => { 
@@ -605,7 +597,7 @@
             }, 1500);
         }
 
-        // ЛОГИКА ДЛЯ ПЛАВНОЙ РАКЕТКИ (60 FPS)
+        // ЛОГИКА ДЛЯ ПЛАВНОЙ РАКЕТКИ (60 FPS) С НОРМАЛЬНЫМ РАНДОМОМ
         let crashState = 'idle'; // idle, flying, crashed
         let crashAnimationId;
         let crashBetAmount = 0;
@@ -622,22 +614,32 @@
                 if (isNaN(crashBetAmount) || crashBetAmount < 10) return showToast("Минимум — 10 $RJC!", 'error');
                 if (currentUser.balance < crashBetAmount) return showToast("Недостаточно баланса!", 'error');
 
-                // Локальный блок кнопок
                 crashState = 'flying';
                 currentMultiplier = 1.00;
                 btn.innerText = 'ЗАБРАТЬ';
                 btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
                 
-                // Генерируем точку взрыва
-                let e = Math.random();
-                if (e < 0.05) crashPoint = 1.00; // Мгновенный взрыв
-                else crashPoint = parseFloat((1.01 + (0.01 / (Math.random() + 0.001)) * 0.5).toFixed(2));
-                if(crashPoint > 50) crashPoint = 30 + Math.random() * 10; // Лимит разумного
+                // --- СБАЛАНСИРОВАННЫЙ АЛГОРИТМ РАНДОМА РАКЕТКИ ---
+                const E = 100; // Множитель округления
+                const random = Math.random();
+
+                if (random < 0.03) { 
+                    // 3% шанс моментального взрыва на старте (мгновенный луз для баланса)
+                    crashPoint = 1.00; 
+                } else {
+                    // Экспоненциальная формула: много мелких иксов, но реальный шанс улететь высоко
+                    crashPoint = Math.floor((100 * E) / (100 - random * 99)) / E;
+                }
+
+                // Защитный лимит для казино, чтобы ракетка не улетела в бесконечность
+                if (crashPoint > 50) {
+                    crashPoint = parseFloat((30 + Math.random() * 20).toFixed(2));
+                }
+                // ------------------------------------------------
 
                 startTime = performance.now();
                 requestAnimationFrame(updateCrashLoop);
             } else if (crashState === 'flying') {
-                // Игрок успел кэшаутнуться
                 crashState = 'idle';
                 cancelAnimationFrame(crashAnimationId);
                 
@@ -652,13 +654,12 @@
         function updateCrashLoop(now) {
             if (crashState !== 'flying') return;
 
-            let elapsed = (now - startTime) / 1000; // секунды
-            // Экспоненциальный рост множителя
-            currentMultiplier = parseFloat(Math.pow(1.08, elapsed * 6).toFixed(2));
+            let elapsed = (now - startTime) / 1000; 
+            
+            currentMultiplier = parseFloat(Math.pow(1.07, elapsed * 6).toFixed(2));
             if (currentMultiplier < 1.00) currentMultiplier = 1.00;
 
             if (currentMultiplier >= crashPoint) {
-                // БУМ! Ракетка взорвалась
                 crashState = 'crashed';
                 document.getElementById('crash-mult').innerText = 'БУМ! 💥';
                 document.getElementById('crash-mult').style.color = 'var(--red)';
@@ -676,21 +677,18 @@
                 return;
             }
 
-            // Выводим множитель
             document.getElementById('crash-mult').innerText = currentMultiplier.toFixed(2) + 'x';
 
-            // Плавные координаты полета ракеты (парабола)
             let arenaWidth = document.querySelector('.crash-arena').clientWidth - 60;
             let arenaHeight = 200 - 60;
 
-            let progress = Math.min(elapsed / 8, 1); // Полет длится визуально до 8 сек к краю
+            let progress = Math.min(elapsed / 8, 1); 
             let targetX = 15 + (arenaWidth * progress);
             let targetY = 185 - (arenaHeight * Math.pow(progress, 2));
 
             const rocket = document.getElementById('rocket-obj');
             rocket.style.transform = `translate(${targetX - 15}px, ${targetY - 185 + 15}px) rotate(${-progress * 25}deg)`;
 
-            // Рисуем линию следа ракеты
             const path = document.getElementById('flight-line');
             path.setAttribute('d', `M 15 185 Q ${targetX / 2} 185 ${targetX} ${targetY}`);
 
@@ -754,7 +752,6 @@
             showToast("ID скопирован в буфер обмена!", 'success');
         }
 
-        // Старт системы
         syncProfile();
     </script>
 </body>
