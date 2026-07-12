@@ -60,6 +60,7 @@
         .capsule:active { transform: scale(0.95); }
         .capsule.wallet { border-color: rgba(0, 230, 118, 0.15); color: var(--green); }
 
+        /* АНИМАЦИЯ ПЛАВНЫХ ПЕРЕХОДОВ МЕЖДУ ЭКРАНАМИ */
         .main-container {
             flex: 1; margin-top: 75px; margin-bottom: 75px;
             position: relative; width: 100%; z-index: 2; overflow-x: hidden; overflow-y: auto;
@@ -80,24 +81,7 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 15px;
         }
 
-        /* КЛИКЕР СТИЛИ */
-        .clicker-container {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            flex: 1; min-height: 320px;
-        }
-        .click-coin {
-            width: 170px; height: 170px; background: linear-gradient(135deg, var(--gold), #d4af37);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 5rem; cursor: pointer; user-select: none;
-            box-shadow: 0 0 30px rgba(255, 215, 0, 0.3), inset 0 0 15px rgba(255,255,255,0.4);
-            transition: transform 0.08s ease, box-shadow 0.08s ease;
-            will-change: transform; border: 6px solid #1c1917;
-        }
-        .click-coin:active {
-            transform: scale(0.92);
-            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
-        }
-
+        /* СОЧНЫЕ СЛОТЫ С ЭФФЕКТОМ ОТСКОКА */
         .reels { display: flex; gap: 12px; margin: 25px 0; background: #0c0c0e; padding: 15px 25px; border-radius: 16px; width: 100%; justify-content: center; }
         .reel { 
             font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; 
@@ -108,6 +92,7 @@
             transform: scale(1.08) translateY(-5px);
         }
         
+        /* ПЛАВНАЯ РАКЕТКА (CRASH ARENA) */
         .crash-arena {
             width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px;
             position: relative; overflow: hidden; margin: 15px 0;
@@ -126,6 +111,24 @@
             position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;
         }
 
+        /* НЕОНОВЫЙ КЛИКЕР ЗДЕСЬ */
+        .clicker-container {
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            flex: 1; min-height: 320px;
+        }
+        .click-coin {
+            width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37);
+            border-radius: 50%; display: flex; align-items: center; justify-content: center;
+            font-size: 5.5rem; cursor: pointer; user-select: none;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255,255,255,0.4);
+            transition: transform 0.08s ease, box-shadow 0.08s ease;
+            will-change: transform; border: 6px solid #1c1917;
+        }
+        .click-coin:active {
+            transform: scale(0.92);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.2);
+        }
+
         .bet-input-wrapper { width: 100%; margin-bottom: 15px; }
         .bet-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px; display: block; text-transform: uppercase; }
         .bet-field-group { display: flex; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
@@ -141,7 +144,6 @@
         .user-id-badge { background: #0c0c0e; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; border: 1px solid rgba(255,255,255,0.04); display: inline-flex; align-items: center; gap: 4px; }
         
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
-        .stats-box { background: #0c0c0e; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
         .stat-box { background: #0c0c0e; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
         .stat-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
         .stat-val.win { color: var(--green); }
@@ -578,15 +580,15 @@
             document.getElementById(inputId).value = currentUser.balance;
         }
 
-        // ЛОГИКА КЛИКЕРА С ОПТИМИЗИРОВАННЫМ СОРЕВНОВАНИЕМ С СЕРВЕРОМ
+        // УМНАЯ ЛОГИКА КЛИКЕРА С БУФЕРИЗАЦИЕЙ С ЗАПРОСАМИ НА БЭК
         function executeCoinClick() {
             currentUser.balance += 1;
             accumulatedClicks += 1;
             
-            // Моментально обновляем интерфейс для плавности (60fps ощущение)
+            // Мгновенный апдейт интерфейса на клиенте
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
 
-            // Откладываем отправку на сервер на 1.5 секунды, накапливая клики
+            // Откладываем отправку на сервер на 1.5 секунды, плавно суммируя клики
             clearTimeout(clickSyncTimeout);
             clickSyncTimeout = setTimeout(syncClicksWithBackend, 1500);
         }
@@ -594,10 +596,10 @@
         async function syncClicksWithBackend() {
             if (accumulatedClicks === 0) return;
             let clicksToSend = accumulatedClicks;
-            accumulatedClicks = 0; // Сбрасываем буфер
+            accumulatedClicks = 0; // Очищаем буфер перед сетевым запросом
 
             try {
-                // Используем существующий эндпоинт результатов игр для начисления баланса (отправляем как чистый выигрыш с нулевой ставкой)
+                // Кидаем на старый добрый эндпоинт результатов: bet=0, winAmount = числу накопленных кликов
                 let res = await fetch(`${API_URL}/api/game/result`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -606,12 +608,12 @@
                 currentUser = await res.json();
                 updateUI();
             } catch(e) {
-                // Если сеть упала, возвращаем клики обратно в буфер для следующей попытки
+                // При проблемах со связью возвращаем клики обратно, чтобы дослать при следующем тапе
                 accumulatedClicks += clicksToSend;
             }
         }
 
-        // СЛОТЫ 
+        // КИНЕМАТОГРАФИЧНЫЕ СЛОТЫ
         function triggerSpin() {
             const betInput = document.getElementById('slot-bet');
             let bet = parseInt(betInput.value);
@@ -664,7 +666,7 @@
             }, 1500);
         }
 
-        // РАКЕТКА (CRASH)
+        // ЛОГИКА ДЛЯ ПЛАВНОЙ РАКЕТКИ (60 FPS)
         let crashState = 'idle'; 
         let crashAnimationId;
         let crashBetAmount = 0;
@@ -686,18 +688,10 @@
                 btn.innerText = 'ЗАБРАТЬ';
                 btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
                 
-                const E = 100; 
-                const random = Math.random();
-
-                if (random < 0.03) { 
-                    crashPoint = 1.00; 
-                } else {
-                    crashPoint = Math.floor((100 * E) / (100 - random * 99)) / E;
-                }
-
-                if (crashPoint > 50) {
-                    crashPoint = parseFloat((30 + Math.random() * 20).toFixed(2));
-                }
+                let e = Math.random();
+                if (e < 0.05) crashPoint = 1.00; 
+                else crashPoint = parseFloat((1.01 + (0.01 / (Math.random() + 0.001)) * 0.5).toFixed(2));
+                if(crashPoint > 50) crashPoint = 30 + Math.random() * 10; 
 
                 startTime = performance.now();
                 requestAnimationFrame(updateCrashLoop);
@@ -717,7 +711,7 @@
             if (crashState !== 'flying') return;
 
             let elapsed = (now - startTime) / 1000; 
-            currentMultiplier = parseFloat(Math.pow(1.07, elapsed * 6).toFixed(2));
+            currentMultiplier = parseFloat(Math.pow(1.08, elapsed * 6).toFixed(2));
             if (currentMultiplier < 1.00) currentMultiplier = 1.00;
 
             if (currentMultiplier >= crashPoint) {
