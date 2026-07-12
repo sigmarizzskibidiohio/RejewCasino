@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RejewCas</title>
+    <title>RejewCas Premium</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -15,7 +15,6 @@
             --red: #ff5252;
             --text: #ffffff;
             --text-secondary: #71717a;
-            --neon-glow: rgba(255, 215, 0, 0.12);
         }
 
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -23,15 +22,6 @@
             margin: 0; background: var(--bg); color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
-            position: relative;
-        }
-
-        .currency-bg {
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            pointer-events: none; opacity: 0.02; font-size: 1.5rem;
-            display: grid; grid-template-columns: repeat(6, 1fr);
-            gap: 40px; padding: 20px; user-select: none; z-index: 1;
-            font-weight: 900; overflow: hidden;
         }
 
         #toast-container {
@@ -65,18 +55,25 @@
             background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
             border-radius: 20px; padding: 6px 12px; display: flex; align-items: center;
             gap: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
+            transition: transform 0.2s ease;
         }
+        .capsule:active { transform: scale(0.95); }
         .capsule.wallet { border-color: rgba(0, 230, 118, 0.15); color: var(--green); }
 
+        /* АНИМАЦИЯ ПЛАВНЫХ ПЕРЕХОДОВ МЕЖДУ ЭКРАНАМИ */
         .main-container {
             flex: 1; margin-top: 75px; margin-bottom: 75px;
-            position: relative; width: 100%; z-index: 2; overflow-y: auto;
+            position: relative; width: 100%; z-index: 2; overflow-x: hidden; overflow-y: auto;
         }
         .screen {
             display: none; padding: 20px; flex-direction: column; align-items: center;
             width: 100%; min-height: 100%;
+            opacity: 0; transform: translateY(15px);
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
-        .screen.active { display: flex; }
+        .screen.active {
+            display: flex; opacity: 1; transform: translateY(0);
+        }
 
         .game-card, .profile-card, .panel-card {
             background: var(--surface); border: 1px solid rgba(255, 215, 0, 0.08);
@@ -84,21 +81,45 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 15px;
         }
 
+        /* СОЧНЫЕ СЛОТЫ С ЭФФЕКТОМ ОТСКОКА */
         .reels { display: flex; gap: 12px; margin: 25px 0; background: #0c0c0e; padding: 15px 25px; border-radius: 16px; width: 100%; justify-content: center; }
-        .reel { font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; }
+        .reel { 
+            font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; 
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.35), filter 0.1s ease; 
+        }
+        .reel.spinning {
+            filter: blur(5px);
+            transform: scale(1.08) translateY(-5px);
+        }
         
-        .bet-input-wrapper { width: 100%; margin-bottom: 20px; }
+        /* ПЛАВНАЯ РАКЕТКА (CRASH ARENA) */
+        .crash-arena {
+            width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px;
+            position: relative; overflow: hidden; margin: 15px 0;
+            border: 1px solid rgba(255,255,255,0.04);
+        }
+        .rocket {
+            position: absolute; bottom: 15px; left: 15px; font-size: 2.5rem;
+            z-index: 5; will-change: transform; transform-origin: center;
+        }
+        .crash-multiplier {
+            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 3rem; font-weight: 900; color: #fff; z-index: 4;
+            text-shadow: 0 0 20px rgba(255,255,255,0.2);
+        }
+        .crash-svg-path {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2;
+        }
+
+        .bet-input-wrapper { width: 100%; margin-bottom: 15px; }
         .bet-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px; display: block; text-transform: uppercase; }
-        .bet-field-group { display: flex; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; }
+        .bet-field-group { display: flex; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
         .bet-input { flex: 1; background: transparent; border: none; color: #fff; font-size: 1.1rem; font-weight: 700; padding: 12px; outline: none; }
         .max-btn { background: var(--surface-accent); border: none; color: var(--gold); font-size: 0.8rem; font-weight: 700; padding: 0 15px; cursor: pointer; }
 
-        .action-btn { background: linear-gradient(135deg, var(--gold), #d4af37); border: none; color: #000; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; transition: all 0.1s; text-transform: uppercase; }
-        .action-btn:active { transform: scale(0.98); }
-        .action-btn:disabled { opacity: 0.5; }
-
-        .rocket-zone { text-align: center; display: flex; flex-direction: column; justify-content: space-between; min-height: 300px; width: 100%; }
-        .rocket-graph { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 3.8rem; font-weight: 900; color: var(--green); text-shadow: 0 0 20px rgba(0, 230, 118, 0.2); }
+        .action-btn { background: linear-gradient(135deg, var(--gold), #d4af37); border: none; color: #000; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; }
+        .action-btn:active { transform: scale(0.96); opacity: 0.9; }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
         .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; text-align: left; }
         .avatar-stub { width: 65px; height: 65px; background: var(--surface-accent); border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
@@ -117,9 +138,12 @@
         .shop-item-info { display: flex; flex-direction: column; text-align: left; max-width: 70%; }
         .shop-item-name { font-size: 0.88rem; font-weight: 700; color: #fff; }
         .shop-item-cost { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
-        .buy-btn { background: var(--surface-accent); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; }
-        .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; }
-        .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; }
+        .buy-btn { background: var(--surface-accent); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .buy-btn:active { transform: scale(0.95); }
+        .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; transform: none; }
+        .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; transform: none; }
+
+        .msg-box { background: #0c0c0e; padding: 10px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px; text-align: left; font-size: 0.8rem; }
 
         nav {
             position: fixed; bottom: 0; width: 100%; height: 68px;
@@ -129,22 +153,23 @@
         .nav-item {
             display: flex; flex-direction: column; align-items: center;
             color: var(--text-secondary); background: none; border: none;
-            cursor: pointer; font-size: 0.75rem; gap: 5px; font-weight: 600; flex: 1;
+            cursor: pointer; font-size: 0.72rem; gap: 5px; font-weight: 600; flex: 1;
+            transition: color 0.2s ease, transform 0.1s ease;
         }
+        .nav-item:active { transform: scale(0.93); }
         .nav-item.active { color: var(--gold); }
-        .nav-item svg { fill: currentColor; width: 22px; height: 22px; }
+        .nav-item svg { fill: currentColor; width: 20px; height: 20px; }
     </style>
 </head>
 <body>
 
-    <div class="currency-bg" id="currency-layer"></div>
     <div id="toast-container"></div>
 
     <header>
         <div class="brand">Rejew<span>Cas</span></div>
         <div class="header-capsules">
             <div class="capsule wallet" onclick="switchScreen('profile')">
-                <span id="header-bal">1,500</span> <span style="font-size:0.75rem;font-weight:800;color:var(--gold)">$RJC</span>
+                <span id="header-bal">0</span> <span style="font-size:0.75rem;font-weight:800;color:var(--gold)">$RJC</span>
             </div>
         </div>
     </header>
@@ -152,7 +177,7 @@
     <div class="main-container">
         <!-- СЛОТЫ -->
         <div id="screen-spins" class="screen active">
-            <div class="game-card" id="card-slots">
+            <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Classic Slots</div>
                 <div class="reels">
                     <div class="reel" id="r1">💎</div>
@@ -170,21 +195,27 @@
             </div>
         </div>
 
-        <!-- РАКЕТКА -->
-        <div id="screen-rocket" class="screen">
-            <div class="game-card" id="card-rocket" style="border-color: rgba(0, 230, 118, 0.12);">
-                <div class="rocket-zone">
-                    <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Crash Rocket</div>
-                    <div class="rocket-graph" id="rocket-multiplier">1.00x</div>
-                    <div class="bet-input-wrapper">
-                        <label class="bet-label">Ваша Ставка ($RJC)</label>
-                        <div class="bet-field-group">
-                            <input type="number" class="bet-input" id="rocket-bet" value="100" min="10">
-                            <button class="max-btn" onclick="setMaxBet('rocket-bet')">MAX</button>
-                        </div>
-                    </div>
-                    <button class="action-btn" id="rocket-btn" onclick="startRocket()" style="background: linear-gradient(135deg, var(--green), #00b358);">LAUNCH</button>
+        <!-- РАКЕТКА (CRASH) -->
+        <div id="screen-crash" class="screen">
+            <div class="game-card">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Ракетка (Crash)</div>
+                
+                <div class="crash-arena">
+                    <div class="crash-multiplier" id="crash-mult">1.00x</div>
+                    <div class="rocket" id="rocket-obj">🚀</div>
+                    <svg class="crash-svg-path">
+                        <path id="flight-line" d="M 15 185 Q 15 185 15 185" stroke="rgba(255, 215, 0, 0.4)" stroke-width="3" fill="none" />
+                    </svg>
                 </div>
+
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Ставка на полет ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="crash-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('crash-bet')">MAX</button>
+                    </div>
+                </div>
+                <button class="action-btn" id="crash-btn" onclick="triggerCrashAction()" style="background: linear-gradient(135deg, var(--green), #00c853);">ВЗЛЕТ</button>
             </div>
         </div>
 
@@ -193,13 +224,10 @@
             <div class="shop-section">
                 <div class="shop-title">🌍 Паспорта и Инвестиции</div>
                 <div id="citizenship-shop"></div>
-
                 <div class="shop-title">🚗 Элитный Гараж</div>
                 <div id="cars-shop"></div>
-
                 <div class="shop-title">🏰 Премиальная Недвижимость</div>
                 <div id="houses-shop"></div>
-
                 <div class="shop-title">🚢 Королевские Яхты</div>
                 <div id="yachts-shop"></div>
             </div>
@@ -209,7 +237,7 @@
         <div id="screen-profile" class="screen">
             <div class="profile-card">
                 <div class="profile-header">
-                    <div class="avatar-stub" id="prof-avatar">👑</div>
+                    <div class="avatar-stub" id="prof-avatar">🕹️</div>
                     <div>
                         <div style="display:flex; align-items:center; gap:8px;">
                             <h3 style="margin:0; font-weight:800; font-size:1.2rem;" id="prof-name">Игрок</h3>
@@ -228,7 +256,7 @@
                 </div>
 
                 <div id="player-stats-block">
-                    <h4 style="text-align:left; margin:15px 0 8px 0; font-size:0.8rem; color:var(--text-secondary); text-transform:uppercase;">Ваша статистика игр</h4>
+                    <h4 style="text-align:left; margin:15px 0 8px 0; font-size:0.8rem; color:var(--text-secondary); text-transform:uppercase;">Статистика сессии</h4>
                     <div class="stats-grid">
                         <div class="stat-box"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Всего</div></div>
                         <div class="stat-box"><div class="stat-val win" id="stat-wins">0</div><div class="stat-lbl">Победы</div></div>
@@ -239,18 +267,26 @@
 
             <!-- АДМИН-ПАНЕЛЬ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
-                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-панель управления</h4>
+                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
-                <button class="action-btn" onclick="adminExecute()">Начислить баланс</button>
+                <button class="action-btn" onclick="adminExecute()">Нарисовать бабки</button>
             </div>
 
             <!-- СИСТЕМА ПЕРЕВОДОВ -->
             <div class="panel-card">
-                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--text-secondary);">Перевод валюты $RJC</h4>
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--text-secondary);">Безопасный перевод $RJC</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                    <input type="text" id="transfer-target" placeholder="ID получателя или ник" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
-                    <input type="number" id="transfer-amount" placeholder="Сумма перевода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
-                    <button class="action-btn" onclick="processTransfer()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff;">Отправить коины</button>
+                    <input type="text" id="transfer-target" placeholder="ID получателя" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <input type="text" id="transfer-comment" placeholder="Комментарий к переводу (опционально)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <input type="number" id="transfer-amount" placeholder="Сумма" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <button class="action-btn" onclick="processTransfer()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff;">Отправить</button>
+                </div>
+            </div>
+
+            <div class="panel-card" style="max-height: 250px; overflow-y: auto;">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--green);">Входящие переводы</h4>
+                <div id="incoming-messages-list">
+                    <div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>
                 </div>
             </div>
         </div>
@@ -261,8 +297,8 @@
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
             Спины
         </button>
-        <button class="nav-item" id="tab-rocket" onclick="switchScreen('rocket')">
-            <svg viewBox="0 0 24 24"><path d="M12 2.5c-5.25 0-9.5 4.25-9.5 9.5s4.25 9.5 9.5 9.5 9.5-4.25 9.5-9.5-4.25-9.5-9.5-9.5zm4.7 11.8l-1.4 1.4-3.3-3.3-3.3 3.3-1.4-1.4 3.3-3.3-3.3-3.3 1.4-1.4 3.3 3.3 3.3-3.3 1.4 1.4-3.3 3.3 3.3 3.3z"/></svg>
+        <button class="nav-item" id="tab-crash" onclick="switchScreen('crash')">
+            <svg viewBox="0 0 24 24"><path d="M13.13 2.18c-.38-.38-1.01-.38-1.39 0L2.35 11.56c-.47.47-.14 1.28.53 1.28H7v7c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-7h4.12c.67 0 1-.81.53-1.28L13.13 2.18z"/></svg>
             Ракетка
         </button>
         <button class="nav-item" id="tab-market" onclick="switchScreen('market')">
@@ -276,15 +312,27 @@
     </nav>
 
     <script>
+        // 🔗 ВСТАВЬ СЮДА URL СВОЕГО АПИ ПОСЛЕ ДЕПЛОЯ НА RENDER / RAILWAY
+        const API_URL = "http://localhost:3000"; 
+
         let tg;
         let username = 'root'; 
-        let userId = Math.floor(100000 + Math.random() * 900000).toString();
+        let userId = '777777'; 
         let nickname = 'Создатель';
-        let balance = 1500;
-        
-        let stats = { total: 0, wins: 0, losses: 0 };
-        let currentCitizenship = 'Без гражданства';
-        let ownedProperties = [];
+        let currentUser = { balance: 0, stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[] };
+
+        try {
+            tg = window.Telegram.WebApp;
+            tg.expand();
+            if(tg.initDataUnsafe && tg.initDataUnsafe.user) {
+                username = tg.initDataUnsafe.user.username || 'player';
+                userId = tg.initDataUnsafe.user.id.toString();
+                nickname = tg.initDataUnsafe.user.first_name || username;
+            }
+        } catch(e) {}
+
+        const normalizedUser = username.toLowerCase().replace('@', '');
+        const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
 
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
@@ -304,7 +352,7 @@
             { id: 'p_camry', name: '🚘 Toyota Camry 70', cost: 3200 },
             { id: 'p_porsche', name: '🏎️ Porsche 911 Turbo S', cost: 18000 },
             { id: 'p_lambo', name: '⚡ Lamborghini Revuelto', cost: 48000 },
-            { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon (2026)', cost: 160000 }
+            { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 }
         ];
 
         const housesList = [
@@ -323,22 +371,18 @@
             { id: 'p_history', name: '✨ History Supreme (Золотая)', cost: 2000000 }
         ];
 
-        try {
-            tg = window.Telegram.WebApp;
-            tg.expand();
-            if(tg.initDataUnsafe && tg.initDataUnsafe.user) {
-                username = tg.initDataUnsafe.user.username || 'player';
-                userId = tg.initDataUnsafe.user.id.toString();
-                nickname = tg.initDataUnsafe.user.first_name || username;
+        async function syncProfile() {
+            try {
+                let res = await fetch(`${API_URL}/api/user`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, username, nickname })
+                });
+                currentUser = await res.json();
+                updateUI();
+            } catch(e) {
+                showToast("Сервер отдыхает. Проверь API_URL", "error");
             }
-        } catch(e) {}
-
-        const normalizedUser = username.toLowerCase().replace('@', '');
-        const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
-
-        if (isOwner) {
-            currentCitizenship = '🇲🇨 Монако (Княжеское)';
-            ownedProperties.push('p_palace', 'p_boattail', 'c_monaco');
         }
 
         function showToast(message, type = 'success') {
@@ -355,10 +399,10 @@
         }
 
         function updateUI() {
-            document.getElementById('header-bal').innerText = balance.toLocaleString();
-            document.getElementById('prof-name').innerText = nickname;
-            document.getElementById('prof-id').innerText = userId;
-            document.getElementById('prof-citizen').innerText = `Гражданство: ${currentCitizenship}`;
+            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
+            document.getElementById('prof-name').innerText = currentUser.nickname;
+            document.getElementById('prof-id').innerText = currentUser.userId;
+            document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
 
             if (isOwner) {
                 document.getElementById('prof-status').innerText = 'Владелец';
@@ -373,9 +417,26 @@
                 document.getElementById('player-stats-block').style.display = 'block';
                 document.getElementById('prof-avatar').innerText = '🕹️';
                 
-                document.getElementById('stat-total').innerText = stats.total;
-                document.getElementById('stat-wins').innerText = stats.wins;
-                document.getElementById('stat-losses').innerText = stats.losses;
+                document.getElementById('stat-total').innerText = currentUser.stats.total;
+                document.getElementById('stat-wins').innerText = currentUser.stats.wins;
+                document.getElementById('stat-losses').innerText = currentUser.stats.losses;
+            }
+
+            const msgListBlock = document.getElementById('incoming-messages-list');
+            if (currentUser.messages && currentUser.messages.length > 0) {
+                msgListBlock.innerHTML = '';
+                [...currentUser.messages].reverse().forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'msg-box';
+                    div.innerHTML = `
+                        <div style="color:var(--green); font-weight:700; font-size:0.85rem;">+${msg.amount.toLocaleString()} $RJC</div>
+                        <div style="color:var(--text-secondary); font-size:0.7rem; margin-top:2px;">От: ${msg.from}</div>
+                        <div style="margin-top:4px; font-style:italic; color:#fff;">"${msg.comment}"</div>
+                    `;
+                    msgListBlock.appendChild(div);
+                });
+            } else {
+                msgListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
             }
 
             renderCategoryShop('citizenship-shop', citizenshipList, 'citizen');
@@ -394,20 +455,14 @@
                 div.className = 'shop-item';
                 
                 let btnHtml = '';
-                const isOwned = ownedProperties.includes(itemData.id) || (type === 'citizen' && currentCitizenship === itemData.name);
+                const isOwned = currentUser.ownedProperties.includes(itemData.id) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
 
                 if (itemData.special) {
-                    btnHtml = isOwner 
-                        ? `<button class="buy-btn owned">У Вас</button>` 
-                        : `<button class="buy-btn locked">Эксклюзив</button>`;
+                    btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
                 } else if (isOwned) {
                     btnHtml = `<button class="buy-btn owned">Куплено</button>`;
                 } else {
-                    if (type === 'citizen') {
-                        btnHtml = `<button class="buy-btn" onclick="buyCitizenship('${itemData.id}', '${itemData.name}', ${itemData.cost})">Инвестировать</button>`;
-                    } else {
-                        btnHtml = `<button class="buy-btn" onclick="buyProperty('${itemData.id}', '${itemData.name}', ${itemData.cost})">Купить</button>`;
-                    }
+                    btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
                 }
 
                 div.innerHTML = `
@@ -421,20 +476,277 @@
             });
         }
 
-        function buyCitizenship(id, name, cost) {
-            if (balance < cost) return showToast("Не хватает $RJC на паспорт!", 'error');
-            balance -= cost;
-            currentCitizenship = name;
-            showToast(`🎉 Паспорт ${name} успешно получен!`, 'gold');
-            updateUI();
+        async function buyItem(itemId, itemName, cost, type) {
+            if (currentUser.balance < cost) return showToast("Не хватает $RJC на эту сделку!", 'error');
+            try {
+                let res = await fetch(`${API_URL}/api/buy`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, itemId, itemName, cost, type })
+                });
+                let data = await res.json();
+                if(data.error) return showToast(data.error, 'error');
+                currentUser = data;
+                showToast(`🎉 Успешная покупка: ${itemName}`, 'gold');
+                updateUI();
+            } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
-        function buyProperty(id, name, cost) {
-            if (balance < cost) return showToast("Не хватает $RJC для этой сделки!", 'error');
-            balance -= cost;
-            ownedProperties.push(id);
-            showToast(`📦 Куплено: ${name}!`, 'success');
-            updateUI();
+        async function processTransfer() {
+            const targetId = document.getElementById('transfer-target').value.trim();
+            const comment = document.getElementById('transfer-comment').value.trim() || 'Без комментария';
+            const amount = parseInt(document.getElementById('transfer-amount').value);
+
+            if (!targetId) return showToast("Введите ID получателя", 'error');
+            if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
+            if (currentUser.balance < amount) return showToast("Недостаточно коинов!", 'error');
+
+            try {
+                let res = await fetch(`${API_URL}/api/transfer`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fromUserId: userId, toUserId: targetId, amount, comment })
+                });
+                let data = await res.json();
+                if(data.error) return showToast(data.error, 'error');
+                
+                showToast(`💸 Перевод выполнен!`, 'success');
+                document.getElementById('transfer-target').value = '';
+                document.getElementById('transfer-comment').value = '';
+                document.getElementById('transfer-amount').value = '';
+                syncProfile();
+            } catch(e) { showToast("Ошибка отправки перевода", "error"); }
+        }
+
+        // АНИМАЦИЯ ПЛАВНОГО ПЕРЕКЛЮЧЕНИЯ ВКЛАДОК
+        function switchScreen(screenName) {
+            const activeScreen = document.querySelector('.screen.active');
+            const nextScreen = document.getElementById(`screen-${screenName}`);
+            
+            if (activeScreen) {
+                activeScreen.style.opacity = '0';
+                activeScreen.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    activeScreen.classList.remove('active');
+                    nextScreen.classList.add('active');
+                    // Юзаем таймаут для плавного рендеринга
+                    setTimeout(() => {
+                        nextScreen.style.opacity = '1';
+                        nextScreen.style.transform = 'translateY(0)';
+                    }, 20);
+                }, 150);
+            } else {
+                nextScreen.classList.add('active');
+                nextScreen.style.opacity = '1';
+                nextScreen.style.transform = 'translateY(0)';
+            }
+
+            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${screenName}`).classList.add('active');
+        }
+
+        function setMaxBet(inputId) {
+            document.getElementById(inputId).value = currentUser.balance;
+        }
+
+        // КИНЕМАТОГРАФИЧНЫЕ СЛОТЫ С MOTION BLUR И ОТСКОКОМ
+        function triggerSpin() {
+            const betInput = document.getElementById('slot-bet');
+            let bet = parseInt(betInput.value);
+
+            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
+
+            const spinBtn = document.getElementById('spin-btn');
+            spinBtn.disabled = true;
+
+            let rng = Math.random() * 100;
+            let r1, r2, r3, winAmount = 0, isWin = false, msg = '', status = 'loss';
+
+            if (rng < 5.0) { 
+                r1 = r2 = r3 = '💎'; winAmount = bet * 12; isWin = true; status = 'gold'; msg = `🎰 ДЖЕКПОТ! x12 (+${winAmount} $RJC)`;
+            } else if (rng < 16.0) { 
+                let fruit = slotItems[Math.floor(Math.random() * 3)];
+                r1 = r2 = r3 = fruit; winAmount = bet * 5; isWin = true; status = 'success'; msg = `🎉 Совпадение линий! x5 (+${winAmount} $RJC)`;
+            } else if (rng < 45.0) { 
+                let sym1 = slotItems[Math.floor(Math.random() * slotItems.length)];
+                r1 = sym1; r2 = sym1; r3 = slotItems[(slotItems.indexOf(sym1) + 1) % slotItems.length];
+                winAmount = Math.floor(bet * 1.5); isWin = true; status = 'success'; msg = `✨ Двойное комбо! (+${winAmount})`;
+            } else {
+                if (Math.random() < 0.5) {
+                    let fakeSym = slotItems[Math.floor(Math.random() * slotItems.length)];
+                    r1 = fakeSym; r2 = fakeSym;
+                    r3 = slotItems.filter(item => item !== fakeSym)[Math.floor(Math.random() * 4)];
+                } else {
+                    r1 = slotItems[0]; r2 = slotItems[2]; r3 = slotItems[4];
+                }
+                msg = "Мимо! Крути еще, коины любят риск.";
+            }
+
+            const reels = [document.getElementById('r1'), document.getElementById('r2'), document.getElementById('r3')];
+            
+            // Врубаем размытие и скейл
+            reels.forEach(r => r.classList.add('spinning'));
+
+            let i1 = setInterval(() => { reels[0].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
+            let i2 = setInterval(() => { reels[1].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
+            let i3 = setInterval(() => { reels[2].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
+
+            // Поэтапная остановка с отскоком (убираем класс spinning и даем встать)
+            setTimeout(() => { clearInterval(i1); reels[0].classList.remove('spinning'); reels[0].innerText = r1; }, 500);
+            setTimeout(() => { clearInterval(i2); reels[1].classList.remove('spinning'); reels[1].innerText = r2; }, 1000);
+            setTimeout(() => { 
+                clearInterval(i3); 
+                reels[2].classList.remove('spinning'); 
+                reels[2].innerText = r3; 
+
+                sendGameResult(bet, winAmount, isWin, msg, status);
+                spinBtn.disabled = false;
+            }, 1500);
+        }
+
+        // ЛОГИКА ДЛЯ ПЛАВНОЙ РАКЕТКИ (60 FPS)
+        let crashState = 'idle'; // idle, flying, crashed
+        let crashAnimationId;
+        let crashBetAmount = 0;
+        let currentMultiplier = 1.00;
+        let crashPoint = 0;
+        let startTime = 0;
+
+        function triggerCrashAction() {
+            const btn = document.getElementById('crash-btn');
+            if (crashState === 'idle') {
+                const betInput = document.getElementById('crash-bet');
+                crashBetAmount = parseInt(betInput.value);
+
+                if (isNaN(crashBetAmount) || crashBetAmount < 10) return showToast("Минимум — 10 $RJC!", 'error');
+                if (currentUser.balance < crashBetAmount) return showToast("Недостаточно баланса!", 'error');
+
+                // Локальный блок кнопок
+                crashState = 'flying';
+                currentMultiplier = 1.00;
+                btn.innerText = 'ЗАБРАТЬ';
+                btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+                
+                // Генерируем точку взрыва
+                let e = Math.random();
+                if (e < 0.05) crashPoint = 1.00; // Мгновенный взрыв
+                else crashPoint = parseFloat((1.01 + (0.01 / (Math.random() + 0.001)) * 0.5).toFixed(2));
+                if(crashPoint > 50) crashPoint = 30 + Math.random() * 10; // Лимит разумного
+
+                startTime = performance.now();
+                requestAnimationFrame(updateCrashLoop);
+            } else if (crashState === 'flying') {
+                // Игрок успел кэшаутнуться
+                crashState = 'idle';
+                cancelAnimationFrame(crashAnimationId);
+                
+                let winAmount = Math.floor(crashBetAmount * currentMultiplier);
+                showToast(`🚀 Забрал! Множитель: ${currentMultiplier.toFixed(2)}x (+${winAmount} $RJC)`, 'success');
+                
+                resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
+                sendGameResult(crashBetAmount, winAmount, true, `Выигрыш на Ракетке!`, 'success');
+            }
+        }
+
+        function updateCrashLoop(now) {
+            if (crashState !== 'flying') return;
+
+            let elapsed = (now - startTime) / 1000; // секунды
+            // Экспоненциальный рост множителя
+            currentMultiplier = parseFloat(Math.pow(1.08, elapsed * 6).toFixed(2));
+            if (currentMultiplier < 1.00) currentMultiplier = 1.00;
+
+            if (currentMultiplier >= crashPoint) {
+                // БУМ! Ракетка взорвалась
+                crashState = 'crashed';
+                document.getElementById('crash-mult').innerText = 'БУМ! 💥';
+                document.getElementById('crash-mult').style.color = 'var(--red)';
+                document.getElementById('rocket-obj').innerText = '💥';
+                
+                showToast(`Ракета взорвалась на ${crashPoint.toFixed(2)}x. Бабки сгорели.`, 'error');
+                
+                setTimeout(() => {
+                    resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
+                    document.getElementById('rocket-obj').innerText = '🚀';
+                    document.getElementById('crash-mult').style.color = '#fff';
+                }, 2000);
+
+                sendGameResult(crashBetAmount, 0, false, `Взрыв на Ракетке`, 'error');
+                return;
+            }
+
+            // Выводим множитель
+            document.getElementById('crash-mult').innerText = currentMultiplier.toFixed(2) + 'x';
+
+            // Плавные координаты полета ракеты (парабола)
+            let arenaWidth = document.querySelector('.crash-arena').clientWidth - 60;
+            let arenaHeight = 200 - 60;
+
+            let progress = Math.min(elapsed / 8, 1); // Полет длится визуально до 8 сек к краю
+            let targetX = 15 + (arenaWidth * progress);
+            let targetY = 185 - (arenaHeight * Math.pow(progress, 2));
+
+            const rocket = document.getElementById('rocket-obj');
+            rocket.style.transform = `translate(${targetX - 15}px, ${targetY - 185 + 15}px) rotate(${-progress * 25}deg)`;
+
+            // Рисуем линию следа ракеты
+            const path = document.getElementById('flight-line');
+            path.setAttribute('d', `M 15 185 Q ${targetX / 2} 185 ${targetX} ${targetY}`);
+
+            crashAnimationId = requestAnimationFrame(updateCrashLoop);
+        }
+
+        function resetCrashUI(text, background) {
+            const btn = document.getElementById('crash-btn');
+            btn.innerText = text;
+            btn.style.background = background;
+            crashState = 'idle';
+            document.getElementById('crash-mult').innerText = '1.00x';
+            
+            const rocket = document.getElementById('rocket-obj');
+            rocket.style.transform = `translate(0px, 0px) rotate(0deg)`;
+            document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
+        }
+
+        async function sendGameResult(bet, winAmount, isWin, msg, status) {
+            try {
+                let res = await fetch(`${API_URL}/api/game/result`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, bet, winAmount, isWin })
+                });
+                currentUser = await res.json();
+                showToast(msg, status);
+                updateUI();
+            } catch(e) {
+                showToast("Ошибка сохранения игры на сервере!", "error");
+            }
+        }
+
+        async function adminExecute() {
+            const amount = parseInt(document.getElementById('adm-amount').value);
+            if (isNaN(amount)) return;
+            try {
+                let res = await fetch(`${API_URL}/api/admin/add`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminUserId: userId, targetUserId: userId, amount })
+                });
+                let data = await res.json();
+                if(data.error) return showToast(data.error, 'error');
+                showToast(`💰 Баланс надут: +${amount} $RJC`, 'gold');
+                document.getElementById('adm-amount').value = '';
+                syncProfile();
+            } catch(e) { showToast("Ошибка админ-панели", "error"); }
+        }
+
+        function editNickname() {
+            const newName = prompt("Введи новое отображаемое имя:", currentUser.nickname);
+            if (newName && newName.trim().length > 0) {
+                nickname = newName.trim();
+                syncProfile();
+            }
         }
 
         function copyUserId() {
@@ -442,159 +754,8 @@
             showToast("ID скопирован в буфер обмена!", 'success');
         }
 
-        function editNickname() {
-            const newName = prompt("Введи новое отображаемое имя:", nickname);
-            if (newName && newName.trim().length > 0) {
-                nickname = newName.trim();
-                showToast("Имя профиля изменено!", 'success');
-                updateUI();
-            }
-        }
-
-        function processTransfer() {
-            const target = document.getElementById('transfer-target').value.trim();
-            const amount = parseInt(document.getElementById('transfer-amount').value);
-
-            if (!target) return showToast("Введите получателя", 'error');
-            if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
-            if (balance < amount) return showToast("Недостаточно коинов!", 'error');
-
-            balance -= amount;
-            showToast(`💸 ${amount} $RJC улетели к ${target}!`, 'success');
-            document.getElementById('transfer-target').value = '';
-            document.getElementById('transfer-amount').value = '';
-            updateUI();
-        }
-
-        function setMaxBet(inputId) {
-            document.getElementById(inputId).value = balance;
-        }
-
-        function switchScreen(screenName) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-            document.getElementById(`screen-${screenName}`).classList.add('active');
-            document.getElementById(`tab-${screenName}`).classList.add('active');
-        }
-
-        // КРУТИЛКА СЛОТОВ
-        function triggerSpin() {
-            const betInput = document.getElementById('slot-bet');
-            let bet = parseInt(betInput.value);
-
-            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
-            if (balance < bet) return showToast("Недостаточно баланса!", 'error');
-
-            balance -= bet;
-            updateUI();
-
-            const spinBtn = document.getElementById('spin-btn');
-            spinBtn.disabled = true;
-
-            let counter = 0;
-            const interval = setInterval(() => {
-                document.getElementById('r1').innerText = slotItems[Math.floor(Math.random() * slotItems.length)];
-                document.getElementById('r2').innerText = slotItems[Math.floor(Math.random() * slotItems.length)];
-                document.getElementById('r3').innerText = slotItems[Math.floor(Math.random() * slotItems.length)];
-                counter++;
-                
-                if (counter > 10) {
-                    clearInterval(interval);
-                    evaluateRNGSlots(bet, spinBtn);
-                }
-            }, 65);
-        }
-
-        function evaluateRNGSlots(bet, spinBtn) {
-            let rng = Math.random() * 100;
-            let r1, r2, r3;
-            stats.total++;
-
-            if (rng < 5.0) { 
-                r1 = r2 = r3 = '💎';
-                let win = bet * 12; balance += win; stats.wins++;
-                showToast(`🎰 СУПЕР КУШ! x12 (+${win} $RJC)`, 'gold');
-            } else if (rng < 15.0) {
-                let fruit = slotItems[Math.floor(Math.random() * 3)];
-                r1 = r2 = r3 = fruit;
-                let win = bet * 5; balance += win; stats.wins++;
-                showToast(`🎉 Совпадение линий! x5 (+${win} $RJC)`, 'success');
-            } else if (rng < 45.0) {
-                let sym1 = slotItems[Math.floor(Math.random() * slotItems.length)];
-                r1 = r2 = sym1; r3 = slotItems[(slotItems.indexOf(sym1)+1)%5];
-                let win = Math.floor(bet * 1.5); balance += win; stats.wins++;
-                showToast(`✨ Двойное комбо! Выигрыш: ${win}`, 'success');
-            } else {
-                r1 = '🍒'; r2 = '🍋'; r3 = '🍇'; stats.losses++;
-                showToast("Мимо кошелька. Крути еще!", 'error');
-            }
-
-            document.getElementById('r1').innerText = r1;
-            document.getElementById('r2').innerText = r2;
-            document.getElementById('r3').innerText = r3;
-            spinBtn.disabled = false;
-            updateUI();
-        }
-
-        // РАКЕТКА
-        let rocketInterval;
-        function startRocket() {
-            const btn = document.getElementById('rocket-btn');
-            const betInput = document.getElementById('rocket-bet');
-            let bet = parseInt(betInput.value);
-
-            if (btn.innerText === 'LAUNCH') {
-                if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
-                if (balance < bet) return showToast("Недостаточно баланса!", 'error');
-
-                balance -= bet;
-                updateUI();
-
-                btn.innerText = 'CASH OUT';
-                btn.style.background = 'linear-gradient(135deg, #ff9800, #e65100)';
-                
-                let mult = 1.00;
-                let crashPoint = Math.random() < 0.15 ? 1.00 : (Math.random() * 4 + 1.05).toFixed(2);
-
-                rocketInterval = setInterval(() => {
-                    if (mult >= crashPoint) {
-                        clearInterval(rocketInterval);
-                        stats.total++; stats.losses++;
-                        document.getElementById('rocket-multiplier').innerText = 'CRASHED';
-                        btn.innerText = 'LAUNCH';
-                        btn.style.background = 'linear-gradient(135deg, var(--green), #00b358)';
-                        showToast("Ракета взорвалась!", 'error');
-                        setTimeout(() => { document.getElementById('rocket-multiplier').innerText = '1.00x'; }, 1000);
-                        updateUI();
-                    } else {
-                        mult += 0.04;
-                        document.getElementById('rocket-multiplier').innerText = mult.toFixed(2) + 'x';
-                    }
-                }, 80);
-            } else {
-                clearInterval(rocketInterval);
-                stats.total++; stats.wins++;
-                let finalMult = parseFloat(document.getElementById('rocket-multiplier').innerText);
-                let win = Math.floor(bet * finalMult);
-                balance += win;
-                showToast(`🚀 Катапультировался на x${finalMult.toFixed(2)} (+${win} $RJC)`, 'success');
-                btn.innerText = 'LAUNCH';
-                btn.style.background = 'linear-gradient(135deg, var(--green), #00b358)';
-                updateUI();
-            }
-        }
-
-        function adminExecute() {
-            const amount = parseInt(document.getElementById('adm-amount').value);
-            if (!isNaN(amount)) {
-                balance += amount;
-                updateUI();
-                showToast(`💰 Начислено: +${amount} $RJC`, 'gold');
-                document.getElementById('adm-amount').value = '';
-            }
-        }
-
-        updateUI();
+        // Старт системы
+        syncProfile();
     </script>
 </body>
 </html>
