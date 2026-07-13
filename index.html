@@ -101,6 +101,14 @@
         }
         .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
 
+        /* ПЛИНКО АРЕНА */
+        .plinko-arena-wrapper {
+            width: 100%; background: #0c0c0e; border-radius: 16px;
+            padding: 10px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04);
+            display: flex; justify-content: center; align-items: center;
+        }
+        #plinko-canvas { max-width: 100%; height: auto; display: block; }
+
         .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
         .click-coin {
             width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37);
@@ -155,12 +163,12 @@
         .nav-item {
             display: flex; flex-direction: column; align-items: center;
             color: var(--text-secondary); background: none; border: none;
-            cursor: pointer; font-size: 0.72rem; gap: 5px; font-weight: 600; flex: 1;
+            cursor: pointer; font-size: 0.65rem; gap: 5px; font-weight: 600; flex: 1;
             transition: color 0.2s ease, transform 0.1s ease;
         }
         .nav-item:active { transform: scale(0.93); }
         .nav-item.active { color: var(--gold); }
-        .nav-item svg { fill: currentColor; width: 20px; height: 20px; }
+        .nav-item svg { fill: currentColor; width: 18px; height: 18px; }
     </style>
 </head>
 <body>
@@ -216,6 +224,25 @@
                     </div>
                 </div>
                 <button class="action-btn" id="crash-btn" onclick="triggerCrashAction()" style="background: linear-gradient(135deg, var(--green), #00c853);">ВЗЛЕТ</button>
+            </div>
+        </div>
+
+        <div id="screen-plinko" class="screen">
+            <div class="game-card">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (8 Линий)</div>
+                
+                <div class="plinko-arena-wrapper">
+                    <canvas id="plinko-canvas" width="320" height="340"></canvas>
+                </div>
+
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Ставка на шарик ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="plinko-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('plinko-bet')">MAX</button>
+                    </div>
+                </div>
+                <button class="action-btn" id="plinko-btn" onclick="triggerPlinko()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">БРОСИТЬ ШАРИК</button>
             </div>
         </div>
 
@@ -278,12 +305,11 @@
             </div>
 
             <div class="panel-card">
-                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--text-secondary);">Безопасный перевод $RJC</h4>
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">💎 Сервис переводов RejewPay</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                    <input type="text" id="transfer-target" placeholder="ID получателя" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
-                    <input type="text" id="transfer-comment" placeholder="Комментарий к переводу (опционально)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
-                    <input type="number" id="transfer-amount" placeholder="Сумма" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
-                    <button class="action-btn" onclick="processTransfer()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff;">Отправить</button>
+                    <input type="text" id="transfer-target" placeholder="Юзернейм получателя (без @)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <input type="number" id="transfer-amount" placeholder="Сумма перевода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <button class="action-btn" onclick="processTransfer()" style="background:linear-gradient(135deg, #ffd700, #b49400); color:#000;">Подтвердить и перевести</button>
                 </div>
             </div>
 
@@ -304,6 +330,10 @@
         <button class="nav-item" id="tab-crash" onclick="switchScreen('crash')">
             <svg viewBox="0 0 24 24"><path d="M13.13 2.18c-.38-.38-1.01-.38-1.39 0L2.35 11.56c-.47.47-.14 1.28.53 1.28H7v7c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-7h4.12c.67 0 1-.81.53-1.28L13.13 2.18z"/></svg>
             Ракетка
+        </button>
+        <button class="nav-item" id="tab-plinko" onclick="switchScreen('plinko')">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+            Плинко
         </button>
         <button class="nav-item" id="tab-clicker" onclick="switchScreen('clicker')">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/></svg>
@@ -419,11 +449,11 @@
             }, 3000);
         }
 
-        function quickFillTransfer(id) {
+        function quickFillTransfer(username) {
             const targetInput = document.getElementById('transfer-target');
-            if (targetInput) {
-                targetInput.value = id;
-                showToast(`ID ${id} подставлен для перевода!`, 'success');
+            if (targetInput && username) {
+                targetInput.value = username;
+                showToast(`Юзернейм ${username} добавлен для перевода!`, 'success');
                 targetInput.scrollIntoView({ behavior: 'smooth' });
             }
         }
@@ -466,21 +496,18 @@
                     const prefix = isOutgoing ? '-' : '+';
                     
                     const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
-                    const partnerId = isOutgoing ? (msg.toUserId || msg.targetId) : (msg.fromUserId || msg.senderId || msg.fromId);
+                    const partnerUser = isOutgoing ? msg.receiverUsername : msg.senderUsername;
 
                     div.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${msg.amount.toLocaleString()} $RJC</span>
                             <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
-                                ${isOutgoing ? 'Исходящий' : 'Входящий'}
+                                RejewPay
                             </span>
                         </div>
                         <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:4px;">
                             ${isOutgoing ? 'Кому' : 'От'}: 
-                            <span class="user-link" onclick="quickFillTransfer('${partnerId || ''}')">${partnerName}</span>
-                        </div>
-                        <div style="margin-top:6px; font-style:italic; color:#fff; font-size:0.78rem; border-left:2px solid var(--surface-accent); padding-left:6px;">
-                            "${msg.comment || 'Без комментария'}"
+                            <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} (@${partnerUser || 'id'})</span>
                         </div>
                     `;
                     transListBlock.appendChild(div);
@@ -543,30 +570,29 @@
             } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
+        /* ОБНОВЛЕННЫЕ ПЕРЕВОДЫ ЧЕРЕЗ REJEWPAY */
         async function processTransfer() {
-            const targetId = document.getElementById('transfer-target').value.trim();
-            const comment = document.getElementById('transfer-comment').value.trim() || 'Без комментария';
+            const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
             const amount = parseInt(document.getElementById('transfer-amount').value);
 
-            if (!targetId) return showToast("Введите ID получателя", 'error');
-            if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
+            if (!receiverUsername) return showToast("Введите юзернейм получателя", 'error');
+            if (isNaN(amount) || amount <= 0) return showToast("Некоректная сумма", 'error');
             if (currentUser.balance < amount) return showToast("Недостаточно коинов!", 'error');
 
             try {
-                let res = await fetch(`${API_URL}/api/transfer`, {
+                let res = await fetch(`${API_URL}/api/rejewpay/transfer`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ fromUserId: userId, toUserId: targetId, amount, comment })
+                    body: JSON.stringify({ senderId: userId, receiverUsername, amount })
                 });
                 let data = await res.json();
                 if(data.error) return showToast(data.error, 'error');
                 
-                showToast(`💸 Перевод выполнен!`, 'success');
+                showToast(`💸 RejewPay: Перевод выполнен успешно!`, 'success');
                 document.getElementById('transfer-target').value = '';
-                document.getElementById('transfer-comment').value = '';
                 document.getElementById('transfer-amount').value = '';
                 syncProfile();
-            } catch(e) { showToast("Ошибка отправки перевода", "error"); }
+            } catch(e) { showToast("Ошибка RejewPay", "error"); }
         }
 
         function switchScreen(screenName) {
@@ -587,12 +613,14 @@
                     setTimeout(() => {
                         nextScreen.style.opacity = '1';
                         nextScreen.style.transform = 'translateY(0)';
+                        if(screenName === 'plinko') initPlinkoCanvas();
                     }, 20);
                 }, 150);
             } else {
                 nextScreen.classList.add('active');
                 nextScreen.style.opacity = '1';
                 nextScreen.style.transform = 'translateY(0)';
+                if(screenName === 'plinko') initPlinkoCanvas();
             }
 
             document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
@@ -683,7 +711,6 @@
             }, 1500);
         }
 
-        /* ПОЛНОСТЬЮ ПЕРЕПИСАННАЯ ЧЕСТНАЯ МЕХАНИКА И МАТЕМАТИКА CRASH ПОЛЕТА */
         let crashState = 'idle'; 
         let crashBetAmount = 0;
         let currentMultiplier = 1.00;
@@ -705,14 +732,13 @@
                 btn.innerText = 'ЗАБРАТЬ';
                 btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
                 
-                // Честная математика: инвертированное распределение
-                // Позволяет ракете улетать далеко, убирая лимит 1.05
-                let rand = Math.random();
-                crashPoint = parseFloat((1 / (1 - rand + 0.05)).toFixed(2));
-                
-                // Гарантируем, что полет длится хотя бы до 1.10x, чтобы не было "мгновенного краша"
-                if (crashPoint < 1.10) {
-                    crashPoint = 1.10 + (Math.random() * 0.4);
+                let houseEdge = 0.03; 
+                if (Math.random() < houseEdge) {
+                    crashPoint = 1.00;
+                } else {
+                    let rand = Math.random();
+                    crashPoint = parseFloat((0.99 / (1 - rand)).toFixed(2));
+                    if (crashPoint < 1.01) crashPoint = 1.01;
                 }
 
                 crashStartTime = performance.now();
@@ -733,8 +759,6 @@
             if (crashState !== 'flying') return;
 
             let elapsed = (now - crashStartTime) / 1000;
-            
-            // Плавный рост, ускоряющийся со временем (экспоненциально)
             currentMultiplier = parseFloat((1.00 + Math.pow(elapsed, 1.6) * 0.08).toFixed(2));
 
             if (currentMultiplier >= crashPoint) {
@@ -761,7 +785,6 @@
             let maxW = arena.clientWidth - 50;
             let maxH = 200 - 50;
 
-            // Визуальный прогресс движения зависит от текущего икса, чтобы ракета летела адекватно множителю
             let progress = Math.min((currentMultiplier - 1) / 5, 0.95); 
             
             let curX = Math.floor(maxW * progress);
@@ -791,6 +814,172 @@
             const rocket = document.getElementById('rocket-obj');
             rocket.style.transform = `translate(0px, 0px) rotate(0deg)`;
             document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
+        }
+
+        /* ПОЛНАЯ РЕАЛИЗАЦИЯ ДИНАМИЧЕСКОГО ПЛИНКО НА CANVAS */
+        let plinkoCanvas, ctx;
+        const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
+        let plinkoPins = [];
+        let activeBalls = [];
+
+        function initPlinkoCanvas() {
+            plinkoCanvas = document.getElementById('plinko-canvas');
+            ctx = plinkoCanvas.getContext('2d');
+            generatePlinkoPins();
+            drawPlinkoBoard();
+        }
+
+        function generatePlinkoPins() {
+            plinkoPins = [];
+            let rows = 8;
+            let startY = 40;
+            let spacingY = 30;
+            
+            for (let r = 0; r < rows; r++) {
+                let pinsInRow = r + 3;
+                let spacingX = 26;
+                let startX = (plinkoCanvas.width - (pinsInRow - 1) * spacingX) / 2;
+                for (let p = 0; p < pinsInRow; p++) {
+                    plinkoPins.push({
+                        x: startX + p * spacingX,
+                        y: startY + r * spacingY
+                    });
+                }
+            }
+        }
+
+        function drawPlinkoBoard() {
+            ctx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
+            
+            // Отрисовка колышков
+            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            plinkoPins.forEach(pin => {
+                ctx.beginPath();
+                ctx.arc(pin.x, pin.y, 3, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Отрисовка лунок (контейнеров) внизу
+            let totalBuckets = 9;
+            let bWidth = 30;
+            let bHeight = 22;
+            let bGap = 3;
+            let startX = (plinkoCanvas.width - (totalBuckets * bWidth + (totalBuckets - 1) * bGap)) / 2;
+            let bY = plinkoCanvas.height - 30;
+
+            for (let i = 0; i < totalBuckets; i++) {
+                let curX = startX + i * (bWidth + bGap);
+                
+                // Цвет контейнера зависит от икса
+                let mult = plinkoMultipliers[i];
+                if (mult >= 5) ctx.fillStyle = 'rgba(255, 82, 82, 0.25)';
+                else if (mult >= 1) ctx.fillStyle = 'rgba(255, 215, 0, 0.25)';
+                else ctx.fillStyle = 'rgba(113, 113, 122, 0.2)';
+
+                ctx.strokeStyle = mult >= 5 ? varColor('red') : (mult >= 1 ? varColor('gold') : 'rgba(255,255,255,0.1)');
+                ctx.lineWidth = 1;
+                
+                ctx.beginPath();
+                ctx.roundRect(curX, bY, bWidth, bHeight, 4);
+                ctx.fill();
+                ctx.stroke();
+
+                // Текст множителя
+                ctx.fillStyle = '#fff';
+                ctx.font = 'bold 9px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(mult + 'x', curX + bWidth / 2, bY + 14);
+            }
+        }
+
+        function varColor(name) {
+            return name === 'red' ? '#ff5252' : (name === 'gold' ? '#ffd700' : '#00e676');
+        }
+
+        async function triggerPlinko() {
+            const betInput = document.getElementById('plinko-bet');
+            let bet = parseInt(betInput.value);
+
+            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
+
+            const btn = document.getElementById('plinko-btn');
+            btn.disabled = true;
+
+            try {
+                let res = await fetch(`${API_URL}/api/games/plinko`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ tgId: userId, bet: bet })
+                });
+                let data = await res.json();
+                
+                if (data.error) {
+                    btn.disabled = false;
+                    return showToast(data.error, 'error');
+                }
+
+                // Запуск шарика по траектории к выбранной бэкендом лунке
+                animatePlinkoBall(data.bucketIndex, data, () => {
+                    btn.disabled = false;
+                });
+
+            } catch(e) {
+                btn.disabled = false;
+                showToast("Ошибка коннекта к Плинко-серверу!", "error");
+            }
+        }
+
+        function animatePlinkoBall(targetBucket, serverData, callback) {
+            let ballX = plinkoCanvas.width / 2;
+            let ballY = 15;
+            let targetY = plinkoCanvas.height - 20;
+            
+            let totalBuckets = 9;
+            let bWidth = 30;
+            let bGap = 3;
+            let startX = (plinkoCanvas.width - (totalBuckets * bWidth + (totalBuckets - 1) * bGap)) / 2;
+            let targetX = startX + targetBucket * (bWidth + bGap) + bWidth / 2;
+
+            let startTime = performance.now();
+            let duration = 1800; // 1.8 секунды на падение
+
+            function step(now) {
+                let elapsed = now - startTime;
+                let progress = Math.min(elapsed / duration, 1);
+
+                // Физика падения: по Y ускоряется, по X плавно смещается со случайными покачиваниями (отскоками)
+                let currentY = 15 + (targetY - 15) * progress;
+                
+                let wave = Math.sin(progress * Math.PI * 6) * 12 * (1 - progress); 
+                let currentX = ballX + (targetX - ballX) * progress + wave;
+
+                drawPlinkoBoard();
+
+                // Рисуем падающий шарик
+                ctx.fillStyle = '#ff5252';
+                ctx.shadowBlur = 10;
+                ctx.shadowColor = '#ff5252';
+                ctx.beginPath();
+                ctx.arc(currentX, currentY, 5, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0; // Сброс тени
+
+                if (progress < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    // Шарик упал в лунку
+                    let isWin = serverData.multiplier >= 1;
+                    let toastStatus = serverData.multiplier >= 5 ? 'gold' : (isWin ? 'success' : 'error');
+                    let msg = `Плинко: Шарик упал на x${serverData.multiplier}! Всего: +${serverData.winAmount} $RJC`;
+                    
+                    showToast(msg, toastStatus);
+                    currentUser.balance = serverData.newBalance;
+                    updateUI();
+                    callback();
+                }
+            }
+            requestAnimationFrame(step);
         }
 
         async function sendGameResult(bet, winAmount, isWin, msg, status) {
