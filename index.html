@@ -308,6 +308,7 @@
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">💎 Сервис переводов RejewPay</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     <input type="text" id="transfer-target" placeholder="Юзернейм получателя (без @)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <input type="text" id="transfer-comment" placeholder="Комментарий к переводу" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;" maxlength="60">
                     <input type="number" id="transfer-amount" placeholder="Сумма перевода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
                     <button class="action-btn" onclick="processTransfer()" style="background:linear-gradient(135deg, #ffd700, #b49400); color:#000;">Подтвердить и перевести</button>
                 </div>
@@ -497,17 +498,19 @@
                     
                     const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
                     const partnerUser = isOutgoing ? msg.receiverUsername : msg.senderUsername;
+                    const commentText = msg.comment ? msg.comment : "Без комментария";
 
                     div.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${msg.amount.toLocaleString()} $RJC</span>
                             <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
-                                RejewPay
+                                ${isOutgoing ? 'Списание' : 'Зачисление'}
                             </span>
                         </div>
                         <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:4px;">
                             ${isOutgoing ? 'Кому' : 'От'}: 
                             <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} (@${partnerUser || 'id'})</span>
+                            <div style="background:rgba(0,0,0,0.2); padding:6px; border-radius:6px; margin-top:4px; color:#fff;">💬 ${commentText}</div>
                         </div>
                     `;
                     transListBlock.appendChild(div);
@@ -570,26 +573,28 @@
             } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
-        /* ОБНОВЛЕННЫЕ ПЕРЕВОДЫ ЧЕРЕЗ REJEWPAY */
+        /* ИСПРАВЛЕННЫЕ ПЕРЕВОДЫ REJEWPAY С КОММЕНТАРИЯМИ */
         async function processTransfer() {
             const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
+            const comment = document.getElementById('transfer-comment').value.trim();
             const amount = parseInt(document.getElementById('transfer-amount').value);
 
             if (!receiverUsername) return showToast("Введите юзернейм получателя", 'error');
-            if (isNaN(amount) || amount <= 0) return showToast("Некоректная сумма", 'error');
+            if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
             if (currentUser.balance < amount) return showToast("Недостаточно коинов!", 'error');
 
             try {
                 let res = await fetch(`${API_URL}/api/rejewpay/transfer`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ senderId: userId, receiverUsername, amount })
+                    body: JSON.stringify({ senderId: userId, receiverUsername, amount, comment })
                 });
                 let data = await res.json();
                 if(data.error) return showToast(data.error, 'error');
                 
                 showToast(`💸 RejewPay: Перевод выполнен успешно!`, 'success');
                 document.getElementById('transfer-target').value = '';
+                document.getElementById('transfer-comment').value = '';
                 document.getElementById('transfer-amount').value = '';
                 syncProfile();
             } catch(e) { showToast("Ошибка RejewPay", "error"); }
@@ -816,11 +821,10 @@
             document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
         }
 
-        /* ПОЛНАЯ РЕАЛИЗАЦИЯ ДИНАМИЧЕСКОГО ПЛИНКО НА CANVAS */
+        /* ОФИГЕННАЯ ПАРАБОЛИЧЕСКАЯ ФИЗИКА ДЛЯ ПЛИНКО НА CANVAS (НЕ ПРОСТО СЛАЙДЕР) */
         let plinkoCanvas, ctx;
         const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
         let plinkoPins = [];
-        let activeBalls = [];
 
         function initPlinkoCanvas() {
             plinkoCanvas = document.getElementById('plinko-canvas');
@@ -842,7 +846,9 @@
                 for (let p = 0; p < pinsInRow; p++) {
                     plinkoPins.push({
                         x: startX + p * spacingX,
-                        y: startY + r * spacingY
+                        y: startY + r * spacingY,
+                        row: r,
+                        idx: p
                     });
                 }
             }
@@ -851,49 +857,41 @@
         function drawPlinkoBoard() {
             ctx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
             
-            // Отрисовка колышков
-            ctx.fillStyle = 'rgba(255,255,255,0.6)';
+            ctx.fillStyle = 'rgba(255,255,255,0.4)';
             plinkoPins.forEach(pin => {
                 ctx.beginPath();
                 ctx.arc(pin.x, pin.y, 3, 0, Math.PI * 2);
                 ctx.fill();
             });
 
-            // Отрисовка лунок (контейнеров) внизу
             let totalBuckets = 9;
             let bWidth = 30;
             let bHeight = 22;
             let bGap = 3;
             let startX = (plinkoCanvas.width - (totalBuckets * bWidth + (totalBuckets - 1) * bGap)) / 2;
-            let bY = plinkoCanvas.height - 30;
+            let bY = plinkoCanvas.height - 35;
 
             for (let i = 0; i < totalBuckets; i++) {
                 let curX = startX + i * (bWidth + bGap);
-                
-                // Цвет контейнера зависит от икса
                 let mult = plinkoMultipliers[i];
-                if (mult >= 5) ctx.fillStyle = 'rgba(255, 82, 82, 0.25)';
-                else if (mult >= 1) ctx.fillStyle = 'rgba(255, 215, 0, 0.25)';
-                else ctx.fillStyle = 'rgba(113, 113, 122, 0.2)';
+                
+                if (mult >= 5) ctx.fillStyle = 'rgba(255, 82, 82, 0.15)';
+                else if (mult >= 1) ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
+                else ctx.fillStyle = 'rgba(113, 113, 122, 0.08)';
 
-                ctx.strokeStyle = mult >= 5 ? varColor('red') : (mult >= 1 ? varColor('gold') : 'rgba(255,255,255,0.1)');
+                ctx.strokeStyle = mult >= 5 ? '#ff5252' : (mult >= 1 ? '#ffd700' : 'rgba(255,255,255,0.1)');
                 ctx.lineWidth = 1;
                 
                 ctx.beginPath();
-                ctx.roundRect(curX, bY, bWidth, bHeight, 4);
+                ctx.roundRect(curX, bY, bWidth, bHeight, 5);
                 ctx.fill();
                 ctx.stroke();
 
-                // Текст множителя
-                ctx.fillStyle = '#fff';
+                ctx.fillStyle = mult >= 5 ? '#ff5252' : (mult >= 1 ? '#ffd700' : '#71717a');
                 ctx.font = 'bold 9px sans-serif';
                 ctx.textAlign = 'center';
                 ctx.fillText(mult + 'x', curX + bWidth / 2, bY + 14);
             }
-        }
-
-        function varColor(name) {
-            return name === 'red' ? '#ff5252' : (name === 'gold' ? '#ffd700' : '#00e676');
         }
 
         async function triggerPlinko() {
@@ -919,7 +917,6 @@
                     return showToast(data.error, 'error');
                 }
 
-                // Запуск шарика по траектории к выбранной бэкендом лунке
                 animatePlinkoBall(data.bucketIndex, data, () => {
                     btn.disabled = false;
                 });
@@ -930,72 +927,83 @@
             }
         }
 
+        // Честный параболический просчет пути через колышки
         function animatePlinkoBall(targetBucket, serverData, callback) {
-            let ballX = plinkoCanvas.width / 2;
-            let ballY = 15;
-            let targetY = plinkoCanvas.height - 20;
-            
-            let totalBuckets = 9;
-            let bWidth = 30;
-            let bGap = 3;
-            let startX = (plinkoCanvas.width - (totalBuckets * bWidth + (totalBuckets - 1) * bGap)) / 2;
-            let targetX = startX + targetBucket * (bWidth + bGap) + bWidth / 2;
+            let pathPoints = [];
+            pathPoints.push({ x: plinkoCanvas.width / 2, y: 15 });
 
+            let curRow = 0;
+            let curIdx = 1; 
+            let p0 = plinkoPins.find(p => p.row === 0 && p.idx === 1);
+            if(p0) pathPoints.push({ x: p0.x, y: p0.y });
+
+            let targetRow7Pin = (targetBucket === 0) ? 1 : (targetBucket === 8 ? 8 : (Math.random() > 0.5 ? targetBucket : targetBucket + 1));
+            let numRights = targetRow7Pin - 1;
+            let numLefts = 7 - numRights;
+
+            let rowDecisions = [];
+            for (let i = 0; i < numRights; i++) rowDecisions.push(1);
+            for (let i = 0; i < numLefts; i++) rowDecisions.push(0);
+            rowDecisions.sort(() => Math.random() - 0.5);
+
+            for (let i = 0; i < rowDecisions.length; i++) {
+                curRow++;
+                if (rowDecisions[i] === 1) curIdx++;
+                let pin = plinkoPins.find(p => p.row === curRow && p.idx === curIdx);
+                if(pin) pathPoints.push({ x: pin.x, y: pin.y });
+            }
+
+            let startX_b = (plinkoCanvas.width - (9 * 30 + 8 * 3)) / 2;
+            let bucketFinalX = startX_b + targetBucket * 33 + 15;
+            pathPoints.push({ x: bucketFinalX, y: plinkoCanvas.height - 24 });
+
+            let currentSegment = 0;
+            let bounceDuration = 140; 
             let startTime = performance.now();
-            let duration = 1800; // 1.8 секунды на падение
 
-            function step(now) {
+            function stepPhysics(now) {
                 let elapsed = now - startTime;
-                let progress = Math.min(elapsed / duration, 1);
+                let progress = Math.min(elapsed / bounceDuration, 1);
 
-                // Физика падения: по Y ускоряется, по X плавно смещается со случайными покачиваниями (отскоками)
-                let currentY = 15 + (targetY - 15) * progress;
-                
-                let wave = Math.sin(progress * Math.PI * 6) * 12 * (1 - progress); 
-                let currentX = ballX + (targetX - ballX) * progress + wave;
+                let p1 = pathPoints[currentSegment];
+                let p2 = pathPoints[currentSegment + 1];
+
+                let currentX = p1.x + (p2.x - p1.x) * progress;
+                let currentY = p1.y + (p2.y - p1.y) * progress;
+
+                if (currentSegment < pathPoints.length - 1) {
+                    let bounceHeight = 10;
+                    currentY -= Math.sin(progress * Math.PI) * bounceHeight;
+                }
 
                 drawPlinkoBoard();
 
-                // Рисуем падающий шарик
                 ctx.fillStyle = '#ff5252';
                 ctx.shadowBlur = 10;
                 ctx.shadowColor = '#ff5252';
                 ctx.beginPath();
                 ctx.arc(currentX, currentY, 5, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.shadowBlur = 0; // Сброс тени
+                ctx.shadowBlur = 0;
 
                 if (progress < 1) {
-                    requestAnimationFrame(step);
+                    requestAnimationFrame(stepPhysics);
                 } else {
-                    // Шарик упал в лунку
-                    let isWin = serverData.multiplier >= 1;
-                    let toastStatus = serverData.multiplier >= 5 ? 'gold' : (isWin ? 'success' : 'error');
-                    let msg = `Плинко: Шарик упал на x${serverData.multiplier}! Всего: +${serverData.winAmount} $RJC`;
-                    
-                    showToast(msg, toastStatus);
-                    currentUser.balance = serverData.newBalance;
-                    updateUI();
-                    callback();
+                    currentSegment++;
+                    if (currentSegment < pathPoints.length - 1) {
+                        startTime = performance.now();
+                        requestAnimationFrame(stepPhysics);
+                    } else {
+                        let isWin = serverData.multiplier >= 1;
+                        let toastStatus = serverData.multiplier >= 5 ? 'gold' : (isWin ? 'success' : 'error');
+                        showToast(`Плинко: Лунка x${serverData.multiplier}! Получено +${serverData.winAmount} $RJC`, toastStatus);
+                        currentUser.balance = serverData.newBalance;
+                        updateUI();
+                        callback();
+                    }
                 }
             }
-            requestAnimationFrame(step);
-        }
-
-        async function sendGameResult(bet, winAmount, isWin, msg, status) {
-            try {
-                let res = await fetch(`${API_URL}/api/game/result`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, bet, winAmount, isWin })
-                });
-                currentUser = await res.json();
-                forceOwnerLuxuries(currentUser);
-                showToast(msg, status);
-                updateUI();
-            } catch(e) {
-                showToast("Ошибка сохранения игры на сервере!", "error");
-            }
+            requestAnimationFrame(stepPhysics);
         }
 
         async function adminExecute() {
