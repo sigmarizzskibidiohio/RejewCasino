@@ -664,6 +664,23 @@
             }
         }
 
+        /* УНИВЕРСАЛЬНЫЙ СИНХРОНИЗАТОР ИГР С БЭКЕНДОМ */
+        async function sendGameResult(bet, winAmount, isWin, msg, status) {
+            try {
+                let res = await fetch(`${API_URL}/api/game/result`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, bet, winAmount, isWin })
+                });
+                currentUser = await res.json();
+                forceOwnerLuxuries(currentUser);
+                updateUI();
+                if (msg) showToast(msg, status || 'success');
+            } catch(e) {
+                showToast("Ошибка сохранения результата игры", "error");
+            }
+        }
+
         function triggerSpin() {
             const betInput = document.getElementById('slot-bet');
             let bet = parseInt(betInput.value);
@@ -756,7 +773,7 @@
                 showToast(`🚀 Забрал! Множитель: ${currentMultiplier.toFixed(2)}x (+${winAmount} $RJC)`, 'success');
                 
                 resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
-                sendGameResult(crashBetAmount, winAmount, true, `Выигрыш на Ракетке!`, 'success');
+                sendGameResult(crashBetAmount, winAmount, true, null, 'success');
             }
         }
 
@@ -780,7 +797,7 @@
                     document.getElementById('crash-mult').style.color = '#fff';
                 }, 2200);
 
-                sendGameResult(crashBetAmount, 0, false, `Взрыв на Ракетке`, 'error');
+                sendGameResult(crashBetAmount, 0, false, null, 'error');
                 return;
             }
 
@@ -908,7 +925,7 @@
                 let res = await fetch(`${API_URL}/api/games/plinko`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ tgId: userId, bet: bet })
+                    body: JSON.stringify({ userId: userId, bet: bet })
                 });
                 let data = await res.json();
                 
