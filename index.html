@@ -24,6 +24,13 @@
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
+        /* Экран тех. обслуживания */
+        #maintenance-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #09090b; z-index: 99999; flex-direction: column;
+            align-items: center; justify-content: center; padding: 30px; text-align: center;
+        }
+
         #toast-container {
             position: fixed; top: 80px; right: 20px;
             z-index: 9999; display: flex; flex-direction: column; gap: 10px;
@@ -172,6 +179,13 @@
 </head>
 <body>
 
+    <!-- ЭКРАН ТЕХОБСЛУЖИВАНИЯ -->
+    <div id="maintenance-screen">
+        <h1 style="font-size: 4rem; margin: 0;">🛠️</h1>
+        <h2 style="color: var(--gold); text-transform: uppercase; font-weight: 900; letter-spacing: 1px;">Технические работы</h2>
+        <p style="color: var(--text-secondary); max-width: 280px; font-size: 0.9rem;">Казино временно закрыто на обслуживание. Разработчик крутит гайки. Зайди чуть позже!</p>
+    </div>
+
     <div id="toast-container"></div>
 
     <header>
@@ -228,7 +242,7 @@
 
         <div id="screen-plinko" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (8 Линий)</div>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Квадрат точек)</div>
                 
                 <div class="plinko-arena-wrapper">
                     <canvas id="plinko-canvas" width="320" height="340"></canvas>
@@ -297,11 +311,16 @@
                 </div>
             </div>
 
-            <!-- МОДЕРНИЗИРОВАННАЯ АДМИН-ПАНЕЛЬ С КОНФИГУРАТОРОМ ПРОМИКОВ -->
+            <!-- МОДЕРНИЗИРОВАННАЯ АДМИН-ПАНЕЛЬ С УПРАВЛЕНИЕМ ТЕХОБСЛУЖИВАНИЕМ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
-                <button class="action-btn" onclick="adminExecute()" style="margin-bottom: 20px;">Нарисовать бабки</button>
+                <button class="action-btn" onclick="adminExecute()" style="margin-bottom: 12px;">Нарисовать бабки</button>
+
+                <!-- ОДНА КНОПКА ДЛЯ ТЕХ. ОБСЛУЖИВАНИЯ -->
+                <button class="action-btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="background: linear-gradient(135deg, var(--red), #c62828); color: #fff; margin-bottom: 20px;">
+                    Включить техобслуживание
+                </button>
 
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 15px;">Создать Промокод</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
@@ -394,6 +413,7 @@
 
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
+        // ЕЩЕ БОЛЬШЕ ТОВАРОВ: РАЗДУЛ СПИСКИ ДЛЯ МАРКЕТА
         const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
@@ -406,7 +426,9 @@
             { id: 'c_singapore', name: '🇸🇬 Сингапур (Бизнес)', cost: 480000 },
             { id: 'c_uk', name: '🇬🇧 Великобритания (Tier 1)', cost: 750000 },
             { id: 'c_usa', name: '🇺🇸 США (EB-5 Инвестор)', cost: 1500000 },
-            { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 5000000 }
+            { id: 'c_japan', name: '🇯🇵 Япония (Императорский ВНЖ)', cost: 3000000 },
+            { id: 'c_crypto', name: '🐳 Эль-Сальвадор (Биткоин Кинг)', cost: 4500000 },
+            { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 8000000 }
         ];
 
         const carsList = [
@@ -421,7 +443,9 @@
             { id: 'p_ferrari', name: '🐎 Ferrari SF90 Stradale', cost: 90000 },
             { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 },
             { id: 'p_jesko', name: '🛸 Koenigsegg Jesko Absolut', cost: 450000 },
-            { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 2000000 }
+            { id: 'p_pagani', name: '🎭 Pagani Utopia Roadster', cost: 950000 },
+            { id: 'p_rolls', name: '💎 Rolls-Royce La Rose Noire', cost: 1500000 },
+            { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 }
         ];
 
         const housesList = [
@@ -435,8 +459,10 @@
             { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000 },
             { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000 },
             { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000 },
-            { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 3000000 },
-            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 7000000 }
+            { id: 'p_penthouse_ny', name: '🗽 Центральный Парк Пентхаус', cost: 1800000 },
+            { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 4000000 },
+            { id: 'p_moon_base', name: '🌙 Станция на Луне "Luna-1"', cost: 6500000 },
+            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000 }
         ];
 
         const yachtsList = [
@@ -446,8 +472,9 @@
             { id: 'p_azimut', name: '🚢 Azimut 66 Fly', cost: 28000 },
             { id: 'p_benetti', name: '⚓ Benetti Oasis 40M', cost: 120000 },
             { id: 'p_eclipse', name: '⚓ Мегаяхта "Eclipse"', cost: 500000 },
-            { id: 'p_nautilus', name: '🐙 Подлодка Наутилус', cost: 1100000 },
-            { id: 'p_history', name: '✨ History Supreme (Золотая)', cost: 2000000 },
+            { id: 'p_somnio', name: '🏢 Яхта-лайнер Somnio Residential', cost: 900000 },
+            { id: 'p_nautilus', name: '🐙 Подлодка Наутилус', cost: 1500000 },
+            { id: 'p_history', name: '✨ History Supreme (Золотая)', cost: 3000000 },
             { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 }
         ];
 
@@ -477,6 +504,19 @@
                     body: JSON.stringify({ userId, username, nickname })
                 });
                 currentUser = await res.json();
+                
+                // Чек тех. обслуживания
+                if (currentUser.maintenanceActive) {
+                    if (!isOwner) {
+                        document.getElementById('maintenance-screen').style.display = 'flex';
+                        return;
+                    } else {
+                        showToast("⚠️ Активен режим техобслуживания. Доступ только у тебя!", "error");
+                    }
+                } else {
+                    document.getElementById('maintenance-screen').style.display = 'none';
+                }
+
                 forceOwnerLuxuries(currentUser);
                 updateUI();
             } catch(e) {
@@ -516,6 +556,15 @@
 
             const clickPower = getClickPower();
             document.getElementById('clicker-profit-label').innerText = `+${clickPower} $RJC за каждый тап`;
+
+            const btnMaint = document.getElementById('maint-toggle-btn');
+            if (currentUser.maintenanceActive) {
+                btnMaint.innerText = "ВЫЙТИ ИЗ ТЕХОБСЛУЖИВАНИЯ";
+                btnMaint.style.background = "linear-gradient(135deg, var(--green), #00c853)";
+            } else {
+                btnMaint.innerText = "ЗАКРЫТЬ НА ТЕХОБСЛУЖИВАНИЕ";
+                btnMaint.style.background = "linear-gradient(135deg, var(--red), #c62828)";
+            }
 
             if (isOwner) {
                 document.getElementById('prof-status').innerText = 'Владелец';
@@ -894,6 +943,7 @@
             document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
         }
 
+        // МОДИФИКАЦИЯ ПЛИНКО: КВАДРАТ ИЗ ТОЧЕК
         let plinkoCanvas, ctx;
         const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
         let plinkoPins = [];
@@ -905,18 +955,19 @@
             drawPlinkoBoard();
         }
 
+        // Генерируем ровную квадратную/прямоугольную сетку точек
         function generatePlinkoPins() {
             plinkoPins = [];
             let rows = 8;
+            let cols = 9; // Сетка 8 на 9 точек
             let startY = 40;
-            let spacingY = 30;
+            let spacingY = 32;
+            let spacingX = 28;
+            let startX = (plinkoCanvas.width - (cols - 1) * spacingX) / 2;
             
             for (let r = 0; r < rows; r++) {
-                let pinsInRow = r + 3;
-                let spacingX = 26;
-                let startX = (plinkoCanvas.width - (pinsInRow - 1) * spacingX) / 2;
-                for (let p = 0; p < pinsInRow; p++) {
-                    plinkoPins.push({ x: startX + p * spacingX, y: startY + r * spacingY, row: r, idx: p });
+                for (let c = 0; c < cols; c++) {
+                    plinkoPins.push({ x: startX + c * spacingX, y: startY + r * spacingY, row: r, col: c });
                 }
             }
         }
@@ -994,37 +1045,39 @@
             }
         }
 
+        // МОДИФИКАЦИЯ: РАНДОМНЫЙ СПАВН ШАРА
         function animatePlinkoBall(targetBucket, serverData, callback) {
             let pathPoints = [];
-            pathPoints.push({ x: plinkoCanvas.width / 2, y: 15 });
+            
+            // Генерируем случайную точку спавна наверху по всей ширине канваса
+            let randomSpawnX = 30 + Math.random() * (plinkoCanvas.width - 60);
+            pathPoints.push({ x: randomSpawnX, y: 15 });
 
-            let curRow = 0;
-            let curIdx = 1; 
-            let p0 = plinkoPins.find(p => p.row === 0 && p.idx === 1);
-            if(p0) pathPoints.push({ x: p0.x, y: p0.y });
+            // Строим траекторию падения вниз сквозь сетку
+            let rows = 8;
+            let currentX = randomSpawnX;
+            let startY = 40;
+            let spacingY = 32;
 
-            let targetRow7Pin = (targetBucket === 0) ? 1 : (targetBucket === 8 ? 8 : (Math.random() > 0.5 ? targetBucket : targetBucket + 1));
-            let numRights = targetRow7Pin - 1;
-            let numLefts = 7 - numRights;
+            for (let r = 0; r < rows; r++) {
+                // Добавляем небольшой рандомный сдвиг влево-вправо на каждом уровне точек
+                let drift = (Math.random() - 0.5) * 35; 
+                currentX += drift;
+                
+                // Ограничиваем, чтобы шар не улетал за края
+                if (currentX < 20) currentX = 20;
+                if (currentX > plinkoCanvas.width - 20) currentX = plinkoCanvas.width - 20;
 
-            let rowDecisions = [];
-            for (let i = 0; i < numRights; i++) rowDecisions.push(1);
-            for (let i = 0; i < numLefts; i++) rowDecisions.push(0);
-            rowDecisions.sort(() => Math.random() - 0.5);
-
-            for (let i = 0; i < rowDecisions.length; i++) {
-                curRow++;
-                if (rowDecisions[i] === 1) curIdx++;
-                let pin = plinkoPins.find(p => p.row === curRow && p.idx === curIdx);
-                if(pin) pathPoints.push({ x: pin.x, y: pin.y });
+                pathPoints.push({ x: currentX, y: startY + r * spacingY });
             }
 
+            // Финальная точка — конкретная лунка, которую определил бэк
             let startX_b = (plinkoCanvas.width - (9 * 30 + 8 * 3)) / 2;
             let bucketFinalX = startX_b + targetBucket * 33 + 15;
             pathPoints.push({ x: bucketFinalX, y: plinkoCanvas.height - 24 });
 
             let currentSegment = 0;
-            let bounceDuration = 140; 
+            let bounceDuration = 130; 
             let startTime = performance.now();
 
             function stepPhysics(now) {
@@ -1034,12 +1087,12 @@
                 let p1 = pathPoints[currentSegment];
                 let p2 = pathPoints[currentSegment + 1];
 
-                let currentX = p1.x + (p2.x - p1.x) * progress;
-                let currentY = p1.y + (p2.y - p1.y) * progress;
+                let ballX = p1.x + (p2.x - p1.x) * progress;
+                let ballY = p1.y + (p2.y - p1.y) * progress;
 
                 if (currentSegment < pathPoints.length - 1) {
-                    let bounceHeight = 10;
-                    currentY -= Math.sin(progress * Math.PI) * bounceHeight;
+                    let bounceHeight = 8;
+                    ballY -= Math.sin(progress * Math.PI) * bounceHeight;
                 }
 
                 drawPlinkoBoard();
@@ -1048,7 +1101,7 @@
                 ctx.shadowBlur = 12;
                 ctx.shadowColor = '#ff5252';
                 ctx.beginPath();
-                ctx.arc(currentX, currentY, 9, 0, Math.PI * 2);
+                ctx.arc(ballX, ballY, 9, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
@@ -1089,7 +1142,24 @@
             } catch(e) { showToast("Ошибка админ-панели", "error"); }
         }
 
-        // КЛИЕНТСКИЕ ФУНКЦИИ ДЛЯ СИСТЕМЫ ПРОМОКОДОВ
+        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ТЕХОБСЛУЖИВАНИЯ (ОДНА КНОПКА)
+        async function toggleMaintenance() {
+            try {
+                let res = await fetch(`${API_URL}/api/admin/maintenance/toggle`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminUserId: userId })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, 'error');
+                
+                showToast(data.maintenanceActive ? "⛔ Техобслуживание успешно ВКЛЮЧЕНО!" : "✅ Техобслуживание ВЫКЛЮЧЕНО!", "gold");
+                syncProfile();
+            } catch(e) {
+                showToast("Ошибка переключения режима обслуживания", "error");
+            }
+        }
+
         async function adminCreatePromo() {
             const code = document.getElementById('promo-name').value.trim().toUpperCase();
             const limit = parseInt(document.getElementById('promo-limit').value);
