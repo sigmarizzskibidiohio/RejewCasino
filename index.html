@@ -297,10 +297,28 @@
                 </div>
             </div>
 
+            <!-- МОДЕРНИЗИРОВАННАЯ АДМИН-ПАНЕЛЬ С КОНФИГУРАТОРОМ ПРОМИКОВ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
-                <button class="action-btn" onclick="adminExecute()">Нарисовать бабки</button>
+                <button class="action-btn" onclick="adminExecute()" style="margin-bottom: 20px;">Нарисовать бабки</button>
+
+                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 15px;">Создать Промокод</h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <input type="text" id="promo-name" placeholder="Название промокода (напр. FREE500)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none; text-transform:uppercase;">
+                    <input type="number" id="promo-limit" placeholder="Макс. количество активаций" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <input type="number" id="promo-reward" placeholder="Сумма награды ($RJC)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <button class="action-btn" onclick="adminCreatePromo()" style="background:linear-gradient(135deg, #eab308, #ca8a04); color:#000;">Выпустить промокод</button>
+                </div>
+            </div>
+
+            <!-- КАРТОЧКА АКТИВАЦИИ ПРОМОКОДА ДЛЯ ЮЗЕРОВ -->
+            <div class="panel-card">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">🎁 Подарочный промокод</h4>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="user-promo-input" placeholder="Введите промокод..." style="flex:1; background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <button class="action-btn" onclick="activatePromo()" style="width:auto; padding:0 20px; background:linear-gradient(135deg, var(--green), #00c853); color:#000;">ОК</button>
+                </div>
             </div>
 
             <div class="panel-card">
@@ -376,9 +394,6 @@
 
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
-        // ==========================================
-        // ОБНОВЛЕННЫЕ СПИСКИ ТОВАРОВ (х10 КОНТЕНТА)
-        // ==========================================
         const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
@@ -436,13 +451,12 @@
             { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 }
         ];
 
-        // Функция подсчета силы клика на базе стоимости текущего паспорта
         function getClickPower() {
             const currentName = currentUser.currentCitizenship;
             const citizen = citizenshipList.find(c => c.name === currentName);
             if (!citizen) return 1;
-            if (citizen.special) return 250; // Князь Монако имеет жесткий буст
-            return 1 + Math.floor(citizen.cost / 800); // Динамическое масштабирование клика!
+            if (citizen.special) return 250; 
+            return 1 + Math.floor(citizen.cost / 800); 
         }
 
         function forceOwnerLuxuries(userObj) {
@@ -500,7 +514,6 @@
             if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
             document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
 
-            // Обновляем текст в кликере на лету
             const clickPower = getClickPower();
             document.getElementById('clicker-profit-label').innerText = `+${clickPower} $RJC за каждый тап`;
 
@@ -769,16 +782,13 @@
             }, 1500);
         }
 
-        // ==========================================
-        // МОДИФИЦИРОВАННАЯ РАКЕТКА (ПОЛЕТ ДО УПОРА)
-        // ==========================================
         let crashState = 'idle'; 
         let crashBetAmount = 0;
         let currentMultiplier = 1.00;
         let crashPoint = 0;
         let crashStartTime = 0;
         let crashAnimFrame = null;
-        let hasCashedOut = false; // Маркер досрочного забора денег
+        let hasCashedOut = false; 
 
         function triggerCrashAction() {
             const btn = document.getElementById('crash-btn');
@@ -808,13 +818,11 @@
                 crashStartTime = performance.now();
                 crashAnimFrame = requestAnimationFrame(updateCrashEngine);
             } else if (crashState === 'flying' && !hasCashedOut) {
-                // Игрок забрал бабки — фиксируем баланс моментально!
                 hasCashedOut = true;
                 let winAmount = Math.floor(crashBetAmount * currentMultiplier);
                 showToast(`🚀 Забрал! Множитель: ${currentMultiplier.toFixed(2)}x (+${winAmount} $RJC)`, 'success');
                 sendGameResult(crashBetAmount, winAmount, true, null, 'success');
                 
-                // Ракета не останавливается! Меняем дизайн кнопки и смотрим полет дальше
                 btn.innerText = 'СМОТРИМ ПОЛЕТ...';
                 btn.disabled = true;
                 btn.style.background = 'linear-gradient(135deg, #374151, #1f2937)';
@@ -843,7 +851,6 @@
                     document.getElementById('crash-mult').style.color = '#fff';
                 }, 2200);
 
-                // Если до бума деньги не забрали — это слив ставки
                 if (!hasCashedOut) {
                     sendGameResult(crashBetAmount, 0, false, null, 'error');
                 }
@@ -887,9 +894,6 @@
             document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
         }
 
-        // ==========================================
-        // МОДИФИЦИРОВАННЫЙ ПЛИНКО CANVAS (УВЕЛИЧЕННЫЙ ШАР)
-        // ==========================================
         let plinkoCanvas, ctx;
         const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
         let plinkoPins = [];
@@ -1044,7 +1048,6 @@
                 ctx.shadowBlur = 12;
                 ctx.shadowColor = '#ff5252';
                 ctx.beginPath();
-                // ТУТ УВЕЛИЧИЛИ ШАРИК: РАДИУС ИЗМЕНЕН С 5 НА 9 ПИКСЕЛЕЙ!
                 ctx.arc(currentX, currentY, 9, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
@@ -1084,6 +1087,51 @@
                 document.getElementById('adm-amount').value = '';
                 syncProfile();
             } catch(e) { showToast("Ошибка админ-панели", "error"); }
+        }
+
+        // КЛИЕНТСКИЕ ФУНКЦИИ ДЛЯ СИСТЕМЫ ПРОМОКОДОВ
+        async function adminCreatePromo() {
+            const code = document.getElementById('promo-name').value.trim().toUpperCase();
+            const limit = parseInt(document.getElementById('promo-limit').value);
+            const reward = parseInt(document.getElementById('promo-reward').value);
+
+            if(!code) return showToast("Введи имя промокода!", "error");
+            if(isNaN(limit) || limit <= 0) return showToast("Некорректный лимит активаций", "error");
+            if(isNaN(reward) || reward <= 0) return showToast("Укажи нормальную сумму бонуса", "error");
+
+            try {
+                let res = await fetch(`${API_URL}/api/admin/promo/create`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ adminUserId: userId, code, limit, reward })
+                });
+                let data = await res.json();
+                if(data.error) return showToast(data.error, "error");
+                
+                showToast(`🚀 Промокод ${code} успешно запущен в сеть!`, "gold");
+                document.getElementById('promo-name').value = '';
+                document.getElementById('promo-limit').value = '';
+                document.getElementById('promo-reward').value = '';
+            } catch(e) { showToast("Ошибка генерации промика", "error"); }
+        }
+
+        async function activatePromo() {
+            const code = document.getElementById('user-promo-input').value.trim().toUpperCase();
+            if(!code) return showToast("Сначала впиши промокод", "error");
+
+            try {
+                let res = await fetch(`${API_URL}/api/promo/activate`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ userId, code })
+                });
+                let data = await res.json();
+                if(data.error) return showToast(data.error, "error");
+
+                showToast(`🎁 Промик сработал! Получено +${data.reward} $RJC`, "success");
+                document.getElementById('user-promo-input').value = '';
+                syncProfile();
+            } catch(e) { showToast("Не удалось обработать промокод", "error"); }
         }
 
         function editNickname() {
