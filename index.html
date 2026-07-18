@@ -413,7 +413,6 @@
 
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
-        // ЕЩЕ БОЛЬШЕ ТОВАРОВ: РАЗДУЛ СПИСКИ ДЛЯ МАРКЕТА
         const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
@@ -448,20 +447,31 @@
             { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 }
         ];
 
+        // ЛЮТЫЙ СПИСОК НЕДВИЖИМОСТИ (ДОБАВЛЕНО ПО МАКСИМУМУ)
         const housesList = [
             { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true },
+            { id: 'p_box', name: '📦 Коробка от холодильника под мостом', cost: 150 },
+            { id: 'p_garage', name: '🔧 Гараж с верстаком и ямой', cost: 450 },
             { id: 'p_baza', name: '⛺ Бытовка на стройке', cost: 500 },
+            { id: 'p_communalka', name: '🏢 Комната в питерской коммуналке', cost: 1100 },
             { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000 },
             { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000 },
+            { id: 'p_dacha', name: '🏡 Дача в СНТ с теплицей', cost: 9500 },
+            { id: 'p_cyber_village', name: '🧑‍🌾 Кибердеревня в Рязани', cost: 14000 },
             { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000 },
             { id: 'p_miami', name: '🏖️ Дом на Малибу', cost: 45000 },
             { id: 'p_dubai', name: '🏙️ Пентхаус в Dubai Marina', cost: 75000 },
+            { id: 'p_blogger_mansion', name: '📸 Особняк инста-блогера для съемок', cost: 115000 },
             { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000 },
             { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000 },
+            { id: 'p_flanders_hq', name: '📺 Секретный бункер @flanders1', cost: 450000 },
             { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000 },
+            { id: 'p_police_hq', name: '🚓 Главный штаб Стражей Галактики', cost: 1300000 },
             { id: 'p_penthouse_ny', name: '🗽 Центральный Парк Пентхаус', cost: 1800000 },
             { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 4000000 },
+            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с улучшенным Хаммамом', cost: 5500000 },
             { id: 'p_moon_base', name: '🌙 Станция на Луне "Luna-1"', cost: 6500000 },
+            { id: 'p_cyber_palace', name: '🛸 Кибер-Дворец в Метавселенной', cost: 8200000 },
             { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000 }
         ];
 
@@ -505,7 +515,6 @@
                 });
                 currentUser = await res.json();
                 
-                // Чек тех. обслуживания
                 if (currentUser.maintenanceActive) {
                     if (!isOwner) {
                         document.getElementById('maintenance-screen').style.display = 'flex';
@@ -943,7 +952,6 @@
             document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
         }
 
-        // МОДИФИКАЦИЯ ПЛИНКО: КВАДРАТ ИЗ ТОЧЕК
         let plinkoCanvas, ctx;
         const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
         let plinkoPins = [];
@@ -955,11 +963,10 @@
             drawPlinkoBoard();
         }
 
-        // Генерируем ровную квадратную/прямоугольную сетку точек
         function generatePlinkoPins() {
             plinkoPins = [];
             let rows = 8;
-            let cols = 9; // Сетка 8 на 9 точек
+            let cols = 9; 
             let startY = 40;
             let spacingY = 32;
             let spacingX = 28;
@@ -1045,33 +1052,27 @@
             }
         }
 
-        // МОДИФИКАЦИЯ: РАНДОМНЫЙ СПАВН ШАРА
         function animatePlinkoBall(targetBucket, serverData, callback) {
             let pathPoints = [];
             
-            // Генерируем случайную точку спавна наверху по всей ширине канваса
             let randomSpawnX = 30 + Math.random() * (plinkoCanvas.width - 60);
             pathPoints.push({ x: randomSpawnX, y: 15 });
 
-            // Строим траекторию падения вниз сквозь сетку
             let rows = 8;
             let currentX = randomSpawnX;
             let startY = 40;
             let spacingY = 32;
 
             for (let r = 0; r < rows; r++) {
-                // Добавляем небольшой рандомный сдвиг влево-вправо на каждом уровне точек
                 let drift = (Math.random() - 0.5) * 35; 
                 currentX += drift;
                 
-                // Ограничиваем, чтобы шар не улетал за края
                 if (currentX < 20) currentX = 20;
                 if (currentX > plinkoCanvas.width - 20) currentX = plinkoCanvas.width - 20;
 
                 pathPoints.push({ x: currentX, y: startY + r * spacingY });
             }
 
-            // Финальная точка — конкретная лунка, которую определил бэк
             let startX_b = (plinkoCanvas.width - (9 * 30 + 8 * 3)) / 2;
             let bucketFinalX = startX_b + targetBucket * 33 + 15;
             pathPoints.push({ x: bucketFinalX, y: plinkoCanvas.height - 24 });
@@ -1142,7 +1143,6 @@
             } catch(e) { showToast("Ошибка админ-панели", "error"); }
         }
 
-        // ФУНКЦИЯ ПЕРЕКЛЮЧЕНИЯ ТЕХОБСЛУЖИВАНИЯ (ОДНА КНОПКА)
         async function toggleMaintenance() {
             try {
                 let res = await fetch(`${API_URL}/api/admin/maintenance/toggle`, {
