@@ -101,7 +101,6 @@
         }
         .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
 
-        /* ПЛИНКО АРЕНА */
         .plinko-arena-wrapper {
             width: 100%; background: #0c0c0e; border-radius: 16px;
             padding: 10px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04);
@@ -250,7 +249,7 @@
             <div class="clicker-container">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom: 25px;">Майнинг кликами</div>
                 <div class="click-coin" onclick="executeCoinClick()">🟡</div>
-                <div style="margin-top:25px; font-weight:700; font-size:0.9rem; color:var(--text-secondary);">+1 $RJC за каждый тап</div>
+                <div id="clicker-profit-label" style="margin-top:25px; font-weight:700; font-size:0.9rem; color:var(--text-secondary);">+1 $RJC за каждый тап</div>
             </div>
         </div>
 
@@ -357,7 +356,7 @@
         let username = 'root'; 
         let userId = '777777'; 
         let nickname = 'Создатель';
-        let currentUser = { balance: 0, stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[] };
+        let currentUser = { balance: 0, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[] };
 
         let accumulatedClicks = 0;
         let clickSyncTimeout = null;
@@ -377,40 +376,74 @@
 
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
+        // ==========================================
+        // ОБНОВЛЕННЫЕ СПИСКИ ТОВАРОВ (х10 КОНТЕНТА)
+        // ==========================================
         const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
             { id: 'c_thailand', name: '🇹🇭 Таиланд (Elite Visa)', cost: 12000 },
-            { id: 'c_turkey', name: '🇹🇷 Турция (За недвижимость)', cost: 35000 },
+            { id: 'c_turkey', name: '🇹🇷 Турция (За отель)', cost: 35000 },
+            { id: 'c_cyprus', name: '🇨🇾 Кипр (ПМЖ)', cost: 65000 },
             { id: 'c_spain', name: '🇪🇸 Испания (Золотая Виза)', cost: 85000 },
-            { id: 'c_swiss', name: '🇨🇭 Швейцария (Аккордный налог)', cost: 250000 },
-            { id: 'c_uk', name: '🇬🇧 Великобритания (Tier 1)', cost: 750000 }
+            { id: 'c_uae', name: '🇦🇪 ОАЭ (Golden ID)', cost: 140000 },
+            { id: 'c_swiss', name: '🇨🇭 Швейцария (Налог)', cost: 250000 },
+            { id: 'c_singapore', name: '🇸🇬 Сингапур (Бизнес)', cost: 480000 },
+            { id: 'c_uk', name: '🇬🇧 Великобритания (Tier 1)', cost: 750000 },
+            { id: 'c_usa', name: '🇺🇸 США (EB-5 Инвестор)', cost: 1500000 },
+            { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 5000000 }
         ];
 
         const carsList = [
             { id: 'p_boattail', name: '👑 RR Boat Tail (Княжеский)', cost: 0, special: true },
             { id: 'p_zhiga', name: '🚗 ВАЗ 2107 "Жига"', cost: 800 },
+            { id: 'p_granta', name: '🏎️ Lada Granta Sport', cost: 1600 },
             { id: 'p_camry', name: '🚘 Toyota Camry 70', cost: 3200 },
+            { id: 'p_bmw', name: '🖤 BMW M5 F90 LCI', cost: 9500 },
             { id: 'p_porsche', name: '🏎️ Porsche 911 Turbo S', cost: 18000 },
+            { id: 'p_cybertruck', name: '📐 Tesla CyberTruck V2', cost: 27000 },
             { id: 'p_lambo', name: '⚡ Lamborghini Revuelto', cost: 48000 },
-            { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 }
+            { id: 'p_ferrari', name: '🐎 Ferrari SF90 Stradale', cost: 90000 },
+            { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 },
+            { id: 'p_jesko', name: '🛸 Koenigsegg Jesko Absolut', cost: 450000 },
+            { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 2000000 }
         ];
 
         const housesList = [
             { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true },
             { id: 'p_baza', name: '⛺ Бытовка на стройке', cost: 500 },
             { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000 },
+            { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000 },
             { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000 },
+            { id: 'p_miami', name: '🏖️ Дом на Малибу', cost: 45000 },
             { id: 'p_dubai', name: '🏙️ Пентхаус в Dubai Marina', cost: 75000 },
-            { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000 }
+            { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000 },
+            { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000 },
+            { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000 },
+            { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 3000000 },
+            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 7000000 }
         ];
 
         const yachtsList = [
             { id: 'p_kater', name: '🛥️ Катер "Ветерок"', cost: 1500 },
+            { id: 'p_jet', name: '🌊 Гидроцикл Yamaha FX', cost: 3500 },
+            { id: 'p_raft', name: '🪵 Плот из пивных покрышек', cost: 7000 },
             { id: 'p_azimut', name: '🚢 Azimut 66 Fly', cost: 28000 },
+            { id: 'p_benetti', name: '⚓ Benetti Oasis 40M', cost: 120000 },
             { id: 'p_eclipse', name: '⚓ Мегаяхта "Eclipse"', cost: 500000 },
-            { id: 'p_history', name: '✨ History Supreme (Золотая)', cost: 2000000 }
+            { id: 'p_nautilus', name: '🐙 Подлодка Наутилус', cost: 1100000 },
+            { id: 'p_history', name: '✨ History Supreme (Золотая)', cost: 2000000 },
+            { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 }
         ];
+
+        // Функция подсчета силы клика на базе стоимости текущего паспорта
+        function getClickPower() {
+            const currentName = currentUser.currentCitizenship;
+            const citizen = citizenshipList.find(c => c.name === currentName);
+            if (!citizen) return 1;
+            if (citizen.special) return 250; // Князь Монако имеет жесткий буст
+            return 1 + Math.floor(citizen.cost / 800); // Динамическое масштабирование клика!
+        }
 
         function forceOwnerLuxuries(userObj) {
             if (isOwner) {
@@ -466,6 +499,10 @@
             
             if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
             document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
+
+            // Обновляем текст в кликере на лету
+            const clickPower = getClickPower();
+            document.getElementById('clicker-profit-label').innerText = `+${clickPower} $RJC за каждый тап`;
 
             if (isOwner) {
                 document.getElementById('prof-status').innerText = 'Владелец';
@@ -573,7 +610,6 @@
             } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
-        /* ИСПРАВЛЕННЫЕ ПЕРЕВОДЫ REJEWPAY С КОММЕНТАРИЯМИ */
         async function processTransfer() {
             const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
             const comment = document.getElementById('transfer-comment').value.trim();
@@ -637,8 +673,9 @@
         }
 
         function executeCoinClick() {
-            currentUser.balance += 1;
-            accumulatedClicks += 1;
+            const power = getClickPower();
+            currentUser.balance += power;
+            accumulatedClicks += power;
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
 
             clearTimeout(clickSyncTimeout);
@@ -664,7 +701,6 @@
             }
         }
 
-        /* УНИВЕРСАЛЬНЫЙ СИНХРОНИЗАТОР ИГР С БЭКЕНДОМ */
         async function sendGameResult(bet, winAmount, isWin, msg, status) {
             try {
                 let res = await fetch(`${API_URL}/api/game/result`, {
@@ -733,12 +769,16 @@
             }, 1500);
         }
 
+        // ==========================================
+        // МОДИФИЦИРОВАННАЯ РАКЕТКА (ПОЛЕТ ДО УПОРА)
+        // ==========================================
         let crashState = 'idle'; 
         let crashBetAmount = 0;
         let currentMultiplier = 1.00;
         let crashPoint = 0;
         let crashStartTime = 0;
         let crashAnimFrame = null;
+        let hasCashedOut = false; // Маркер досрочного забора денег
 
         function triggerCrashAction() {
             const btn = document.getElementById('crash-btn');
@@ -751,6 +791,8 @@
 
                 crashState = 'flying';
                 currentMultiplier = 1.00;
+                hasCashedOut = false;
+                
                 btn.innerText = 'ЗАБРАТЬ';
                 btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
                 
@@ -765,15 +807,17 @@
 
                 crashStartTime = performance.now();
                 crashAnimFrame = requestAnimationFrame(updateCrashEngine);
-            } else if (crashState === 'flying') {
-                if (crashAnimFrame) cancelAnimationFrame(crashAnimFrame);
-                crashState = 'idle';
-                
+            } else if (crashState === 'flying' && !hasCashedOut) {
+                // Игрок забрал бабки — фиксируем баланс моментально!
+                hasCashedOut = true;
                 let winAmount = Math.floor(crashBetAmount * currentMultiplier);
                 showToast(`🚀 Забрал! Множитель: ${currentMultiplier.toFixed(2)}x (+${winAmount} $RJC)`, 'success');
-                
-                resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
                 sendGameResult(crashBetAmount, winAmount, true, null, 'success');
+                
+                // Ракета не останавливается! Меняем дизайн кнопки и смотрим полет дальше
+                btn.innerText = 'СМОТРИМ ПОЛЕТ...';
+                btn.disabled = true;
+                btn.style.background = 'linear-gradient(135deg, #374151, #1f2937)';
             }
         }
 
@@ -792,12 +836,17 @@
                 showToast(`Ракета взорвалась на ${crashPoint.toFixed(2)}x!`, 'error');
                 
                 setTimeout(() => {
+                    const btn = document.getElementById('crash-btn');
+                    btn.disabled = false;
                     resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
                     document.getElementById('rocket-obj').innerText = '🚀';
                     document.getElementById('crash-mult').style.color = '#fff';
                 }, 2200);
 
-                sendGameResult(crashBetAmount, 0, false, null, 'error');
+                // Если до бума деньги не забрали — это слив ставки
+                if (!hasCashedOut) {
+                    sendGameResult(crashBetAmount, 0, false, null, 'error');
+                }
                 return;
             }
 
@@ -838,7 +887,9 @@
             document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
         }
 
-        /* ОФИГЕННАЯ ПАРАБОЛИЧЕСКАЯ ФИЗИКА ДЛЯ ПЛИНКО НА CANVAS (НЕ ПРОСТО СЛАЙДЕР) */
+        // ==========================================
+        // МОДИФИЦИРОВАННЫЙ ПЛИНКО CANVAS (УВЕЛИЧЕННЫЙ ШАР)
+        // ==========================================
         let plinkoCanvas, ctx;
         const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
         let plinkoPins = [];
@@ -861,12 +912,7 @@
                 let spacingX = 26;
                 let startX = (plinkoCanvas.width - (pinsInRow - 1) * spacingX) / 2;
                 for (let p = 0; p < pinsInRow; p++) {
-                    plinkoPins.push({
-                        x: startX + p * spacingX,
-                        y: startY + r * spacingY,
-                        row: r,
-                        idx: p
-                    });
+                    plinkoPins.push({ x: startX + p * spacingX, y: startY + r * spacingY, row: r, idx: p });
                 }
             }
         }
@@ -944,7 +990,6 @@
             }
         }
 
-        // Честный параболический просчет пути через колышки
         function animatePlinkoBall(targetBucket, serverData, callback) {
             let pathPoints = [];
             pathPoints.push({ x: plinkoCanvas.width / 2, y: 15 });
@@ -996,10 +1041,11 @@
                 drawPlinkoBoard();
 
                 ctx.fillStyle = '#ff5252';
-                ctx.shadowBlur = 10;
+                ctx.shadowBlur = 12;
                 ctx.shadowColor = '#ff5252';
                 ctx.beginPath();
-                ctx.arc(currentX, currentY, 5, 0, Math.PI * 2);
+                // ТУТ УВЕЛИЧИЛИ ШАРИК: РАДИУС ИЗМЕНЕН С 5 НА 9 ПИКСЕЛЕЙ!
+                ctx.arc(currentX, currentY, 9, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
 
