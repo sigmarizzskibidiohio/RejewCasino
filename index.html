@@ -309,7 +309,6 @@
                 </div>
             </div>
 
-            <!-- РЕФЕРАЛЬНАЯ СИСТЕМА -->
             <div class="panel-card">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">👥 Реферальная система</h4>
                 <p style="font-size:0.75rem; color:var(--text-secondary); margin:5px 0 12px 0; line-height:1.4; text-align:left;">
@@ -416,7 +415,6 @@
                 userId = tg.initDataUnsafe.user.id.toString();
                 nickname = tg.initDataUnsafe.user.first_name || username;
             }
-            // Выдергиваем ID пригласившего из ссылки старта аппки
             if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
                 referredBy = tg.initDataUnsafe.start_param.toString();
             }
@@ -461,7 +459,6 @@
             { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 }
         ];
 
-        // Список недвижимости с указанием ежедневного бонуса (bonus)
         const housesList = [
             { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
             { id: 'p_box', name: '📦 Коробка от холодильника под мостом', cost: 150, bonus: 10 },
@@ -587,7 +584,6 @@
             const clickPower = getClickPower();
             document.getElementById('clicker-profit-label').innerText = `+${clickPower} $RJC за каждый тап`;
 
-            // Обновление статуса рефералов
             const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
             document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
 
@@ -674,11 +670,18 @@
                     btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
                 } else if (isOwned) {
                     btnHtml = `<button class="buy-btn owned">Куплено</button>`;
+                } else if (itemData.id === 'p_hamam_resort') {
+                    // ЛОГИКА УЛУЧШЕНИЯ ХАММАМА: Проверяем наличие Атолла
+                    const hasIsland = currentUser.ownedProperties.includes('p_island');
+                    if (hasIsland) {
+                        btnHtml = `<button class="buy-btn" style="background: linear-gradient(135deg, var(--green), #00c853); color: #000; font-weight: 800;" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Улучшить</button>`;
+                    } else {
+                        btnHtml = `<button class="buy-btn locked" style="background: #221515; border-color: var(--red); color: var(--red);">Нужен Атолл</button>`;
+                    }
                 } else {
                     btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
                 }
 
-                // Вывод инфы о доходности, если это хата
                 const bonusInfo = itemData.bonus ? `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>` : '';
 
                 div.innerHTML = `
@@ -704,7 +707,7 @@
                 if(data.error) return showToast(data.error, 'error');
                 currentUser = data;
                 forceOwnerLuxuries(currentUser);
-                showToast(`🎉 Успешная покупка: ${itemName}`, 'gold');
+                showToast(`🎉 Успешная сделка: ${itemName}`, 'gold');
                 updateUI();
             } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
