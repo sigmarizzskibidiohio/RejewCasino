@@ -24,7 +24,6 @@
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
 
-        /* Экран тех. обслуживания */
         #maintenance-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #09090b; z-index: 99999; flex-direction: column;
@@ -179,11 +178,10 @@
 </head>
 <body>
 
-    <!-- ЭКРАН ТЕХОБСЛУЖИВАНИЯ -->
     <div id="maintenance-screen">
         <h1 style="font-size: 4rem; margin: 0;">🛠️</h1>
         <h2 style="color: var(--gold); text-transform: uppercase; font-weight: 900; letter-spacing: 1px;">Технические работы</h2>
-        <p style="color: var(--text-secondary); max-width: 280px; font-size: 0.9rem;">Казино временно закрыто на обслуживание. Разработчик крутит гайки. Зайди чуть позже!</p>
+        <p style="color: var(--text-secondary); max-width: 280px; font-size: 0.9rem;">Казино временно закрыто на обслуживание. Зайди чуть позже!</p>
     </div>
 
     <div id="toast-container"></div>
@@ -242,7 +240,7 @@
 
         <div id="screen-plinko" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Квадрат точек)</div>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Кастомные Шансы)</div>
                 
                 <div class="plinko-arena-wrapper">
                     <canvas id="plinko-canvas" width="320" height="340"></canvas>
@@ -273,7 +271,7 @@
                 <div id="citizenship-shop"></div>
                 <div class="shop-title">🚗 Элитный Гараж</div>
                 <div id="cars-shop"></div>
-                <div class="shop-title">🏰 Премиальная Недвижимость</div>
+                <div class="shop-title">🏰 Премиальная Недвижимость (Пассивный доход)</div>
                 <div id="houses-shop"></div>
                 <div class="shop-title">🚢 Королевские Яхты</div>
                 <div id="yachts-shop"></div>
@@ -311,27 +309,38 @@
                 </div>
             </div>
 
-            <!-- МОДЕРНИЗИРОВАННАЯ АДМИН-ПАНЕЛЬ С УПРАВЛЕНИЕМ ТЕХОБСЛУЖИВАНИЕМ -->
+            <!-- РЕФЕРАЛЬНАЯ СИСТЕМА -->
+            <div class="panel-card">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">👥 Реферальная система</h4>
+                <p style="font-size:0.75rem; color:var(--text-secondary); margin:5px 0 12px 0; line-height:1.4; text-align:left;">
+                    Приглашай друзей! Если твой реферал сделает суммарный оборот ставок (выиграет или проиграет) на сумму более <b>2,000 $RJC</b>, ты мгновенно получишь бонус <b>+5,000 $RJC</b>!
+                </p>
+                <button class="action-btn" onclick="copyReferralLink()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff; padding:10px 14px; font-size:0.85rem;">
+                    📋 Скопировать реф-ссылку
+                </button>
+                <div id="ref-status-lbl" style="font-size:0.75rem; color:var(--green); font-weight:700; margin-top:10px; text-align:center;">
+                    Получено бонусов за рефералов: 0
+                </div>
+            </div>
+
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
                 <button class="action-btn" onclick="adminExecute()" style="margin-bottom: 12px;">Нарисовать бабки</button>
 
-                <!-- ОДНА КНОПКА ДЛЯ ТЕХ. ОБСЛУЖИВАНИЯ -->
                 <button class="action-btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="background: linear-gradient(135deg, var(--red), #c62828); color: #fff; margin-bottom: 20px;">
                     Включить техобслуживание
                 </button>
 
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 15px;">Создать Промокод</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
-                    <input type="text" id="promo-name" placeholder="Название промокода (напр. FREE500)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none; text-transform:uppercase;">
+                    <input type="text" id="promo-name" placeholder="Название промокода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none; text-transform:uppercase;">
                     <input type="number" id="promo-limit" placeholder="Макс. количество активаций" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
                     <input type="number" id="promo-reward" placeholder="Сумма награды ($RJC)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
                     <button class="action-btn" onclick="adminCreatePromo()" style="background:linear-gradient(135deg, #eab308, #ca8a04); color:#000;">Выпустить промокод</button>
                 </div>
             </div>
 
-            <!-- КАРТОЧКА АКТИВАЦИИ ПРОМОКОДА ДЛЯ ЮЗЕРОВ -->
             <div class="panel-card">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">🎁 Подарочный промокод</h4>
                 <div style="display:flex; gap:8px;">
@@ -393,7 +402,8 @@
         let username = 'root'; 
         let userId = '777777'; 
         let nickname = 'Создатель';
-        let currentUser = { balance: 0, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[] };
+        let referredBy = null;
+        let currentUser = { balance: 0, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [] };
 
         let accumulatedClicks = 0;
         let clickSyncTimeout = null;
@@ -405,6 +415,10 @@
                 username = tg.initDataUnsafe.user.username || 'player';
                 userId = tg.initDataUnsafe.user.id.toString();
                 nickname = tg.initDataUnsafe.user.first_name || username;
+            }
+            // Выдергиваем ID пригласившего из ссылки старта аппки
+            if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+                referredBy = tg.initDataUnsafe.start_param.toString();
             }
         } catch(e) {}
 
@@ -431,7 +445,7 @@
         ];
 
         const carsList = [
-            { id: 'p_boattail', name: '👑 RR Boat Tail (Княжеский)', cost: 0, special: true },
+            { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
             { id: 'p_zhiga', name: '🚗 ВАЗ 2107 "Жига"', cost: 800 },
             { id: 'p_granta', name: '🏎️ Lada Granta Sport', cost: 1600 },
             { id: 'p_camry', name: '🚘 Toyota Camry 70', cost: 3200 },
@@ -447,31 +461,32 @@
             { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 }
         ];
 
+        // Список недвижимости с указанием ежедневного бонуса (bonus)
         const housesList = [
-            { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true },
-            { id: 'p_box', name: '📦 Коробка от холодильника под мостом', cost: 150 },
-            { id: 'p_garage', name: '🔧 Гараж с верстаком и ямой', cost: 450 },
-            { id: 'p_baza', name: '⛺ Бытовка на стройке', cost: 500 },
-            { id: 'p_communalka', name: '🏢 Комната в питерской коммуналке', cost: 1100 },
-            { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000 },
-            { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000 },
-            { id: 'p_dacha', name: '🏡 Дача в СНТ с теплицей', cost: 9500 },
-            { id: 'p_cyber_village', name: '🧑‍🌾 Кибердеревня в Рязани', cost: 14000 },
-            { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000 },
-            { id: 'p_miami', name: '🏖️ Дом на Малибу', cost: 45000 },
-            { id: 'p_dubai', name: '🏙️ Пентхаус в Dubai Marina', cost: 75000 },
-            { id: 'p_blogger_mansion', name: '📸 Особняк инста-блогера для съемок', cost: 115000 },
-            { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000 },
-            { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000 },
-            { id: 'p_flanders_hq', name: '📺 Секретный бункер @flanders1', cost: 450000 },
-            { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000 },
-            { id: 'p_police_hq', name: '🚓 Главный штаб Стражей Галактики', cost: 1300000 },
-            { id: 'p_penthouse_ny', name: '🗽 Центральный Парк Пентхаус', cost: 1800000 },
-            { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 4000000 },
-            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с улучшенным Хаммамом', cost: 5500000 },
-            { id: 'p_moon_base', name: '🌙 Станция на Луне "Luna-1"', cost: 6500000 },
-            { id: 'p_cyber_palace', name: '🛸 Кибер-Дворец в Метавселенной', cost: 8200000 },
-            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000 }
+            { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
+            { id: 'p_box', name: '📦 Коробка от холодильника под мостом', cost: 150, bonus: 10 },
+            { id: 'p_garage', name: '🔧 Гараж с верстаком и ямой', cost: 450, bonus: 30 },
+            { id: 'p_baza', name: '⛺ Бытовка на стройке', cost: 500, bonus: 40 },
+            { id: 'p_communalka', name: '🏢 Комната в питерской коммуналке', cost: 1100, bonus: 90 },
+            { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000, bonus: 180 },
+            { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000, bonus: 550 },
+            { id: 'p_dacha', name: '🏡 Дача в СНТ с теплицей', cost: 9500, bonus: 900 },
+            { id: 'p_cyber_village', name: '🧑‍🌾 Кибердеревня в Рязани', cost: 14000, bonus: 1400 },
+            { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000, bonus: 2300 },
+            { id: 'p_miami', name: '🏖️ Дом на Малибу', cost: 45000, bonus: 4800 },
+            { id: 'p_dubai', name: '🏙️ Пентхаус в Dubai Marina', cost: 75000, bonus: 8200 },
+            { id: 'p_blogger_mansion', name: '📸 Особняк инста-блогера для съемок', cost: 115000, bonus: 13000 },
+            { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000, bonus: 20000 },
+            { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000, bonus: 36000 },
+            { id: 'p_flanders_hq', name: '📺 Секретный бункер @flanders1', cost: 450000, bonus: 55000 },
+            { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000, bonus: 110000 },
+            { id: 'p_police_hq', name: '🚓 Главный штаб Стражей Галактики', cost: 1300000, bonus: 180000 },
+            { id: 'p_penthouse_ny', name: '🗽 Центральный Парк Пентхаус', cost: 1800000, bonus: 260000 },
+            { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 4000000, bonus: 600000 },
+            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с улучшенным Хаммамом', cost: 5500000, bonus: 900000 },
+            { id: 'p_moon_base', name: '🌙 Станция на Луне "Luna-1"', cost: 6500000, bonus: 1100000 },
+            { id: 'p_cyber_palace', name: '🛸 Кибер-Дворец в Метавселенной', cost: 8200000, bonus: 1500000 },
+            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000, bonus: 2000000 }
         ];
 
         const yachtsList = [
@@ -510,7 +525,7 @@
                 let res = await fetch(`${API_URL}/api/user`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ userId, username, nickname })
+                    body: JSON.stringify({ userId, username, nickname, referredBy })
                 });
                 currentUser = await res.json();
                 
@@ -519,7 +534,7 @@
                         document.getElementById('maintenance-screen').style.display = 'flex';
                         return;
                     } else {
-                        showToast("⚠️ Активен режим техобслуживания. Доступ только у тебя!", "error");
+                        showToast("⚠️ Включены тех. работы. Тебе как разрабу вход открыт!", "error");
                     }
                 } else {
                     document.getElementById('maintenance-screen').style.display = 'none';
@@ -528,7 +543,7 @@
                 forceOwnerLuxuries(currentUser);
                 updateUI();
             } catch(e) {
-                showToast("Сервер отдыхает. Проверь API_URL", "error");
+                showToast("Ошибка подключения к серверу", "error");
             }
         }
 
@@ -549,9 +564,16 @@
             const targetInput = document.getElementById('transfer-target');
             if (targetInput && username) {
                 targetInput.value = username;
-                showToast(`Юзернейм ${username} добавлен для перевода!`, 'success');
+                showToast(`Получатель @${username} выбран!`, 'success');
                 targetInput.scrollIntoView({ behavior: 'smooth' });
             }
+        }
+
+        function copyReferralLink() {
+            const botUser = "rejewcas_bot"; 
+            const link = `https://t.me/${botUser}/app?startapp=${userId}`;
+            navigator.clipboard.writeText(link);
+            showToast("Рефералка скопирована в буфер обмена!", "gold");
         }
 
         function updateUI() {
@@ -564,6 +586,10 @@
 
             const clickPower = getClickPower();
             document.getElementById('clicker-profit-label').innerText = `+${clickPower} $RJC за каждый тап`;
+
+            // Обновление статуса рефералов
+            const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
+            document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
 
             const btnMaint = document.getElementById('maint-toggle-btn');
             if (currentUser.maintenanceActive) {
@@ -611,12 +637,12 @@
                         <div style="display:flex; justify-content:space-between; align-items:center;">
                             <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${msg.amount.toLocaleString()} $RJC</span>
                             <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
-                                ${isOutgoing ? 'Списание' : 'Зачисление'}
+                                ${msg.type || 'Операция'}
                             </span>
                         </div>
                         <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:4px;">
                             ${isOutgoing ? 'Кому' : 'От'}: 
-                            <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} (@${partnerUser || 'id'})</span>
+                            <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} ${partnerUser ? '@' + partnerUser : ''}</span>
                             <div style="background:rgba(0,0,0,0.2); padding:6px; border-radius:6px; margin-top:4px; color:#fff;">💬 ${commentText}</div>
                         </div>
                     `;
@@ -652,10 +678,13 @@
                     btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
                 }
 
+                // Вывод инфы о доходности, если это хата
+                const bonusInfo = itemData.bonus ? `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>` : '';
+
                 div.innerHTML = `
                     <div class="shop-item-info">
                         <span class="shop-item-name">${itemData.name}</span>
-                        <span class="shop-item-cost">${itemData.special ? 'Для Элиты' : itemData.cost.toLocaleString() + ' $RJC'}</span>
+                        <span class="shop-item-cost">${itemData.special ? 'Для Элиты' : itemData.cost.toLocaleString() + ' $RJC'}${bonusInfo}</span>
                     </div>
                     ${btnHtml}
                 `;
@@ -698,7 +727,7 @@
                 let data = await res.json();
                 if(data.error) return showToast(data.error, 'error');
                 
-                showToast(`💸 RejewPay: Перевод выполнен успешно!`, 'success');
+                showToast(`💸 Перевод выполнен!`, 'success');
                 document.getElementById('transfer-target').value = '';
                 document.getElementById('transfer-comment').value = '';
                 document.getElementById('transfer-amount').value = '';
@@ -783,7 +812,7 @@
                 updateUI();
                 if (msg) showToast(msg, status || 'success');
             } catch(e) {
-                showToast("Ошибка сохранения результата игры", "error");
+                showToast("Ошибка сохранения результата", "error");
             }
         }
 
@@ -817,7 +846,7 @@
                 } else {
                     r1 = slotItems[0]; r2 = slotItems[2]; r3 = slotItems[4];
                 }
-                msg = "Мимо! Крути еще, коины любят риск.";
+                msg = "Мимо! Крути еще.";
             }
 
             const reels = [document.getElementById('r1'), document.getElementById('r2'), document.getElementById('r3')];
@@ -898,7 +927,7 @@
                 document.getElementById('crash-mult').style.color = 'var(--red)';
                 document.getElementById('rocket-obj').innerText = '💥';
                 
-                showToast(`Ракета взорвалась на ${crashPoint.toFixed(2)}x!`, 'error');
+                showToast(`Взрыв на ${crashPoint.toFixed(2)}x!`, 'error');
                 
                 setTimeout(() => {
                     const btn = document.getElementById('crash-btn');
@@ -1047,13 +1076,12 @@
 
             } catch(e) {
                 btn.disabled = false;
-                showToast("Ошибка коннекта к Плинко-серверу!", "error");
+                showToast("Ошибка Плинко-сервера!", "error");
             }
         }
 
         function animatePlinkoBall(targetBucket, serverData, callback) {
             let pathPoints = [];
-            
             let randomSpawnX = 30 + Math.random() * (plinkoCanvas.width - 60);
             pathPoints.push({ x: randomSpawnX, y: 15 });
 
@@ -1115,7 +1143,7 @@
                     } else {
                         let isWin = serverData.multiplier >= 1;
                         let toastStatus = serverData.multiplier >= 5 ? 'gold' : (isWin ? 'success' : 'error');
-                        showToast(`Плинко: Лунка x${serverData.multiplier}! Получено +${serverData.winAmount} $RJC`, toastStatus);
+                        showToast(`Плинко: x${serverData.multiplier}! Получено +${serverData.winAmount} $RJC`, toastStatus);
                         currentUser.balance = serverData.newBalance;
                         updateUI();
                         callback();
@@ -1136,7 +1164,7 @@
                 });
                 let data = await res.json();
                 if(data.error) return showToast(data.error, 'error');
-                showToast(`💰 Баланс надут: +${amount} $RJC`, 'gold');
+                showToast(`💰 Баланс изменен: +${amount} $RJC`, 'gold');
                 document.getElementById('adm-amount').value = '';
                 syncProfile();
             } catch(e) { showToast("Ошибка админ-панели", "error"); }
@@ -1152,11 +1180,9 @@
                 let data = await res.json();
                 if (data.error) return showToast(data.error, 'error');
                 
-                showToast(data.maintenanceActive ? "⛔ Техобслуживание успешно ВКЛЮЧЕНО!" : "✅ Техобслуживание ВЫКЛЮЧЕНО!", "gold");
+                showToast(data.maintenanceActive ? "⛔ Тех. работы ВКЛЮЧЕНЫ" : "✅ Тех. работы ВЫКЛЮЧЕНЫ", "gold");
                 syncProfile();
-            } catch(e) {
-                showToast("Ошибка переключения режима обслуживания", "error");
-            }
+            } catch(e) { showToast("Ошибка переключения", "error"); }
         }
 
         async function adminCreatePromo() {
@@ -1166,7 +1192,7 @@
 
             if(!code) return showToast("Введи имя промокода!", "error");
             if(isNaN(limit) || limit <= 0) return showToast("Некорректный лимит активаций", "error");
-            if(isNaN(reward) || reward <= 0) return showToast("Укажи нормальную сумму бонуса", "error");
+            if(isNaN(reward) || reward <= 0) return showToast("Укажи сумму бонуса", "error");
 
             try {
                 let res = await fetch(`${API_URL}/api/admin/promo/create`, {
@@ -1177,16 +1203,16 @@
                 let data = await res.json();
                 if(data.error) return showToast(data.error, "error");
                 
-                showToast(`🚀 Промокод ${code} успешно запущен в сеть!`, "gold");
+                showToast(`🚀 Промокод ${code} успешно создан!`, "gold");
                 document.getElementById('promo-name').value = '';
                 document.getElementById('promo-limit').value = '';
                 document.getElementById('promo-reward').value = '';
-            } catch(e) { showToast("Ошибка генерации промика", "error"); }
+            } catch(e) { showToast("Ошибка генерации", "error"); }
         }
 
         async function activatePromo() {
             const code = document.getElementById('user-promo-input').value.trim().toUpperCase();
-            if(!code) return showToast("Сначала впиши промокод", "error");
+            if(!code) return showToast("Впиши промокод", "error");
 
             try {
                 let res = await fetch(`${API_URL}/api/promo/activate`, {
@@ -1197,14 +1223,14 @@
                 let data = await res.json();
                 if(data.error) return showToast(data.error, "error");
 
-                showToast(`🎁 Промик сработал! Получено +${data.reward} $RJC`, "success");
+                showToast(`🎁 Промик активирован! +${data.reward} $RJC`, "success");
                 document.getElementById('user-promo-input').value = '';
                 syncProfile();
             } catch(e) { showToast("Не удалось обработать промокод", "error"); }
         }
 
         function editNickname() {
-            const newName = prompt("Введи новое отображаемое имя:", currentUser.nickname);
+            const newName = prompt("Введи новое имя:", currentUser.nickname);
             if (newName && newName.trim().length > 0) {
                 nickname = newName.trim();
                 syncProfile();
@@ -1213,7 +1239,7 @@
 
         function copyUserId() {
             navigator.clipboard.writeText(userId);
-            showToast("ID скопирован в буфер обмена!", 'success');
+            showToast("ID скопирован!", 'success');
         }
 
         syncProfile();
