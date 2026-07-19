@@ -7,40 +7,26 @@
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
-            --bg: #09090b;
-            --surface: #141417;
-            --surface-accent: #1f1f24;
-            --gold: #ffd700;
-            --green: #00e676;
-            --red: #ff5252;
-            --text: #ffffff;
-            --text-secondary: #71717a;
+            --bg: #09090b; --surface: #141417; --surface-accent: #1f1f24;
+            --gold: #ffd700; --green: #00e676; --red: #ff5252;
+            --text: #ffffff; --text-secondary: #71717a;
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
             margin: 0; background: var(--bg); color: var(--text);
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             display: flex; flex-direction: column; height: 100vh; overflow: hidden;
         }
-
         #maintenance-screen {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #09090b; z-index: 99999; flex-direction: column;
             align-items: center; justify-content: center; padding: 30px; text-align: center;
         }
-
-        #toast-container {
-            position: fixed; top: 80px; right: 20px;
-            z-index: 9999; display: flex; flex-direction: column; gap: 10px;
-            width: 280px; pointer-events: none;
-        }
+        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 280px; pointer-events: none; }
         .toast {
-            background: #18181b; color: #fff; padding: 14px; border-radius: 12px;
-            font-size: 0.85rem; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.5); 
-            opacity: 0; transform: translateX(50px) scale(0.9);
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            border-left: 4px solid #fff; pointer-events: auto;
+            background: #18181b; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); opacity: 0; transform: translateX(50px) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 4px solid #fff; pointer-events: auto;
         }
         .toast.show { opacity: 1; transform: translateX(0) scale(1); }
         .toast.success { border-left-color: var(--green); }
@@ -48,104 +34,58 @@
         .toast.gold { border-left-color: var(--gold); }
 
         header {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 15px 20px; background: linear-gradient(to bottom, #141417, transparent);
-            position: fixed; top: 0; width: 100%; z-index: 10;
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            background: linear-gradient(to bottom, #141417, transparent); position: fixed; top: 0; width: 100%; z-index: 10;
             border-bottom: 1px solid rgba(255, 215, 0, 0.03);
         }
         .brand { font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; color: #fff; }
         .brand span { color: var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
-        
         .header-capsules { display: flex; gap: 8px; }
         .capsule {
-            background: var(--surface); border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 20px; padding: 6px 12px; display: flex; align-items: center;
-            gap: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer;
-            transition: transform 0.2s ease;
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;
+            padding: 6px 12px; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: transform 0.2s ease;
         }
         .capsule:active { transform: scale(0.95); }
         .capsule.wallet { border-color: rgba(0, 230, 118, 0.15); color: var(--green); }
-
-        .main-container {
-            flex: 1; margin-top: 75px; margin-bottom: 75px;
-            position: relative; width: 100%; z-index: 2; overflow-x: hidden; overflow-y: auto;
-        }
+        .main-container { flex: 1; margin-top: 75px; margin-bottom: 75px; position: relative; width: 100%; z-index: 2; overflow-x: hidden; overflow-y: auto; }
         .screen {
-            display: none; padding: 20px; flex-direction: column; align-items: center;
-            width: 100%; min-height: 100%;
-            opacity: 0; transform: translateY(15px);
+            display: none; padding: 20px; flex-direction: column; align-items: center; width: 100%; min-height: 100%; opacity: 0; transform: translateY(15px);
             transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
         }
         .screen.active { display: flex; opacity: 1; transform: translateY(0); }
-
-        .game-card, .profile-card, .panel-card {
-            background: var(--surface); border: 1px solid rgba(255, 215, 0, 0.08);
-            border-radius: 24px; padding: 22px; width: 100%; max-width: 360px;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 15px;
-        }
-
+        .game-card, .profile-card, .panel-card { background: var(--surface); border: 1px solid rgba(255, 215, 0, 0.08); border-radius: 24px; padding: 22px; width: 100%; max-width: 360px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 15px; }
         .reels { display: flex; gap: 12px; margin: 25px 0; background: #0c0c0e; padding: 15px 25px; border-radius: 16px; width: 100%; justify-content: center; }
-        .reel { 
-            font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; 
-            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.35), filter 0.1s ease; 
-        }
+        .reel { font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.35), filter 0.1s ease; }
         .reel.spinning { filter: blur(5px); transform: scale(1.08) translateY(-5px); }
-        
-        .crash-arena {
-            width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px;
-            position: relative; overflow: hidden; margin: 15px 0;
-            border: 1px solid rgba(255,255,255,0.04);
-        }
-        .rocket {
-            position: absolute; bottom: 15px; left: 15px; font-size: 2.5rem;
-            z-index: 5; will-change: transform; transform-origin: center center;
-        }
-        .crash-multiplier {
-            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
-            font-size: 3rem; font-weight: 900; color: #fff; z-index: 4;
-            text-shadow: 0 0 20px rgba(255,255,255,0.2);
-        }
+        .crash-arena { width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px; position: relative; overflow: hidden; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04); }
+        .rocket { position: absolute; bottom: 15px; left: 15px; font-size: 2.5rem; z-index: 5; will-change: transform; transform-origin: center center; }
+        .crash-multiplier { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: 900; color: #fff; z-index: 4; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
         .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
-
-        .plinko-arena-wrapper {
-            width: 100%; background: #0c0c0e; border-radius: 16px;
-            padding: 10px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04);
-            display: flex; justify-content: center; align-items: center;
-        }
+        .plinko-arena-wrapper { width: 100%; background: #0c0c0e; border-radius: 16px; padding: 10px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: center; align-items: center; }
         #plinko-canvas { max-width: 100%; height: auto; display: block; }
-
         .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
         .click-coin {
-            width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37);
-            border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            font-size: 5.5rem; cursor: pointer; user-select: none;
-            box-shadow: 0 0 35px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255,255,255,0.4);
-            transition: transform 0.08s ease, box-shadow 0.08s ease;
-            will-change: transform; border: 6px solid #1c1917;
+            width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; cursor: pointer; user-select: none;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255,255,255,0.4); transition: transform 0.08s ease, box-shadow 0.08s ease; will-change: transform; border: 6px solid #1c1917;
         }
         .click-coin:active { transform: scale(0.92); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
-
         .bet-input-wrapper { width: 100%; margin-bottom: 15px; }
         .bet-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px; display: block; text-transform: uppercase; }
         .bet-field-group { display: flex; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
         .bet-input { flex: 1; background: transparent; border: none; color: #fff; font-size: 1.1rem; font-weight: 700; padding: 12px; outline: none; }
         .max-btn { background: var(--surface-accent); border: none; color: var(--gold); font-size: 0.8rem; font-weight: 700; padding: 0 15px; cursor: pointer; }
-
         .action-btn { background: linear-gradient(135deg, var(--gold), #d4af37); border: none; color: #000; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; }
         .action-btn:active { transform: scale(0.96); opacity: 0.9; }
         .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-
         .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; text-align: left; }
         .avatar-stub { width: 65px; height: 65px; background: var(--surface-accent); border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
         .user-id-badge { background: #0c0c0e; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; border: 1px solid rgba(255,255,255,0.04); display: inline-flex; align-items: center; gap: 4px; }
-        
         .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
         .stat-box { background: #0c0c0e; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
         .stat-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
         .stat-val.win { color: var(--green); }
         .stat-val.loss { color: var(--red); }
         .stat-lbl { font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; }
-
         .shop-section { width: 100%; max-width: 360px; margin-top: 0; }
         .shop-title { font-size: 0.8rem; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 20px 0 10px 0; letter-spacing: 1px; border-left: 3px solid var(--gold); padding-left: 8px; }
         .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 12px 16px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
@@ -156,21 +96,10 @@
         .buy-btn:active { transform: scale(0.95); }
         .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; transform: none; }
         .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; transform: none; }
-
         .msg-box { background: #0c0c0e; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px; text-align: left; font-size: 0.82rem; }
         .user-link { color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; }
-
-        nav {
-            position: fixed; bottom: 0; width: 100%; height: 68px;
-            background: #141417; border-top: 1px solid rgba(255,255,255,0.04);
-            display: flex; justify-content: space-around; align-items: center; z-index: 10;
-        }
-        .nav-item {
-            display: flex; flex-direction: column; align-items: center;
-            color: var(--text-secondary); background: none; border: none;
-            cursor: pointer; font-size: 0.65rem; gap: 5px; font-weight: 600; flex: 1;
-            transition: color 0.2s ease, transform 0.1s ease;
-        }
+        nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.65rem; gap: 5px; font-weight: 600; flex: 1; transition: color 0.2s ease, transform 0.1s ease; }
         .nav-item:active { transform: scale(0.93); }
         .nav-item.active { color: var(--gold); }
         .nav-item svg { fill: currentColor; width: 18px; height: 18px; }
@@ -218,7 +147,6 @@
         <div id="screen-crash" class="screen">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Ракетка (Crash)</div>
-                
                 <div class="crash-arena">
                     <div class="crash-multiplier" id="crash-mult">1.00x</div>
                     <div class="rocket" id="rocket-obj">🚀</div>
@@ -226,7 +154,6 @@
                         <path id="flight-line" d="M 15 185 Q 15 185 15 185" stroke="rgba(255, 215, 0, 0.6)" stroke-width="3" fill="none" />
                     </svg>
                 </div>
-
                 <div class="bet-input-wrapper">
                     <label class="bet-label">Ставка на полет ($RJC)</label>
                     <div class="bet-field-group">
@@ -241,11 +168,9 @@
         <div id="screen-plinko" class="screen">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Кастомные Шансы)</div>
-                
                 <div class="plinko-arena-wrapper">
                     <canvas id="plinko-canvas" width="320" height="340"></canvas>
                 </div>
-
                 <div class="bet-input-wrapper">
                     <label class="bet-label">Ставка на шарик ($RJC)</label>
                     <div class="bet-field-group">
@@ -292,13 +217,11 @@
                         </div>
                     </div>
                 </div>
-                
                 <div style="text-align: left; background: #0c0c0e; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
                     <div style="font-size:0.7rem; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">Статус & Гражданство</div>
                     <div style="font-size:1rem; font-weight:800; margin-top:4px;" id="prof-status">Игрок</div>
                     <div style="font-size:0.85rem; font-weight:600; color:var(--gold); margin-top:2px;" id="prof-citizen">Без гражданства</div>
                 </div>
-
                 <div id="player-stats-block">
                     <h4 style="text-align:left; margin:15px 0 8px 0; font-size:0.8rem; color:var(--text-secondary); text-transform:uppercase;">Статистика сессии</h4>
                     <div class="stats-grid">
@@ -312,7 +235,7 @@
             <div class="panel-card">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">👥 Реферальная система</h4>
                 <p style="font-size:0.75rem; color:var(--text-secondary); margin:5px 0 12px 0; line-height:1.4; text-align:left;">
-                    Приглашай друзей! Если твой реферал сделает суммарный оборот ставок (выиграет или проиграет) на сумму более <b>2,000 $RJC</b>, ты мгновенно получишь бонус <b>+5,000 $RJC</b>!
+                    Приглашай друзей! Если твой реферал сделает суммарный оборот ставок на сумму более <b>2,000 $RJC</b>, ты получишь бонус <b>+5,000 $RJC</b>!
                 </p>
                 <button class="action-btn" onclick="copyReferralLink()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff; padding:10px 14px; font-size:0.85rem;">
                     📋 Скопировать реф-ссылку
@@ -326,11 +249,9 @@
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
                 <button class="action-btn" onclick="adminExecute()" style="margin-bottom: 12px;">Нарисовать бабки</button>
-
                 <button class="action-btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="background: linear-gradient(135deg, var(--red), #c62828); color: #fff; margin-bottom: 20px;">
                     Включить техобслуживание
                 </button>
-
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 15px;">Создать Промокод</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     <input type="text" id="promo-name" placeholder="Название промокода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none; text-transform:uppercase;">
@@ -422,7 +343,6 @@
 
         const normalizedUser = username.toLowerCase().replace('@', '');
         const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
-
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
         const citizenshipList = [
@@ -499,6 +419,15 @@
             { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 }
         ];
 
+        // Помощник для сборки заголовков безопасности
+        function getSecureHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (tg && tg.initData) {
+                headers['x-tg-data'] = tg.initData;
+            }
+            return headers;
+        }
+
         function getClickPower() {
             const currentName = currentUser.currentCitizenship;
             const citizen = citizenshipList.find(c => c.name === currentName);
@@ -521,7 +450,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/user`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ userId, username, nickname, referredBy })
                 });
                 currentUser = await res.json();
@@ -671,7 +600,6 @@
                 } else if (isOwned) {
                     btnHtml = `<button class="buy-btn owned">Куплено</button>`;
                 } else if (itemData.id === 'p_hamam_resort') {
-                    // ЛОГИКА УЛУЧШЕНИЯ ХАММАМА: Проверяем наличие Атолла
                     const hasIsland = currentUser.ownedProperties.includes('p_island');
                     if (hasIsland) {
                         btnHtml = `<button class="buy-btn" style="background: linear-gradient(135deg, var(--green), #00c853); color: #000; font-weight: 800;" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Улучшить</button>`;
@@ -700,7 +628,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/buy`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ userId, itemId, itemName, cost, type })
                 });
                 let data = await res.json();
@@ -724,7 +652,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/rejewpay/transfer`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ senderId: userId, receiverUsername, amount, comment })
                 });
                 let data = await res.json();
@@ -792,7 +720,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/game/result`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ userId, bet: 0, winAmount: clicksToSend, isWin: true })
                 });
                 currentUser = await res.json();
@@ -807,7 +735,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/game/result`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ userId, bet, winAmount, isWin })
                 });
                 currentUser = await res.json();
@@ -902,6 +830,8 @@
                     let rand = Math.random();
                     crashPoint = parseFloat((0.99 / (1 - rand)).toFixed(2));
                     if (crashPoint < 1.01) crashPoint = 1.01;
+                    // Античит-кап на клиенте (х100 максимум)
+                    if (crashPoint > 100) crashPoint = 100;
                 }
 
                 crashStartTime = performance.now();
@@ -1063,7 +993,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/games/plinko`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ userId: userId, bet: bet })
                 });
                 let data = await res.json();
@@ -1076,7 +1006,6 @@
                 animatePlinkoBall(data.bucketIndex, data, () => {
                     btn.disabled = false;
                 });
-
             } catch(e) {
                 btn.disabled = false;
                 showToast("Ошибка Плинко-сервера!", "error");
@@ -1162,7 +1091,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/admin/add`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ adminUserId: userId, targetUserId: userId, amount })
                 });
                 let data = await res.json();
@@ -1177,12 +1106,11 @@
             try {
                 let res = await fetch(`${API_URL}/api/admin/maintenance/toggle`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ adminUserId: userId })
                 });
                 let data = await res.json();
                 if (data.error) return showToast(data.error, 'error');
-                
                 showToast(data.maintenanceActive ? "⛔ Тех. работы ВКЛЮЧЕНЫ" : "✅ Тех. работы ВЫКЛЮЧЕНЫ", "gold");
                 syncProfile();
             } catch(e) { showToast("Ошибка переключения", "error"); }
@@ -1200,7 +1128,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/admin/promo/create`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ adminUserId: userId, code, limit, reward })
                 });
                 let data = await res.json();
@@ -1220,7 +1148,7 @@
             try {
                 let res = await fetch(`${API_URL}/api/promo/activate`, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
+                    headers: getSecureHeaders(),
                     body: JSON.stringify({ userId, code })
                 });
                 let data = await res.json();
