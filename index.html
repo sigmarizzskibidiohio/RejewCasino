@@ -66,14 +66,15 @@
         .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
         .click-coin {
             width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; cursor: pointer; user-select: none;
-            box-shadow: 0 0 35px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255,255,255,0.4); transition: transform 0.08s ease, box-shadow 0.08s ease; will-change: transform; border: 6px solid #1c1917;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255,255,255,0.4); transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.08s ease; will-change: transform; border: 6px solid #1c1917;
         }
-        .click-coin:active { transform: scale(0.92); box-shadow: 0 0 15px rgba(255, 215, 0, 0.2); }
+        .click-coin:active { transform: scale(0.88); box-shadow: 0 0 50px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255,255,255,0.2); }
         .bet-input-wrapper { width: 100%; margin-bottom: 15px; }
         .bet-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px; display: block; text-transform: uppercase; }
         .bet-field-group { display: flex; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
         .bet-input { flex: 1; background: transparent; border: none; color: #fff; font-size: 1.1rem; font-weight: 700; padding: 12px; outline: none; }
-        .max-btn { background: var(--surface-accent); border: none; color: var(--gold); font-size: 0.8rem; font-weight: 700; padding: 0 15px; cursor: pointer; }
+        .max-btn { background: var(--surface-accent); border: none; color: var(--gold); font-size: 0.8rem; font-weight: 700; padding: 0 15px; cursor: pointer; transition: background 0.2s; }
+        .max-btn:active { background: #2a2a30; }
         .action-btn { background: linear-gradient(135deg, var(--gold), #d4af37); border: none; color: #000; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; }
         .action-btn:active { transform: scale(0.96); opacity: 0.9; }
         .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
@@ -87,16 +88,16 @@
         .stat-val.loss { color: var(--red); }
         .stat-lbl { font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; }
         .shop-section { width: 100%; max-width: 360px; margin-top: 0; }
-        .shop-title { font-size: 0.8rem; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 20px 0 10px 0; letter-spacing: 1px; border-left: 3px solid var(--gold); padding-left: 8px; }
-        .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 12px 16px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
-        .shop-item-info { display: flex; flex-direction: column; text-align: left; max-width: 70%; }
+        .shop-title { font-size: 0.8rem; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 25px 0 12px 0; letter-spacing: 1px; border-left: 3px solid var(--gold); padding-left: 8px; }
+        .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 14px 16px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
+        .shop-item-info { display: flex; flex-direction: column; text-align: left; max-width: 65%; }
         .shop-item-name { font-size: 0.88rem; font-weight: 700; color: #fff; }
-        .shop-item-cost { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; margin-top: 2px; }
+        .shop-item-cost { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; margin-top: 4px; }
         .buy-btn { background: var(--surface-accent); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
-        .buy-btn:active { transform: scale(0.95); }
+        .buy-btn:active { transform: scale(0.92); }
         .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; transform: none; }
         .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; transform: none; }
-        .msg-box { background: #0c0c0e; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 8px; text-align: left; font-size: 0.82rem; }
+        .msg-box { background: #0c0c0e; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
         .user-link { color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; }
         nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.65rem; gap: 5px; font-weight: 600; flex: 1; transition: color 0.2s ease, transform 0.1s ease; }
@@ -125,6 +126,7 @@
     </header>
 
     <div class="main-container">
+        <!-- СЛОТЫ -->
         <div id="screen-spins" class="screen active">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Classic Slots</div>
@@ -144,6 +146,7 @@
             </div>
         </div>
 
+        <!-- КРАШ -->
         <div id="screen-crash" class="screen">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Ракетка (Crash)</div>
@@ -165,6 +168,7 @@
             </div>
         </div>
 
+        <!-- ПЛИНКО -->
         <div id="screen-plinko" class="screen">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Кастомные Шансы)</div>
@@ -182,17 +186,19 @@
             </div>
         </div>
 
+        <!-- КЛИКЕР -->
         <div id="screen-clicker" class="screen">
             <div class="clicker-container">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom: 25px;">Майнинг кликами</div>
+                <div style="color:var(--text-secondary); font-size:0.85rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom: 30px;">Майнинг кликами</div>
                 <div class="click-coin" onclick="executeCoinClick()">🟡</div>
-                <div id="clicker-profit-label" style="margin-top:25px; font-weight:700; font-size:0.9rem; color:var(--text-secondary);">+1 $RJC за каждый тап</div>
+                <div id="clicker-profit-label" style="margin-top:35px; font-weight:800; font-size:1rem; color:var(--gold);">+1 $RJC за каждый тап</div>
             </div>
         </div>
 
+        <!-- МАРКЕТ -->
         <div id="screen-market" class="screen">
             <div class="shop-section">
-                <div class="shop-title">🌍 Паспорта и Инвестиции</div>
+                <div class="shop-title">🌍 Паспорта и Инвестиции (Буст Кликов)</div>
                 <div id="citizenship-shop"></div>
                 <div class="shop-title">🚗 Элитный Гараж</div>
                 <div id="cars-shop"></div>
@@ -203,6 +209,7 @@
             </div>
         </div>
 
+        <!-- ПРОФИЛЬ И ПАНЕЛИ -->
         <div id="screen-profile" class="screen">
             <div class="profile-card">
                 <div class="profile-header">
@@ -240,7 +247,7 @@
                 <button class="action-btn" onclick="copyReferralLink()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff; padding:10px 14px; font-size:0.85rem;">
                     📋 Скопировать реф-ссылку
                 </button>
-                <div id="ref-status-lbl" style="font-size:0.75rem; color:var(--green); font-weight:700; margin-top:10px; text-align:center;">
+                <div id="ref-status-lbl" style="font-size:0.75rem; color:var(--green); font-weight:700; margin-top:12px; text-align:center;">
                     Получено бонусов за рефералов: 0
                 </div>
             </div>
@@ -279,7 +286,7 @@
                 </div>
             </div>
 
-            <div class="panel-card" style="max-height: 320px; display: flex; flex-direction: column;">
+            <div class="panel-card" style="max-height: 350px; display: flex; flex-direction: column;">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold); margin-bottom: 12px;">История транзакций</h4>
                 <div id="transactions-list" style="overflow-y: auto; flex: 1; padding-right: 4px;">
                     <div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>
@@ -345,81 +352,124 @@
         const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
+        // +10 НОВЫХ ПАСПОРТОВ
         const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
+            { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
             { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
+            { id: 'c_ge', name: '🇬🇪 Грузия (ИП)', cost: 8000 },
             { id: 'c_thailand', name: '🇹🇭 Таиланд (Elite Visa)', cost: 12000 },
+            { id: 'c_ar', name: '🇦🇷 Аргентина (По рождению)', cost: 22000 },
             { id: 'c_turkey', name: '🇹🇷 Турция (За отель)', cost: 35000 },
+            { id: 'c_pt', name: '🇵🇹 Португалия (D7)', cost: 50000 },
             { id: 'c_cyprus', name: '🇨🇾 Кипр (ПМЖ)', cost: 65000 },
             { id: 'c_spain', name: '🇪🇸 Испания (Золотая Виза)', cost: 85000 },
+            { id: 'c_gr', name: '🇬🇷 Греция (Золотая Виза)', cost: 100000 },
             { id: 'c_uae', name: '🇦🇪 ОАЭ (Golden ID)', cost: 140000 },
+            { id: 'c_vu', name: '🇻🇺 Вануату (За донат)', cost: 180000 },
             { id: 'c_swiss', name: '🇨🇭 Швейцария (Налог)', cost: 250000 },
+            { id: 'c_ca', name: '🇨🇦 Канада (Экспресс)', cost: 350000 },
             { id: 'c_singapore', name: '🇸🇬 Сингапур (Бизнес)', cost: 480000 },
+            { id: 'c_au', name: '🇦🇺 Австралия (Скилл)', cost: 600000 },
             { id: 'c_uk', name: '🇬🇧 Великобритания (Tier 1)', cost: 750000 },
+            { id: 'c_nz', name: '🇳🇿 Новая Зеландия (Инвестор)', cost: 1000000 },
             { id: 'c_usa', name: '🇺🇸 США (EB-5 Инвестор)', cost: 1500000 },
             { id: 'c_japan', name: '🇯🇵 Япония (Императорский ВНЖ)', cost: 3000000 },
             { id: 'c_crypto', name: '🐳 Эль-Сальвадор (Биткоин Кинг)', cost: 4500000 },
-            { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 8000000 }
+            { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 8000000 },
+            { id: 'c_alpha', name: '🪐 Альфа Центавра (Межгалактический)', cost: 15000000 }
         ];
 
+        // +10 НОВЫХ МАШИН
         const carsList = [
             { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
+            { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 },
+            { id: 'p_bike', name: '🚲 Дедовский Урал', cost: 400 },
             { id: 'p_zhiga', name: '🚗 ВАЗ 2107 "Жига"', cost: 800 },
             { id: 'p_granta', name: '🏎️ Lada Granta Sport', cost: 1600 },
+            { id: 'p_vesta', name: '🚗 Lada Vesta', cost: 2500 },
             { id: 'p_camry', name: '🚘 Toyota Camry 70', cost: 3200 },
+            { id: 'p_rio', name: '🚙 Kia Rio', cost: 4500 },
             { id: 'p_bmw', name: '🖤 BMW M5 F90 LCI', cost: 9500 },
+            { id: 'p_mustang', name: '🏎️ Ford Mustang', cost: 14000 },
             { id: 'p_porsche', name: '🏎️ Porsche 911 Turbo S', cost: 18000 },
             { id: 'p_cybertruck', name: '📐 Tesla CyberTruck V2', cost: 27000 },
+            { id: 'p_gelik', name: '🚙 G-Wagen', cost: 35000 },
             { id: 'p_lambo', name: '⚡ Lamborghini Revuelto', cost: 48000 },
+            { id: 'p_mclaren', name: '🏎️ McLaren 720S', cost: 65000 },
             { id: 'p_ferrari', name: '🐎 Ferrari SF90 Stradale', cost: 90000 },
             { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 },
+            { id: 'p_aston', name: '🏎️ Aston Martin Valkyrie', cost: 250000 },
             { id: 'p_jesko', name: '🛸 Koenigsegg Jesko Absolut', cost: 450000 },
+            { id: 'p_ssc', name: '🏎️ SSC Tuatara', cost: 650000 },
             { id: 'p_pagani', name: '🎭 Pagani Utopia Roadster', cost: 950000 },
             { id: 'p_rolls', name: '💎 Rolls-Royce La Rose Noire', cost: 1500000 },
-            { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 }
+            { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 },
+            { id: 'p_ufo', name: '🛸 НЛО Розуэлл', cost: 5000000 }
         ];
 
+        // +10 НОВОЙ НЕДВИЖКИ
         const housesList = [
             { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
-            { id: 'p_box', name: '📦 Коробка от холодильника под мостом', cost: 150, bonus: 10 },
-            { id: 'p_garage', name: '🔧 Гараж с верстаком и ямой', cost: 450, bonus: 30 },
+            { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50, bonus: 2 },
+            { id: 'p_box', name: '📦 Коробка под мостом', cost: 150, bonus: 10 },
+            { id: 'p_tent', name: '⛺ Палатка в лесу', cost: 250, bonus: 15 },
+            { id: 'p_garage', name: '🔧 Гараж с ямой', cost: 450, bonus: 30 },
             { id: 'p_baza', name: '⛺ Бытовка на стройке', cost: 500, bonus: 40 },
-            { id: 'p_communalka', name: '🏢 Комната в питерской коммуналке', cost: 1100, bonus: 90 },
+            { id: 'p_basement', name: '🧱 Подвал хрущевки', cost: 800, bonus: 60 },
+            { id: 'p_communalka', name: '🏢 Комната в коммуналке', cost: 1100, bonus: 90 },
             { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000, bonus: 180 },
+            { id: 'p_hostel', name: '🛏️ Хостел на 10 мест', cost: 3500, bonus: 300 },
             { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000, bonus: 550 },
             { id: 'p_dacha', name: '🏡 Дача в СНТ с теплицей', cost: 9500, bonus: 900 },
             { id: 'p_cyber_village', name: '🧑‍🌾 Кибердеревня в Рязани', cost: 14000, bonus: 1400 },
             { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000, bonus: 2300 },
             { id: 'p_miami', name: '🏖️ Дом на Малибу', cost: 45000, bonus: 4800 },
-            { id: 'p_dubai', name: '🏙️ Пентхаус в Dubai Marina', cost: 75000, bonus: 8200 },
-            { id: 'p_blogger_mansion', name: '📸 Особняк инста-блогера для съемок', cost: 115000, bonus: 13000 },
+            { id: 'p_moscow_city', name: '🏢 Апартаменты Москва-Сити', cost: 60000, bonus: 6000 },
+            { id: 'p_dubai', name: '🏙️ Пентхаус Dubai Marina', cost: 75000, bonus: 8200 },
+            { id: 'p_blogger_mansion', name: '📸 Особняк инста-блогера', cost: 115000, bonus: 13000 },
             { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000, bonus: 20000 },
+            { id: 'p_como', name: '🏡 Вилла на озере Комо', cost: 220000, bonus: 25000 },
             { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000, bonus: 36000 },
-            { id: 'p_flanders_hq', name: '📺 Секретный бункер @flanders1', cost: 450000, bonus: 55000 },
+            { id: 'p_flanders_hq', name: '📺 Бункер @flanders1', cost: 450000, bonus: 55000 },
+            { id: 'p_rancho', name: '🐎 Ранчо в Техасе', cost: 600000, bonus: 75000 },
             { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000, bonus: 110000 },
             { id: 'p_police_hq', name: '🚓 Главный штаб Стражей Галактики', cost: 1300000, bonus: 180000 },
             { id: 'p_penthouse_ny', name: '🗽 Центральный Парк Пентхаус', cost: 1800000, bonus: 260000 },
+            { id: 'p_float_island', name: '☁️ Парящий остров', cost: 3000000, bonus: 400000 },
             { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 4000000, bonus: 600000 },
-            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с улучшенным Хаммамом', cost: 5500000, bonus: 900000 },
+            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с Хаммамом', cost: 5500000, bonus: 900000 },
             { id: 'p_moon_base', name: '🌙 Станция на Луне "Luna-1"', cost: 6500000, bonus: 1100000 },
-            { id: 'p_cyber_palace', name: '🛸 Кибер-Дворец в Метавселенной', cost: 8200000, bonus: 1500000 },
-            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000, bonus: 2000000 }
+            { id: 'p_cyber_palace', name: '🛸 Кибер-Дворец', cost: 8200000, bonus: 1500000 },
+            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000, bonus: 2000000 },
+            { id: 'p_orbit', name: '🛰️ Орбитальная станция', cost: 15000000, bonus: 3000000 },
+            { id: 'p_death_star', name: '🌑 Звезда Смерти', cost: 35000000, bonus: 8000000 }
         ];
 
+        // +10 НОВЫХ ЯХТ
         const yachtsList = [
+            { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 },
+            { id: 'p_pvh', name: '🚣‍♂️ Лодка ПВХ', cost: 400 },
+            { id: 'p_catamaran', name: '🛶 Катамаран', cost: 800 },
             { id: 'p_kater', name: '🛥️ Катер "Ветерок"', cost: 1500 },
+            { id: 'p_canoe', name: '🛶 Байдарка', cost: 2000 },
             { id: 'p_jet', name: '🌊 Гидроцикл Yamaha FX', cost: 3500 },
             { id: 'p_raft', name: '🪵 Плот из пивных покрышек', cost: 7000 },
+            { id: 'p_sail', name: '⛵ Парусная яхта', cost: 12000 },
             { id: 'p_azimut', name: '🚢 Azimut 66 Fly', cost: 28000 },
+            { id: 'p_riva', name: '🚤 Катер Riva', cost: 65000 },
             { id: 'p_benetti', name: '⚓ Benetti Oasis 40M', cost: 120000 },
+            { id: 'p_superyacht', name: '🛳️ Суперяхта 50м', cost: 250000 },
             { id: 'p_eclipse', name: '⚓ Мегаяхта "Eclipse"', cost: 500000 },
             { id: 'p_somnio', name: '🏢 Яхта-лайнер Somnio Residential', cost: 900000 },
             { id: 'p_nautilus', name: '🐙 Подлодка Наутилус', cost: 1500000 },
+            { id: 'p_carrier', name: '🛩️ Авианосец', cost: 2000000 },
             { id: 'p_history', name: '✨ History Supreme (Золотая)', cost: 3000000 },
-            { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 }
+            { id: 'p_underwater_city', name: '🌊 Подводный город', cost: 5000000 },
+            { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 },
+            { id: 'p_cruiser', name: '🚀 Космический крейсер', cost: 25000000 }
         ];
 
-        // Помощник для сборки заголовков безопасности
         function getSecureHeaders() {
             const headers = { 'Content-Type': 'application/json' };
             if (tg && tg.initData) {
@@ -428,6 +478,7 @@
             return headers;
         }
 
+        // АВТОМАТИЧЕСКИЙ БУСТ ОТ ПАСПОРТА (ЧЕМ КРУЧЕ, ТЕМ БОЛЬШЕ)
         function getClickPower() {
             const currentName = currentUser.currentCitizenship;
             const citizen = citizenshipList.find(c => c.name === currentName);
@@ -511,7 +562,7 @@
             document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
 
             const clickPower = getClickPower();
-            document.getElementById('clicker-profit-label').innerText = `+${clickPower} $RJC за каждый тап`;
+            document.getElementById('clicker-profit-label').innerText = `+${clickPower.toLocaleString()} $RJC за каждый тап`;
 
             const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
             document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
@@ -565,10 +616,10 @@
                                 ${msg.type || 'Операция'}
                             </span>
                         </div>
-                        <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:4px;">
+                        <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:6px;">
                             ${isOutgoing ? 'Кому' : 'От'}: 
                             <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} ${partnerUser ? '@' + partnerUser : ''}</span>
-                            <div style="background:rgba(0,0,0,0.2); padding:6px; border-radius:6px; margin-top:4px; color:#fff;">💬 ${commentText}</div>
+                            <div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:6px; margin-top:6px; color:#fff;">💬 ${commentText}</div>
                         </div>
                     `;
                     transListBlock.appendChild(div);
@@ -610,7 +661,12 @@
                     btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
                 }
 
-                const bonusInfo = itemData.bonus ? `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>` : '';
+                let bonusInfo = '';
+                if (itemData.bonus) bonusInfo = `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>`;
+                // Отображаем бонус к клику для паспортов
+                if (type === 'citizen' && itemData.cost > 0) {
+                     bonusInfo = `<br><span style="color:var(--gold); font-size:0.72rem; font-weight:700;">+${(1 + Math.floor(itemData.cost / 800)).toLocaleString()} к тапу</span>`;
+                }
 
                 div.innerHTML = `
                     <div class="shop-item-info">
@@ -830,7 +886,6 @@
                     let rand = Math.random();
                     crashPoint = parseFloat((0.99 / (1 - rand)).toFixed(2));
                     if (crashPoint < 1.01) crashPoint = 1.01;
-                    // Античит-кап на клиенте (х100 максимум)
                     if (crashPoint > 100) crashPoint = 100;
                 }
 
