@@ -252,15 +252,13 @@
                 </div>
             </div>
 
-            <!-- ПАНЕЛЬ АДМИНА / МОДЕРАТОРА С ТЕХ-ИНФОЙ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;" id="admin-panel-title">Админ / Мод Панель</h4>
                 
-                <!-- Блок Технической Информации -->
                 <div id="tech-info-block" style="background:#0c0c0e; padding:10px; border-radius:10px; margin-bottom:12px; font-size:0.78rem; text-align:left; color:#a1a1aa; border:1px solid rgba(255,215,0,0.1);">
                     <div style="color:var(--gold); font-weight:800; margin-bottom:6px;">📊 Техническая информация:</div>
                     <div>👤 Всего игроков: <span id="tech-users" style="color:#fff;">0</span></div>
-                    <div>💰 Суммарный баланс: <span id="tech-bal" style="color:var(--green);">0</span> $RJC</div>
+                    <div>💰 Суммарный баланс: <span id="tech-bal" style="color:#green;">0</span> $RJC</div>
                     <div>📈 Общий оборот: <span id="tech-turnover" style="color:#fff;">0</span> $RJC</div>
                     <div>🛡️ Модераторов: <span id="tech-mods" style="color:#fff;">0</span></div>
                     <div>⏱️ Uptime: <span id="tech-uptime" style="color:#fff;">0</span> сек</div>
@@ -342,7 +340,7 @@
         let userId = '777777'; 
         let nickname = 'Создатель';
         let referredBy = null;
-        let currentUser = { balance: 0, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false };
+        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false };
 
         let accumulatedClicks = 0;
         let clickSyncTimeout = null;
@@ -519,6 +517,7 @@
                     body: JSON.stringify({ userId, username, nickname, referredBy })
                 });
                 currentUser = await res.json();
+                currentUser.balance = Number(currentUser.balance) || 0;
                 
                 if (currentUser.maintenanceActive) {
                     if (!isOwner && !currentUser.isModerator) {
@@ -537,7 +536,13 @@
                     loadTechInfo();
                 }
             } catch(e) {
-                showToast("Ошибка подключения к серверу", "error");
+                currentUser.balance = Number(currentUser.balance) || 5000;
+                updateUI();
+                if (!isOwner && !currentUser.isModerator) {
+                    document.getElementById('maintenance-screen').style.display = 'flex';
+                } else {
+                    showToast("⚠️ Бэк временно недоступен, но для тебя обход!", "error");
+                }
             }
         }
 
@@ -551,8 +556,8 @@
                 let data = await res.json();
                 if (!data.error) {
                     document.getElementById('tech-users').innerText = data.totalUsers;
-                    document.getElementById('tech-bal').innerText = data.totalBalance.toLocaleString();
-                    document.getElementById('tech-turnover').innerText = data.totalTurnover.toLocaleString();
+                    document.getElementById('tech-bal').innerText = Number(data.totalBalance || 0).toLocaleString();
+                    document.getElementById('tech-turnover').innerText = Number(data.totalTurnover || 0).toLocaleString();
                     document.getElementById('tech-mods').innerText = data.moderatorsCount;
                     document.getElementById('tech-uptime').innerText = Math.floor(data.uptime);
                 }
@@ -589,6 +594,7 @@
         }
 
         function updateUI() {
+            currentUser.balance = Number(currentUser.balance) || 0;
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
             document.getElementById('prof-name').innerText = currentUser.nickname;
             document.getElementById('prof-id').innerText = currentUser.userId;
@@ -633,9 +639,9 @@
                 document.getElementById('player-stats-block').style.display = 'block';
                 document.getElementById('prof-avatar').innerText = '🕹️';
                 
-                document.getElementById('stat-total').innerText = currentUser.stats.total;
-                document.getElementById('stat-wins').innerText = currentUser.stats.wins;
-                document.getElementById('stat-losses').innerText = currentUser.stats.losses;
+                document.getElementById('stat-total').innerText = currentUser.stats.total || 0;
+                document.getElementById('stat-wins').innerText = currentUser.stats.wins || 0;
+                document.getElementById('stat-losses').innerText = currentUser.stats.losses || 0;
             }
 
             const transListBlock = document.getElementById('transactions-list');
@@ -655,7 +661,7 @@
 
                     div.innerHTML = `
                         <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${msg.amount.toLocaleString()} $RJC</span>
+                            <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${Number(msg.amount || 0).toLocaleString()} $RJC</span>
                             <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
                                 ${msg.type || 'Операция'}
                             </span>
@@ -727,6 +733,7 @@
         }
 
         async function buyItem(itemId, itemName, cost, type) {
+            currentUser.balance = Number(currentUser.balance) || 0;
             if (currentUser.balance < cost) return showToast("Не хватает $RJC на эту сделку!", 'error');
             try {
                 let res = await fetch(`${API_URL}/api/buy`, {
@@ -737,6 +744,7 @@
                 let data = await res.json();
                 if(data.error) return showToast(data.error, 'error');
                 currentUser = data;
+                currentUser.balance = Number(currentUser.balance) || 0;
                 forceOwnerLuxuries(currentUser);
                 showToast(`🎉 Успешная сделка: ${itemName}`, 'gold');
                 updateUI();
@@ -750,6 +758,7 @@
 
             if (!receiverUsername) return showToast("Введите юзернейм получателя", 'error');
             if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
             if (currentUser.balance < amount) return showToast("Недостаточно коинов!", 'error');
 
             try {
@@ -802,12 +811,16 @@
         }
 
         function setMaxBet(inputId) {
-            document.getElementById(inputId).value = currentUser.balance;
+            currentUser.balance = Number(currentUser.balance) || 0;
+            const field = document.getElementById(inputId);
+            if (field) {
+                field.value = currentUser.balance;
+            }
         }
 
         function executeCoinClick() {
             const power = getClickPower();
-            currentUser.balance += power;
+            currentUser.balance = (Number(currentUser.balance) || 0) + power;
             accumulatedClicks += power;
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
 
@@ -827,6 +840,7 @@
                     body: JSON.stringify({ userId, bet: 0, winAmount: clicksToSend, isWin: true })
                 });
                 currentUser = await res.json();
+                currentUser.balance = Number(currentUser.balance) || 0;
                 forceOwnerLuxuries(currentUser);
                 updateUI();
             } catch(e) {
@@ -842,6 +856,7 @@
                     body: JSON.stringify({ userId, bet, winAmount, isWin })
                 });
                 currentUser = await res.json();
+                currentUser.balance = Number(currentUser.balance) || 0;
                 forceOwnerLuxuries(currentUser);
                 updateUI();
                 if (msg) showToast(msg, status || 'success');
@@ -855,6 +870,7 @@
             let bet = parseInt(betInput.value);
 
             if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
             if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
 
             const spinBtn = document.getElementById('spin-btn');
@@ -917,6 +933,7 @@
                 crashBetAmount = parseInt(betInput.value);
 
                 if (isNaN(crashBetAmount) || crashBetAmount < 10) return showToast("Минимум — 10 $RJC!", 'error');
+                currentUser.balance = Number(currentUser.balance) || 0;
                 if (currentUser.balance < crashBetAmount) return showToast("Недостаточно баланса!", 'error');
 
                 crashState = 'flying';
@@ -1021,6 +1038,7 @@
 
         function initPlinkoCanvas() {
             plinkoCanvas = document.getElementById('plinko-canvas');
+            if(!plinkoCanvas) return;
             ctx = plinkoCanvas.getContext('2d');
             generatePlinkoPins();
             drawPlinkoBoard();
@@ -1036,61 +1054,35 @@
             let startX = (plinkoCanvas.width - (cols - 1) * spacingX) / 2;
             
             for (let r = 0; r < rows; r++) {
-                for (let c = 0; c < cols; c++) {
-                    plinkoPins.push({ x: startX + c * spacingX, y: startY + r * spacingY, row: r, col: c });
+                let currentCols = cols;
+                let currentStartX = (plinkoCanvas.width - (currentCols - 1) * spacingX) / 2;
+                for (let c = 0; c < currentCols; c++) {
+                    plinkoPins.push({
+                        x: currentStartX + c * spacingX,
+                        y: startY + r * spacingY,
+                        radius: 3
+                    });
                 }
             }
         }
 
         function drawPlinkoBoard() {
+            if (!ctx) return;
             ctx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
-            
-            ctx.fillStyle = 'rgba(255,255,255,0.4)';
+            ctx.fillStyle = '#ffffff';
             plinkoPins.forEach(pin => {
                 ctx.beginPath();
-                ctx.arc(pin.x, pin.y, 3, 0, Math.PI * 2);
+                ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
                 ctx.fill();
             });
-
-            let totalBuckets = 9;
-            let bWidth = 30;
-            let bHeight = 22;
-            let bGap = 3;
-            let startX = (plinkoCanvas.width - (totalBuckets * bWidth + (totalBuckets - 1) * bGap)) / 2;
-            let bY = plinkoCanvas.height - 35;
-
-            for (let i = 0; i < totalBuckets; i++) {
-                let curX = startX + i * (bWidth + bGap);
-                let mult = plinkoMultipliers[i];
-                
-                if (mult >= 5) ctx.fillStyle = 'rgba(255, 82, 82, 0.15)';
-                else if (mult >= 1) ctx.fillStyle = 'rgba(255, 215, 0, 0.1)';
-                else ctx.fillStyle = 'rgba(113, 113, 122, 0.08)';
-
-                ctx.strokeStyle = mult >= 5 ? '#ff5252' : (mult >= 1 ? '#ffd700' : 'rgba(255,255,255,0.1)');
-                ctx.lineWidth = 1;
-                
-                ctx.beginPath();
-                ctx.roundRect(curX, bY, bWidth, bHeight, 5);
-                ctx.fill();
-                ctx.stroke();
-
-                ctx.fillStyle = mult >= 5 ? '#ff5252' : (mult >= 1 ? '#ffd700' : '#71717a');
-                ctx.font = 'bold 9px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(mult + 'x', curX + bWidth / 2, bY + 14);
-            }
         }
 
         async function triggerPlinko() {
             const betInput = document.getElementById('plinko-bet');
             let bet = parseInt(betInput.value);
-
             if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
             if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
-
-            const btn = document.getElementById('plinko-btn');
-            btn.disabled = true;
 
             try {
                 let res = await fetch(`${API_URL}/api/games/plinko`, {
@@ -1099,36 +1091,59 @@
                     body: JSON.stringify({ userId, bet })
                 });
                 let data = await res.json();
-                if(data.error) {
-                    btn.disabled = false;
-                    return showToast(data.error, 'error');
-                }
-
-                currentUser.balance = data.newBalance;
+                if (data.error) return showToast(data.error, 'error');
+                
+                currentUser.balance = Number(data.newBalance) || (currentUser.balance - bet + data.winAmount);
                 updateUI();
-                showToast(`🎯 Плинко: множитель ${data.multiplier}x (+${data.winAmount} $RJC)`, data.multiplier >= 1 ? 'success' : 'error');
+                
+                let winType = data.multiplier >= 1 ? 'success' : 'error';
+                showToast(`🎯 Плинко: x${data.multiplier} (+${data.winAmount} $RJC)`, winType);
             } catch(e) {
-                showToast("Ошибка игры в Плинко", 'error');
+                showToast("Ошибка сети в Плинко", "error");
             }
-            btn.disabled = false;
+        }
+
+        async function activatePromo() {
+            const codeInput = document.getElementById('user-promo-input');
+            const code = codeInput.value.trim();
+            if (!code) return showToast("Введите промокод", "error");
+
+            try {
+                let res = await fetch(`${API_URL}/api/promo/activate`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, code })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, 'error');
+                
+                currentUser.balance = Number(data.newBalance) || currentUser.balance;
+                codeInput.value = '';
+                showToast(`🎁 Промокод активирован! Награда: +${data.reward} $RJC`, 'gold');
+                syncProfile();
+            } catch(e) {
+                showToast("Ошибка активации промокода", "error");
+            }
         }
 
         async function adminExecute() {
-            const amount = parseInt(document.getElementById('adm-amount').value);
-            if (isNaN(amount)) return showToast("Введите корректную сумму", 'error');
+            const amountInput = document.getElementById('adm-amount');
+            const amount = parseInt(amountInput.value);
+            if (isNaN(amount)) return showToast("Введите сумму", "error");
 
             try {
                 let res = await fetch(`${API_URL}/api/admin/add`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ targetUserId: userId, amount, username })
+                    body: JSON.stringify({ targetUserId: userId, amount })
                 });
                 let data = await res.json();
                 if (data.error) return showToast(data.error, 'error');
-                showToast(`💰 Нарисовано +${amount.toLocaleString()} $RJC`, 'gold');
+                amountInput.value = '';
+                showToast(`💰 Начислено ${amount} $RJC!`, 'gold');
                 syncProfile();
             } catch(e) {
-                showToast("Ошибка админ-панели", 'error');
+                showToast("Ошибка админ-панели", "error");
             }
         }
 
@@ -1141,72 +1156,58 @@
                 });
                 let data = await res.json();
                 if (data.error) return showToast(data.error, 'error');
-                showToast(data.maintenanceActive ? "🛠️ Техработы включены" : "✅ Техработы выключены", 'gold');
-                syncProfile();
+                currentUser.maintenanceActive = data.maintenanceActive;
+                showToast(`🛠️ Техобслуживание: ${data.maintenanceActive ? 'ВКЛ' : 'ВЫКЛ'}`, 'gold');
+                updateUI();
             } catch(e) {
-                showToast("Ошибка переключения режима", 'error');
+                showToast("Ошибка переключения режима", "error");
             }
         }
 
         async function adminCreatePromo() {
-            const code = document.getElementById('promo-name').value;
+            const name = document.getElementById('promo-name').value.trim();
             const limit = parseInt(document.getElementById('promo-limit').value);
             const reward = parseInt(document.getElementById('promo-reward').value);
 
-            if (!code || isNaN(limit) || isNaN(reward)) return showToast("Заполните все поля промокода", 'error');
+            if (!name || isNaN(limit) || isNaN(reward)) return showToast("Заполни все поля промокода", "error");
 
             try {
                 let res = await fetch(`${API_URL}/api/admin/promo/create`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ code, limit, reward, username })
+                    body: JSON.stringify({ code: name, limit, reward })
                 });
                 let data = await res.json();
                 if (data.error) return showToast(data.error, 'error');
-                showToast(`🎁 Промокод ${code.toUpperCase()} успешно выпущен!`, 'gold');
+
                 document.getElementById('promo-name').value = '';
                 document.getElementById('promo-limit').value = '';
                 document.getElementById('promo-reward').value = '';
+                showToast(`🎉 Промокод ${name.toUpperCase()} успешно выпущен!`, 'gold');
             } catch(e) {
-                showToast("Ошибка создания промокода", 'error');
-            }
-        }
-
-        async function activatePromo() {
-            const code = document.getElementById('user-promo-input').value.trim();
-            if (!code) return showToast("Введите промокод", 'error');
-
-            try {
-                let res = await fetch(`${API_URL}/api/promo/activate`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, code })
-                });
-                let data = await res.json();
-                if (data.error) return showToast(data.error, 'error');
-                showToast(`🎉 Промокод активирован! Получено +${data.reward.toLocaleString()} $RJC`, 'gold');
-                document.getElementById('user-promo-input').value = '';
-                syncProfile();
-            } catch(e) {
-                showToast("Ошибка активации промокода", 'error');
+                showToast("Ошибка создания промокода", "error");
             }
         }
 
         function copyUserId() {
             navigator.clipboard.writeText(userId);
-            showToast("ID скопирован в буфер", "success");
+            showToast("ID скопирован в буфер!", "gold");
         }
 
         function editNickname() {
-            let newNick = prompt("Введите новый никнейм:", nickname);
+            const newNick = prompt("Введи новый никнейм:", currentUser.nickname);
             if (newNick && newNick.trim().length > 0) {
                 nickname = newNick.trim();
+                currentUser.nickname = nickname;
+                updateUI();
                 syncProfile();
-                showToast("Ник обновлен!", "success");
             }
         }
 
-        syncProfile();
+        window.onload = () => {
+            syncProfile();
+            initPlinkoCanvas();
+        };
     </script>
 </body>
 </html>
