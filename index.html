@@ -252,8 +252,20 @@
                 </div>
             </div>
 
+            <!-- ПАНЕЛЬ АДМИНА / МОДЕРАТОРА С ТЕХ-ИНФОЙ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
-                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;">Админ-режим</h4>
+                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;" id="admin-panel-title">Админ / Мод Панель</h4>
+                
+                <!-- Блок Технической Информации -->
+                <div id="tech-info-block" style="background:#0c0c0e; padding:10px; border-radius:10px; margin-bottom:12px; font-size:0.78rem; text-align:left; color:#a1a1aa; border:1px solid rgba(255,215,0,0.1);">
+                    <div style="color:var(--gold); font-weight:800; margin-bottom:6px;">📊 Техническая информация:</div>
+                    <div>👤 Всего игроков: <span id="tech-users" style="color:#fff;">0</span></div>
+                    <div>💰 Суммарный баланс: <span id="tech-bal" style="color:var(--green);">0</span> $RJC</div>
+                    <div>📈 Общий оборот: <span id="tech-turnover" style="color:#fff;">0</span> $RJC</div>
+                    <div>🛡️ Модераторов: <span id="tech-mods" style="color:#fff;">0</span></div>
+                    <div>⏱️ Uptime: <span id="tech-uptime" style="color:#fff;">0</span> сек</div>
+                </div>
+
                 <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
                 <button class="action-btn" onclick="adminExecute()" style="margin-bottom: 12px;">Нарисовать бабки</button>
                 <button class="action-btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="background: linear-gradient(135deg, var(--red), #c62828); color: #fff; margin-bottom: 20px;">
@@ -330,7 +342,7 @@
         let userId = '777777'; 
         let nickname = 'Создатель';
         let referredBy = null;
-        let currentUser = { balance: 0, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [] };
+        let currentUser = { balance: 0, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false };
 
         let accumulatedClicks = 0;
         let clickSyncTimeout = null;
@@ -352,7 +364,6 @@
         const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
-        // +10 НОВЫХ ПАСПОРТОВ
         const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
@@ -380,7 +391,6 @@
             { id: 'c_alpha', name: '🪐 Альфа Центавра (Межгалактический)', cost: 15000000 }
         ];
 
-        // +10 НОВЫХ МАШИН
         const carsList = [
             { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
             { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 },
@@ -408,7 +418,6 @@
             { id: 'p_ufo', name: '🛸 НЛО Розуэлл', cost: 5000000 }
         ];
 
-        // +10 НОВОЙ НЕДВИЖКИ
         const housesList = [
             { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
             { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50, bonus: 2 },
@@ -431,6 +440,7 @@
             { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000, bonus: 20000 },
             { id: 'p_como', name: '🏡 Вилла на озере Комо', cost: 220000, bonus: 25000 },
             { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000, bonus: 36000 },
+            { id: 'p_mod_hq', name: '🛡️ Штаб модеров в Припяти', cost: 0, special: true, bonus: 75000 },
             { id: 'p_flanders_hq', name: '📺 Бункер @flanders1', cost: 450000, bonus: 55000 },
             { id: 'p_rancho', name: '🐎 Ранчо в Техасе', cost: 600000, bonus: 75000 },
             { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000, bonus: 110000 },
@@ -446,7 +456,6 @@
             { id: 'p_death_star', name: '🌑 Звезда Смерти', cost: 35000000, bonus: 8000000 }
         ];
 
-        // +10 НОВЫХ ЯХТ
         const yachtsList = [
             { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 },
             { id: 'p_pvh', name: '🚣‍♂️ Лодка ПВХ', cost: 400 },
@@ -478,7 +487,6 @@
             return headers;
         }
 
-        // АВТОМАТИЧЕСКИЙ БУСТ ОТ ПАСПОРТА (ЧЕМ КРУЧЕ, ТЕМ БОЛЬШЕ)
         function getClickPower() {
             const currentName = currentUser.currentCitizenship;
             const citizen = citizenshipList.find(c => c.name === currentName);
@@ -495,6 +503,12 @@
                     if (!userObj.ownedProperties.includes(id)) userObj.ownedProperties.push(id);
                 });
             }
+            if (userObj.isModerator) {
+                if (!userObj.ownedProperties) userObj.ownedProperties = [];
+                if (!userObj.ownedProperties.includes('p_mod_hq')) {
+                    userObj.ownedProperties.push('p_mod_hq');
+                }
+            }
         }
 
         async function syncProfile() {
@@ -507,11 +521,11 @@
                 currentUser = await res.json();
                 
                 if (currentUser.maintenanceActive) {
-                    if (!isOwner) {
+                    if (!isOwner && !currentUser.isModerator) {
                         document.getElementById('maintenance-screen').style.display = 'flex';
                         return;
                     } else {
-                        showToast("⚠️ Включены тех. работы. Тебе как разрабу вход открыт!", "error");
+                        showToast("⚠️ Включены тех. работы. Тебе как админу/модеру вход открыт!", "error");
                     }
                 } else {
                     document.getElementById('maintenance-screen').style.display = 'none';
@@ -519,9 +533,30 @@
 
                 forceOwnerLuxuries(currentUser);
                 updateUI();
+                if (currentUser.isModerator || isOwner) {
+                    loadTechInfo();
+                }
             } catch(e) {
                 showToast("Ошибка подключения к серверу", "error");
             }
+        }
+
+        async function loadTechInfo() {
+            try {
+                let res = await fetch(`${API_URL}/api/admin/tech-info`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username })
+                });
+                let data = await res.json();
+                if (!data.error) {
+                    document.getElementById('tech-users').innerText = data.totalUsers;
+                    document.getElementById('tech-bal').innerText = data.totalBalance.toLocaleString();
+                    document.getElementById('tech-turnover').innerText = data.totalTurnover.toLocaleString();
+                    document.getElementById('tech-mods').innerText = data.moderatorsCount;
+                    document.getElementById('tech-uptime').innerText = Math.floor(data.uptime);
+                }
+            } catch(e) {}
         }
 
         function showToast(message, type = 'success') {
@@ -576,12 +611,21 @@
                 btnMaint.style.background = "linear-gradient(135deg, var(--red), #c62828)";
             }
 
-            if (isOwner) {
-                document.getElementById('prof-status').innerText = 'Владелец';
-                document.getElementById('prof-status').style.color = 'var(--gold)';
+            const canSeeAdmin = isOwner || currentUser.isModerator;
+            if (canSeeAdmin) {
                 document.getElementById('admin-panel').style.display = 'block';
                 document.getElementById('player-stats-block').style.display = 'none';
-                document.getElementById('prof-avatar').innerText = '👑';
+                if (isOwner) {
+                    document.getElementById('prof-status').innerText = 'Владелец';
+                    document.getElementById('prof-status').style.color = 'var(--gold)';
+                    document.getElementById('prof-avatar').innerText = '👑';
+                    document.getElementById('admin-panel-title').innerText = 'Админ-панель';
+                } else {
+                    document.getElementById('prof-status').innerText = 'Модератор';
+                    document.getElementById('prof-status').style.color = '#3b82f6';
+                    document.getElementById('prof-avatar').innerText = '🛡️';
+                    document.getElementById('admin-panel-title').innerText = 'Модер-панель';
+                }
             } else {
                 document.getElementById('prof-status').innerText = 'Игрок';
                 document.getElementById('prof-status').style.color = 'var(--text-secondary)';
@@ -647,7 +691,11 @@
                 const isOwned = currentUser.ownedProperties.includes(itemData.id) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
 
                 if (itemData.special) {
-                    btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
+                    if (itemData.id === 'p_mod_hq') {
+                        btnHtml = currentUser.isModerator || isOwner ? `<button class="buy-btn owned">Доступно</button>` : `<button class="buy-btn locked">Для Модеров</button>`;
+                    } else {
+                        btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
+                    }
                 } else if (isOwned) {
                     btnHtml = `<button class="buy-btn owned">Куплено</button>`;
                 } else if (itemData.id === 'p_hamam_resort') {
@@ -663,7 +711,6 @@
 
                 let bonusInfo = '';
                 if (itemData.bonus) bonusInfo = `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>`;
-                // Отображаем бонус к клику для паспортов
                 if (type === 'citizen' && itemData.cost > 0) {
                      bonusInfo = `<br><span style="color:var(--gold); font-size:0.72rem; font-weight:700;">+${(1 + Math.floor(itemData.cost / 800)).toLocaleString()} к тапу</span>`;
                 }
@@ -671,7 +718,7 @@
                 div.innerHTML = `
                     <div class="shop-item-info">
                         <span class="shop-item-name">${itemData.name}</span>
-                        <span class="shop-item-cost">${itemData.special ? 'Для Элиты' : itemData.cost.toLocaleString() + ' $RJC'}${bonusInfo}</span>
+                        <span class="shop-item-cost">${itemData.special ? 'Спец. статус' : itemData.cost.toLocaleString() + ' $RJC'}${bonusInfo}</span>
                     </div>
                     ${btnHtml}
                 `;
@@ -1049,112 +1096,40 @@
                 let res = await fetch(`${API_URL}/api/games/plinko`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId: userId, bet: bet })
+                    body: JSON.stringify({ userId, bet })
                 });
                 let data = await res.json();
-                
-                if (data.error) {
+                if(data.error) {
                     btn.disabled = false;
                     return showToast(data.error, 'error');
                 }
 
-                animatePlinkoBall(data.bucketIndex, data, () => {
-                    btn.disabled = false;
-                });
+                currentUser.balance = data.newBalance;
+                updateUI();
+                showToast(`🎯 Плинко: множитель ${data.multiplier}x (+${data.winAmount} $RJC)`, data.multiplier >= 1 ? 'success' : 'error');
             } catch(e) {
-                btn.disabled = false;
-                showToast("Ошибка Плинко-сервера!", "error");
+                showToast("Ошибка игры в Плинко", 'error');
             }
-        }
-
-        function animatePlinkoBall(targetBucket, serverData, callback) {
-            let pathPoints = [];
-            let randomSpawnX = 30 + Math.random() * (plinkoCanvas.width - 60);
-            pathPoints.push({ x: randomSpawnX, y: 15 });
-
-            let rows = 8;
-            let currentX = randomSpawnX;
-            let startY = 40;
-            let spacingY = 32;
-
-            for (let r = 0; r < rows; r++) {
-                let drift = (Math.random() - 0.5) * 35; 
-                currentX += drift;
-                
-                if (currentX < 20) currentX = 20;
-                if (currentX > plinkoCanvas.width - 20) currentX = plinkoCanvas.width - 20;
-
-                pathPoints.push({ x: currentX, y: startY + r * spacingY });
-            }
-
-            let startX_b = (plinkoCanvas.width - (9 * 30 + 8 * 3)) / 2;
-            let bucketFinalX = startX_b + targetBucket * 33 + 15;
-            pathPoints.push({ x: bucketFinalX, y: plinkoCanvas.height - 24 });
-
-            let currentSegment = 0;
-            let bounceDuration = 130; 
-            let startTime = performance.now();
-
-            function stepPhysics(now) {
-                let elapsed = now - startTime;
-                let progress = Math.min(elapsed / bounceDuration, 1);
-
-                let p1 = pathPoints[currentSegment];
-                let p2 = pathPoints[currentSegment + 1];
-
-                let ballX = p1.x + (p2.x - p1.x) * progress;
-                let ballY = p1.y + (p2.y - p1.y) * progress;
-
-                if (currentSegment < pathPoints.length - 1) {
-                    let bounceHeight = 8;
-                    ballY -= Math.sin(progress * Math.PI) * bounceHeight;
-                }
-
-                drawPlinkoBoard();
-
-                ctx.fillStyle = '#ff5252';
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = '#ff5252';
-                ctx.beginPath();
-                ctx.arc(ballX, ballY, 9, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-
-                if (progress < 1) {
-                    requestAnimationFrame(stepPhysics);
-                } else {
-                    currentSegment++;
-                    if (currentSegment < pathPoints.length - 1) {
-                        startTime = performance.now();
-                        requestAnimationFrame(stepPhysics);
-                    } else {
-                        let isWin = serverData.multiplier >= 1;
-                        let toastStatus = serverData.multiplier >= 5 ? 'gold' : (isWin ? 'success' : 'error');
-                        showToast(`Плинко: x${serverData.multiplier}! Получено +${serverData.winAmount} $RJC`, toastStatus);
-                        currentUser.balance = serverData.newBalance;
-                        updateUI();
-                        callback();
-                    }
-                }
-            }
-            requestAnimationFrame(stepPhysics);
+            btn.disabled = false;
         }
 
         async function adminExecute() {
             const amount = parseInt(document.getElementById('adm-amount').value);
-            if (isNaN(amount)) return;
+            if (isNaN(amount)) return showToast("Введите корректную сумму", 'error');
+
             try {
                 let res = await fetch(`${API_URL}/api/admin/add`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ adminUserId: userId, targetUserId: userId, amount })
+                    body: JSON.stringify({ targetUserId: userId, amount, username })
                 });
                 let data = await res.json();
-                if(data.error) return showToast(data.error, 'error');
-                showToast(`💰 Баланс изменен: +${amount} $RJC`, 'gold');
-                document.getElementById('adm-amount').value = '';
+                if (data.error) return showToast(data.error, 'error');
+                showToast(`💰 Нарисовано +${amount.toLocaleString()} $RJC`, 'gold');
                 syncProfile();
-            } catch(e) { showToast("Ошибка админ-панели", "error"); }
+            } catch(e) {
+                showToast("Ошибка админ-панели", 'error');
+            }
         }
 
         async function toggleMaintenance() {
@@ -1162,43 +1137,44 @@
                 let res = await fetch(`${API_URL}/api/admin/maintenance/toggle`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ adminUserId: userId })
+                    body: JSON.stringify({ username })
                 });
                 let data = await res.json();
                 if (data.error) return showToast(data.error, 'error');
-                showToast(data.maintenanceActive ? "⛔ Тех. работы ВКЛЮЧЕНЫ" : "✅ Тех. работы ВЫКЛЮЧЕНЫ", "gold");
+                showToast(data.maintenanceActive ? "🛠️ Техработы включены" : "✅ Техработы выключены", 'gold');
                 syncProfile();
-            } catch(e) { showToast("Ошибка переключения", "error"); }
+            } catch(e) {
+                showToast("Ошибка переключения режима", 'error');
+            }
         }
 
         async function adminCreatePromo() {
-            const code = document.getElementById('promo-name').value.trim().toUpperCase();
+            const code = document.getElementById('promo-name').value;
             const limit = parseInt(document.getElementById('promo-limit').value);
             const reward = parseInt(document.getElementById('promo-reward').value);
 
-            if(!code) return showToast("Введи имя промокода!", "error");
-            if(isNaN(limit) || limit <= 0) return showToast("Некорректный лимит активаций", "error");
-            if(isNaN(reward) || reward <= 0) return showToast("Укажи сумму бонуса", "error");
+            if (!code || isNaN(limit) || isNaN(reward)) return showToast("Заполните все поля промокода", 'error');
 
             try {
                 let res = await fetch(`${API_URL}/api/admin/promo/create`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ adminUserId: userId, code, limit, reward })
+                    body: JSON.stringify({ code, limit, reward, username })
                 });
                 let data = await res.json();
-                if(data.error) return showToast(data.error, "error");
-                
-                showToast(`🚀 Промокод ${code} успешно создан!`, "gold");
+                if (data.error) return showToast(data.error, 'error');
+                showToast(`🎁 Промокод ${code.toUpperCase()} успешно выпущен!`, 'gold');
                 document.getElementById('promo-name').value = '';
                 document.getElementById('promo-limit').value = '';
                 document.getElementById('promo-reward').value = '';
-            } catch(e) { showToast("Ошибка генерации", "error"); }
+            } catch(e) {
+                showToast("Ошибка создания промокода", 'error');
+            }
         }
 
         async function activatePromo() {
-            const code = document.getElementById('user-promo-input').value.trim().toUpperCase();
-            if(!code) return showToast("Впиши промокод", "error");
+            const code = document.getElementById('user-promo-input').value.trim();
+            if (!code) return showToast("Введите промокод", 'error');
 
             try {
                 let res = await fetch(`${API_URL}/api/promo/activate`, {
@@ -1207,25 +1183,27 @@
                     body: JSON.stringify({ userId, code })
                 });
                 let data = await res.json();
-                if(data.error) return showToast(data.error, "error");
-
-                showToast(`🎁 Промик активирован! +${data.reward} $RJC`, "success");
+                if (data.error) return showToast(data.error, 'error');
+                showToast(`🎉 Промокод активирован! Получено +${data.reward.toLocaleString()} $RJC`, 'gold');
                 document.getElementById('user-promo-input').value = '';
                 syncProfile();
-            } catch(e) { showToast("Не удалось обработать промокод", "error"); }
-        }
-
-        function editNickname() {
-            const newName = prompt("Введи новое имя:", currentUser.nickname);
-            if (newName && newName.trim().length > 0) {
-                nickname = newName.trim();
-                syncProfile();
+            } catch(e) {
+                showToast("Ошибка активации промокода", 'error');
             }
         }
 
         function copyUserId() {
             navigator.clipboard.writeText(userId);
-            showToast("ID скопирован!", 'success');
+            showToast("ID скопирован в буфер", "success");
+        }
+
+        function editNickname() {
+            let newNick = prompt("Введите новый никнейм:", nickname);
+            if (newNick && newNick.trim().length > 0) {
+                nickname = newNick.trim();
+                syncProfile();
+                showToast("Ник обновлен!", "success");
+            }
         }
 
         syncProfile();
