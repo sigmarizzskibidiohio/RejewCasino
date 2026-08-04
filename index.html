@@ -58,24 +58,21 @@
         .reels { display: flex; gap: 12px; margin: 25px 0; background: #0c0c0e; padding: 15px 25px; border-radius: 16px; width: 100%; justify-content: center; }
         .reel { font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.35), filter 0.1s ease; }
         .reel.spinning { filter: blur(5px); transform: scale(1.08) translateY(-5px); }
+        
         .crash-arena { width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px; position: relative; overflow: hidden; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04); }
         .rocket { position: absolute; bottom: 15px; left: 15px; font-size: 2.5rem; z-index: 5; will-change: transform; transform-origin: center center; }
         .crash-multiplier { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: 900; color: #fff; z-index: 4; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
         .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         
-        /* ПЛИНКО CANVAS СТИЛИ */
+        /* Плинко Canvas */
         .plinko-arena-wrapper { width: 100%; background: #0c0c0e; border-radius: 16px; padding: 10px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; justify-content: center; align-items: center; }
-        #plinko-canvas { max-width: 100%; height: auto; display: block; border-radius: 8px; }
-        
-        /* АПГРЕЙДЕР СТИЛИ */
-        .upgrader-circle-wrapper { position: relative; width: 200px; height: 200px; margin: 20px auto; display: flex; align-items: center; justify-content: center; }
-        .upgrader-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-        .upgrader-bg-ring { fill: none; stroke: #1f1f24; stroke-width: 14; }
-        .upgrader-win-ring { fill: none; stroke: var(--gold); stroke-width: 14; stroke-dasharray: 502; stroke-dashoffset: 250; transition: stroke-dashoffset 0.3s ease; }
-        .upgrader-arrow { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 15px solid #fff; z-index: 10; }
-        .upgrader-center-text { position: absolute; text-align: center; display: flex; flex-direction: column; align-items: center; }
-        .upgrader-multiplier { font-size: 1.8rem; font-weight: 900; color: #fff; }
-        .upgrader-chance { font-size: 0.85rem; color: var(--text-secondary); font-weight: 700; margin-top: 2px; }
+        #plinko-canvas { max-width: 100%; height: auto; display: block; background: transparent; }
+
+        /* Апгрейдер CSS */
+        .upgrader-arena { width: 100%; height: 220px; background: #0c0c0e; border-radius: 16px; position: relative; margin: 15px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.04); }
+        .upgrader-circle-outer { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--purple) 0deg, #1f1f24 0deg); display: flex; align-items: center; justify-content: center; transition: background 0.3s ease; position: relative; box-shadow: 0 0 20px rgba(168,85,247,0.2); }
+        .upgrader-circle-inner { width: 110px; height: 110px; border-radius: 50%; background: #0c0c0e; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; z-index: 2; }
+        .upgrader-pointer { position: absolute; top: 5px; width: 4px; height: 15px; background: var(--gold); z-index: 3; border-radius: 2px; }
 
         .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
         .click-coin {
@@ -113,9 +110,8 @@
         .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; transform: none; }
         .msg-box { background: #0c0c0e; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
         .user-link { color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; }
-        
         nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.6rem; gap: 4px; font-weight: 600; flex: 1; transition: color 0.2s ease, transform 0.1s ease; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.65rem; gap: 5px; font-weight: 600; flex: 1; transition: color 0.2s ease, transform 0.1s ease; }
         .nav-item:active { transform: scale(0.93); }
         .nav-item.active { color: var(--gold); }
         .nav-item svg { fill: currentColor; width: 18px; height: 18px; }
@@ -182,11 +178,10 @@
                 <button class="action-btn" id="crash-btn" onclick="triggerCrashAction()" style="background: linear-gradient(135deg, var(--green), #00c853);">ВЗЛЕТ</button>
             </div>
         </div>
-
-        <!-- ИСПРАВЛЕННЫЙ ПЛИНКО -->
+<!-- ПЛИНКО -->
         <div id="screen-plinko" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко Физика</div>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Физическая Демонстрация)</div>
                 <div class="plinko-arena-wrapper">
                     <canvas id="plinko-canvas" width="320" height="340"></canvas>
                 </div>
@@ -201,38 +196,32 @@
             </div>
         </div>
 
-        <!-- АПГРЕЙДЕР (НОВАЯ ИГРА) -->
+        <!-- АПГРЕЙДЕР -->
         <div id="screen-upgrader" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Апгрейдер Удачи</div>
-                
-                <div class="upgrader-circle-wrapper">
-                    <div class="upgrader-arrow"></div>
-                    <svg class="upgrader-svg" viewBox="0 0 180 180">
-                        <circle class="upgrader-bg-ring" cx="90" cy="90" r="80"></circle>
-                        <circle id="upgrader-ring" class="upgrader-win-ring" cx="90" cy="90" r="80"></circle>
-                    </svg>
-                    <div class="upgrader-center-text">
-                        <span class="upgrader-multiplier" id="upgrader-target-mult">2.00x</span>
-                        <span class="upgrader-chance" id="upgrader-chance-lbl">Шанс: 47.5%</span>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Апгрейдер (Multi-Upgrader)</div>
+                <div class="upgrader-arena">
+                    <div class="upgrader-pointer"></div>
+                    <div class="upgrader-circle-outer" id="upgrader-ring">
+                        <div class="upgrader-circle-inner">
+                            <span id="upgrader-target-mult" style="font-size:1.4rem; color:var(--purple);">x2.00</span>
+                            <span id="upgrader-chance-lbl" style="font-size:0.75rem; color:var(--text-secondary);">47.5% Шанс</span>
+                        </div>
                     </div>
                 </div>
-
                 <div class="bet-input-wrapper">
-                    <label class="bet-label">Ставка ($RJC)</label>
+                    <label class="bet-label">Сумма апгрейда ($RJC)</label>
                     <div class="bet-field-group">
                         <input type="number" class="bet-input" id="upgrader-bet" value="100" min="10">
                         <button class="max-btn" onclick="setMaxBet('upgrader-bet')">MAX</button>
                     </div>
                 </div>
-
                 <div class="bet-input-wrapper">
-                    <label class="bet-label">Целевой множитель (от 1.1x до 100x)</label>
+                    <label class="bet-label">Целевой множитель (x1.10 - x100)</label>
                     <div class="bet-field-group">
-                        <input type="number" step="0.1" class="bet-input" id="upgrader-mult-input" value="2.0" min="1.1" max="100" oninput="updateUpgraderVisuals()">
+                        <input type="number" step="0.1" class="bet-input" id="upgrader-target-input" value="2.0" min="1.1" max="100" oninput="updateUpgraderUI()">
                     </div>
                 </div>
-
                 <button class="action-btn" id="upgrader-btn" onclick="triggerUpgrader()" style="background: linear-gradient(135deg, var(--purple), #7c3aed); color: #fff;">УЛУЧШИТЬ</button>
             </div>
         </div>
@@ -245,25 +234,20 @@
                 <div id="clicker-profit-label" style="margin-top:35px; font-weight:800; font-size:1rem; color:var(--gold);">+1 $RJC за каждый тап</div>
             </div>
         </div>
+
         <!-- МАРКЕТ -->
         <div id="screen-market" class="screen">
             <div class="shop-section">
+                <div class="shop-title">📜 Пермиты и Игровые Лицензии (Спец-Права)</div>
+                <div id="permits-shop"></div>
                 <div class="shop-title">🌍 Паспорта и Инвестиции (Буст Кликов)</div>
                 <div id="citizenship-shop"></div>
-                <div class="shop-title">🚗 Элитный Гараж (16 авто)</div>
+                <div class="shop-title">🚗 Элитный Гараж</div>
                 <div id="cars-shop"></div>
-                <div class="shop-title">🏰 Премиальная Недвижимость (16 домов)</div>
+                <div class="shop-title">🏰 Премиальная Недвижимость (Пассивный доход)</div>
                 <div id="houses-shop"></div>
-                <div class="shop-title">🚢 Королевские Яхты (16 судов)</div>
+                <div class="shop-title">🚢 Королевские Яхты</div>
                 <div id="yachts-shop"></div>
-            </div>
-        </div>
-
-        <!-- ПЕРМИТЫ / ЛИЦЕНЗИИ (НОВЫЙ БЛОК) -->
-        <div id="screen-permits" class="screen">
-            <div class="shop-section">
-                <div class="shop-title">📜 Пермиты и Спец-Лицензии</div>
-                <div id="permits-shop"></div>
             </div>
         </div>
 
@@ -286,7 +270,6 @@
                     <div style="font-size:0.7rem; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">Статус & Гражданство</div>
                     <div style="font-size:1rem; font-weight:800; margin-top:4px;" id="prof-status">Игрок</div>
                     <div style="font-size:0.85rem; font-weight:600; color:var(--gold); margin-top:2px;" id="prof-citizen">Без гражданства</div>
-                    <div style="font-size:0.8rem; font-weight:600; color:var(--purple); margin-top:4px;" id="prof-permit">Пермит: Нет активного</div>
                 </div>
                 <div id="player-stats-block">
                     <h4 style="text-align:left; margin:15px 0 8px 0; font-size:0.8rem; color:var(--text-secondary); text-transform:uppercase;">Статистика сессии</h4>
@@ -301,7 +284,7 @@
             <div class="panel-card">
                 <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">👥 Реферальная система</h4>
                 <p style="font-size:0.75rem; color:var(--text-secondary); margin:5px 0 12px 0; line-height:1.4; text-align:left;">
-                    Приглашай друзей! Если твой реферал сделает оборот более <b>2,000 $RJC</b>, ты получишь бонус <b>+5,000 $RJC</b>!
+                    Приглашай друзей! Если твой реферал сделает суммарный оборот ставок на сумму более <b>2,000 $RJC</b>, ты получишь бонус <b>+5,000 $RJC</b>!
                 </p>
                 <button class="action-btn" onclick="copyReferralLink()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff; padding:10px 14px; font-size:0.85rem;">
                     📋 Скопировать реф-ссылку
@@ -311,6 +294,7 @@
                 </div>
             </div>
 
+            <!-- АДМИН ПАНЕЛЬ (ПОЛНОСТЬЮ СОХРАНЕНА) -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;" id="admin-panel-title">Админ / Мод Панель</h4>
                 
@@ -378,8 +362,8 @@
             Плинко
         </button>
         <button class="nav-item" id="tab-upgrader" onclick="switchScreen('upgrader')">
-            <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
-            Апгрейдер
+            <svg viewBox="0 0 24 24"><path d="M16 6l2.29 2.29-4.88 4.88-4-4L2 16.59 3.41 18l6-6 4 4 6.3-6.29L22 12V6z"/></svg>
+            Апгрейд
         </button>
         <button class="nav-item" id="tab-clicker" onclick="switchScreen('clicker')">
             <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/></svg>
@@ -389,16 +373,12 @@
             <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
             Маркет
         </button>
-        <button class="nav-item" id="tab-permits" onclick="switchScreen('permits')">
-            <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-            Пермиты
-        </button>
         <button class="nav-item" id="tab-profile" onclick="switchScreen('profile')">
             <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
             Профиль
         </button>
     </nav>
-    <script>
+<script>
         const API_URL = "https://rejewcas-backend.onrender.com"; 
 
         let tg;
@@ -406,7 +386,7 @@
         let userId = '777777'; 
         let nickname = 'Создатель';
         let referredBy = null;
-        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', activePermit: 'Нет активного', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false };
+        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false };
 
         let accumulatedClicks = 0;
         let clickSyncTimeout = null;
@@ -428,7 +408,21 @@
         const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
-        // КАТЕГОРИИ МАРКЕТА - РОВНО ПО 16 ЭЛЕМЕНТОВ
+        // 📜 НОВАЯ КАТЕГОРИЯ: ПЕРМИТЫ И ИГРОВЫЕ ЛИЦЕНЗИИ
+        const permitsList = [
+            { id: 'perm_bronze', name: '📜 Пермит Новичка (Бронза)', cost: 1000, bonusText: 'Открывает доступ к играм' },
+            { id: 'perm_silver', name: '🥈 Пермит Игрока (Серебро)', cost: 5000, bonusText: 'Кэшбэк 2% со всех сливных спинов' },
+            { id: 'perm_gold', name: '🥇 Пермит Хайроллера (Золото)', cost: 25000, bonusText: '+5% к выигрышам в Ракетке' },
+            { id: 'perm_vip', name: '💎 VIP Пермит Лудомана', cost: 75000, bonusText: 'Сниженная комиссия RejewPay' },
+            { id: 'perm_pro', name: '👑 Пермит PRO Гемблера', cost: 150000, bonusText: '+10% к тапам в кликере' },
+            { id: 'perm_monaco', name: '🇲🇨 Пермит Монако Казино', cost: 350000, bonusText: '+15% к коэффициенту Апгрейдера' },
+            { id: 'perm_crypto', name: '🪙 Пермит Крипто-Магната', cost: 700000, bonusText: 'Авто-мартенгейл доступ' },
+            { id: 'perm_empire', name: '🏛️ Имперский Пермит Казино', cost: 1500000, bonusText: '+20% ко всем бонусам пассивки' },
+            { id: 'perm_cyber', name: '🛸 Кибер-Пермит R-2077', cost: 3000000, bonusText: 'Неограниченный лимит вывода' },
+            { id: 'perm_god', name: '⚡ Пермит Бога Удачи', cost: 10000000, bonusText: 'Золотая аура в профиле' }
+        ];
+
+        // 🌍 ПАСПОРТАИ (+16 НОВЫХ)
         const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
@@ -440,58 +434,148 @@
             { id: 'c_pt', name: '🇵🇹 Португалия (D7)', cost: 50000 },
             { id: 'c_cyprus', name: '🇨🇾 Кипр (ПМЖ)', cost: 65000 },
             { id: 'c_spain', name: '🇪🇸 Испания (Золотая Виза)', cost: 85000 },
+            { id: 'c_gr', name: '🇬🇷 Греция (Золотая Виза)', cost: 100000 },
             { id: 'c_uae', name: '🇦🇪 ОАЭ (Golden ID)', cost: 140000 },
+            { id: 'c_vu', name: '🇻🇺 Вануату (За донат)', cost: 180000 },
             { id: 'c_swiss', name: '🇨🇭 Швейцария (Налог)', cost: 250000 },
+            { id: 'c_ca', name: '🇨🇦 Канада (Экспресс)', cost: 350000 },
             { id: 'c_singapore', name: '🇸🇬 Сингапур (Бизнес)', cost: 480000 },
+            { id: 'c_au', name: '🇦🇺 Австралия (Скилл)', cost: 600000 },
+            { id: 'c_uk', name: '🇬🇧 Великобритания (Tier 1)', cost: 750000 },
+            { id: 'c_nz', name: '🇳🇿 Новая Зеландия (Инвестор)', cost: 1000000 },
             { id: 'c_usa', name: '🇺🇸 США (EB-5 Инвестор)', cost: 1500000 },
+            { id: 'c_japan', name: '🇯🇵 Япония (Императорский ВНЖ)', cost: 3000000 },
+            { id: 'c_crypto', name: '🐳 Эль-Сальвадор (Биткоин Кинг)', cost: 4500000 },
             { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 8000000 },
-            { id: 'c_alpha', name: '🪐 Альфа Центавра (Межгалактический)', cost: 15000000 }
+            { id: 'c_alpha', name: '🪐 Альфа Центавра (Межгалактический)', cost: 15000000 },
+            // --- 16 НОВЫХ ПАСПОРТОВ ---
+            { id: 'c_serbia', name: '🇷🇸 Сербия (Инвестиционный)', cost: 20000000 },
+            { id: 'c_malta', name: '🇲🇹 Мальта (Европейский Паспорт)', cost: 25000000 },
+            { id: 'c_iceland', name: '🇮🇸 Исландия (Вулканический ПМЖ)', cost: 32000000 },
+            { id: 'c_lux', name: '🇱🇺 Люксембург (Банковский Статус)', cost: 40000000 },
+            { id: 'c_norway', name: '🇳🇴 Норвегия (Фьорд-VIP)', cost: 50000000 },
+            { id: 'c_sealand', name: '👑 Силенд (Княжеский Титул)', cost: 65000000 },
+            { id: 'c_monaco_gold', name: '✨ Монако (Золотой Герцог)', cost: 85000000 },
+            { id: 'c_atlantis', name: '🔱 Атлантида (Подводный Закон)', cost: 110000000 },
+            { id: 'c_cybercity', name: '🏙️ Кибер-Сити 2077 Паспорт', cost: 150000000 },
+            { id: 'c_moon_colony', name: '🌕 Селенит (Гражданин Луны)', cost: 200000000 },
+            { id: 'c_jupiter', name: '🪐 Юпитер (Газовый Магнат)', cost: 300000000 },
+            { id: 'c_blackhole', name: '🕳️ Черная Дыра (Вне Закона)', cost: 500000000 },
+            { id: 'c_singularity', name: '⚡ Сингулярность (AI Гражданство)', cost: 750000000 },
+            { id: 'c_nebula', name: '🌌 Туманность Ориона', cost: 1000000000 },
+            { id: 'c_multiverse', name: '🌀 Мультивселенная (Код 01)', cost: 2500000000 },
+            { id: 'c_creator_id', name: '👑 Паспорт Всевышнего', cost: 5000000000 }
         ];
 
+        // 🚗 АВТОМОБИЛИ (+16 НОВЫХ)
         const carsList = [
             { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
             { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 },
             { id: 'p_bike', name: '🚲 Дедовский Урал', cost: 400 },
             { id: 'p_zhiga', name: '🚗 ВАЗ 2107 "Жига"', cost: 800 },
             { id: 'p_granta', name: '🏎️ Lada Granta Sport', cost: 1600 },
+            { id: 'p_vesta', name: '🚗 Lada Vesta', cost: 2500 },
             { id: 'p_camry', name: '🚘 Toyota Camry 70', cost: 3200 },
+            { id: 'p_rio', name: '🚙 Kia Rio', cost: 4500 },
             { id: 'p_bmw', name: '🖤 BMW M5 F90 LCI', cost: 9500 },
+            { id: 'p_mustang', name: '🏎️ Ford Mustang', cost: 14000 },
             { id: 'p_porsche', name: '🏎️ Porsche 911 Turbo S', cost: 18000 },
-            { id: 'p_cybertruck', name: '📐 Tesla CyberTruck', cost: 27000 },
+            { id: 'p_cybertruck', name: '📐 Tesla CyberTruck V2', cost: 27000 },
             { id: 'p_gelik', name: '🚙 G-Wagen', cost: 35000 },
             { id: 'p_lambo', name: '⚡ Lamborghini Revuelto', cost: 48000 },
             { id: 'p_mclaren', name: '🏎️ McLaren 720S', cost: 65000 },
+            { id: 'p_ferrari', name: '🐎 Ferrari SF90 Stradale', cost: 90000 },
             { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 },
-            { id: 'p_jesko', name: '🏎️ Koenigsegg Jesko', cost: 450000 },
+            { id: 'p_aston', name: '🏎️ Aston Martin Valkyrie', cost: 250000 },
+            { id: 'p_jesko', name: '🛸 Koenigsegg Jesko Absolut', cost: 450000 },
+            { id: 'p_ssc', name: '🏎️ SSC Tuatara', cost: 650000 },
+            { id: 'p_pagani', name: '🎭 Pagani Utopia Roadster', cost: 950000 },
             { id: 'p_rolls', name: '💎 Rolls-Royce La Rose Noire', cost: 1500000 },
-            { id: 'p_ufo', name: '🛸 НЛО Розуэлл', cost: 5000000 }
+            { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 },
+            { id: 'p_ufo', name: '🛸 НЛО Розуэлл', cost: 5000000 },
+            // --- 16 НОВЫХ АВТО ---
+            { id: 'p_rimac', name: '⚡ Rimac Nevera Time Attack', cost: 8500000 },
+            { id: 'p_veneno', name: '🔥 Lamborghini Veneno Roadster', cost: 12000000 },
+            { id: 'p_sweptail', name: '💎 Rolls-Royce Sweptail Custom', cost: 18000000 },
+            { id: 'p_mclaren_p1', name: '🏎️ McLaren P1 LM Custom', cost: 25000000 },
+            { id: 'p_bugatti_la', name: '🖤 Bugatti La Voiture Noire', cost: 35000000 },
+            { id: 'p_mercedes_amg', name: '🏎️ Mercedes-AMG One Formula Edition', cost: 50000000 },
+            { id: 'p_delorean', name: '⚡ DeLorean Машина Времени', cost: 75000000 },
+            { id: 'p_cyber_speeder', name: '🛸 Глайдер Cyber-Speeder X', cost: 100000000 },
+            { id: 'p_t34', name: 'Танк Т-34 Золотой Кастом', cost: 140000000 },
+            { id: 'p_hoverbike', name: '🏍️ Ховербайк Левитации', cost: 190000000 },
+            { id: 'p_space_rover', name: '🚙 Марсоход Curiosity Gold', cost: 260000000 },
+            { id: 'p_anti_grav', name: '🌀 Антигравитационный Спидер', cost: 350000000 },
+            { id: 'p_solar_chariot', name: '☀️ Колесница Гелиоса', cost: 500000000 },
+            { id: 'p_plasma_flyer', name: '⚡ Плазменный Истребитель X-Wing', cost: 750000000 },
+            { id: 'p_warp_racer', name: '🌌 Варп-Гонщик Галактики', cost: 1000000000 },
+            { id: 'p_time_machine', name: '🌀 Квантовая Машина Времени T-1000', cost: 2000000000 }
         ];
 
+        // 🏰 НЕДВИЖИМОСТЬ (+16 НОВЫХ НЕВООБРАЗИМЫХ ОБЪЕКТОВ)
         const housesList = [
             { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
             { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50, bonus: 2 },
             { id: 'p_box', name: '📦 Коробка под мостом', cost: 150, bonus: 10 },
+            { id: 'p_tent', name: '⛺ Палатка в лесу', cost: 250, bonus: 15 },
             { id: 'p_garage', name: '🔧 Гараж с ямой', cost: 450, bonus: 30 },
+            { id: 'p_baza', name: '⛺ Бытовка на стройке', cost: 500, bonus: 40 },
+            { id: 'p_basement', name: '🧱 Подвал хрущевки', cost: 800, bonus: 60 },
             { id: 'p_communalka', name: '🏢 Комната в коммуналке', cost: 1100, bonus: 90 },
             { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000, bonus: 180 },
+            { id: 'p_hostel', name: '🛏️ Хостел на 10 мест', cost: 3500, bonus: 300 },
             { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000, bonus: 550 },
-            { id: 'p_dacha', name: '🏡 Дача в СНТ', cost: 9500, bonus: 900 },
+            { id: 'p_dacha', name: '🏡 Дача в СНТ с теплицей', cost: 9500, bonus: 900 },
+            { id: 'p_cyber_village', name: '🧑‍🌾 Кибердеревня в Рязани', cost: 14000, bonus: 1400 },
             { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000, bonus: 2300 },
+            { id: 'p_miami', name: '🏖️ Дом на Малибу', cost: 45000, bonus: 4800 },
             { id: 'p_moscow_city', name: '🏢 Апартаменты Москва-Сити', cost: 60000, bonus: 6000 },
             { id: 'p_dubai', name: '🏙️ Пентхаус Dubai Marina', cost: 75000, bonus: 8200 },
+            { id: 'p_blogger_mansion', name: '📸 Особняк инста-блогера', cost: 115000, bonus: 13000 },
             { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000, bonus: 20000 },
+            { id: 'p_como', name: '🏡 Вилла на озере Комо', cost: 220000, bonus: 25000 },
+            { id: 'p_courch', name: '🏔️ Шале в Куршевеле', cost: 300000, bonus: 36000 },
+            { id: 'p_mod_hq', name: '🛡️ Штаб модеров в Припяти', cost: 0, special: true, bonus: 75000 },
             { id: 'p_flanders_hq', name: '📺 Бункер @flanders1', cost: 450000, bonus: 55000 },
+            { id: 'p_rancho', name: '🐎 Ранчо в Техасе', cost: 600000, bonus: 75000 },
+            { id: 'p_castle', name: '🏰 Замок в Шотландии', cost: 850000, bonus: 110000 },
             { id: 'p_police_hq', name: '🚓 Главный штаб Стражей Галактики', cost: 1300000, bonus: 180000 },
+            { id: 'p_penthouse_ny', name: '🗽 Центральный Парк Пентхаус', cost: 1800000, bonus: 260000 },
+            { id: 'p_float_island', name: '☁️ Парящий остров', cost: 3000000, bonus: 400000 },
             { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 4000000, bonus: 600000 },
-            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с Хаммамом', cost: 5500000, bonus: 900000 }
+            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с Хаммамом', cost: 5500000, bonus: 900000 },
+            { id: 'p_moon_base', name: '🌙 Станция на Луне "Luna-1"', cost: 6500000, bonus: 1100000 },
+            { id: 'p_cyber_palace', name: '🛸 Кибер-Дворец', cost: 8200000, bonus: 1500000 },
+            { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000, bonus: 2000000 },
+            { id: 'p_orbit', name: '🛰️ Орбитальная станция', cost: 15000000, bonus: 3000000 },
+            { id: 'p_death_star', name: '🌑 Звезда Смерти', cost: 35000000, bonus: 8000000 },
+            // --- 16 НОВЫХ ОБЪЕКТОВ НЕДВИЖИМОСТИ ---
+            { id: 'p_atlantis_dome', name: '🏛️ Купол Атлантиды на Дне Океана', cost: 50000000, bonus: 12000000 },
+            { id: 'p_pyramid_gold', name: '📐 Золотая Пирамида Хеопса 2.0', cost: 75000000, bonus: 18000000 },
+            { id: 'p_mars_colony', name: '🚀 Колония "ElonCity" на Марсе', cost: 100000000, bonus: 25000000 },
+            { id: 'p_cloud_citadel', name: '☁️ Небесная Цитадель Небосвода', cost: 150000000, bonus: 40000000 },
+            { id: 'p_ring_world', name: '🪐 Кольцо-Мир Вокруг Звезды', cost: 220000000, bonus: 60000000 },
+            { id: 'p_quantum_vault', name: '🌀 Квантовый Замок Вне Времени', cost: 300000000, bonus: 85000000 },
+            { id: 'p_dyson_sphere', name: '☀️ Сфера Дайсона (Энерго-Усадьба)', cost: 450000000, bonus: 130000000 },
+            { id: 'p_blackhole_hq', name: '🕳️ База Горизонта Событий', cost: 600000000, bonus: 180000000 },
+            { id: 'p_subway_kingdom', name: '🚇 Метро-Империя Под Землей', cost: 800000000, bonus: 250000000 },
+            { id: 'p_titan_resort', name: '🪐 Крио-Отель на Титане', cost: 1000000000, bonus: 350000000 },
+            { id: 'p_valhalla', name: '⚔️ Чертоги Вальхаллы', cost: 1500000000, bonus: 500000000 },
+            { id: 'p_olympus', name: '⚡ Замок Олимп Греческих Богов', cost: 2200000000, bonus: 750000000 },
+            { id: 'p_matrix_core', name: '🖥️ Серверное Ядро Матрицы', cost: 3000000000, bonus: 1000000000 },
+            { id: 'p_multiverse_hub', name: '🌀 Отель Межпространственный Hub', cost: 5000000000, bonus: 1800000000 },
+            { id: 'p_god_realm', name: '✨ Обитель Творца Вселенной', cost: 8000000000, bonus: 3000000000 },
+            { id: 'p_absolute_infinity', name: '🌌 Абсолютная Бесконечность', cost: 15000000000, bonus: 6000000000 }
         ];
 
+        // 🚢 ЯХТЫ (+16 НОВЫХ)
         const yachtsList = [
             { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 },
             { id: 'p_pvh', name: '🚣‍♂️ Лодка ПВХ', cost: 400 },
             { id: 'p_catamaran', name: '🛶 Катамаран', cost: 800 },
             { id: 'p_kater', name: '🛥️ Катер "Ветерок"', cost: 1500 },
-            { id: 'p_jet', name: '🌊 Гидроцикл Yamaha', cost: 3500 },
+            { id: 'p_canoe', name: '🛶 Байдарка', cost: 2000 },
+            { id: 'p_jet', name: '🌊 Гидроцикл Yamaha FX', cost: 3500 },
             { id: 'p_raft', name: '🪵 Плот из пивных покрышек', cost: 7000 },
             { id: 'p_sail', name: '⛵ Парусная яхта', cost: 12000 },
             { id: 'p_azimut', name: '🚢 Azimut 66 Fly', cost: 28000 },
@@ -499,22 +583,32 @@
             { id: 'p_benetti', name: '⚓ Benetti Oasis 40M', cost: 120000 },
             { id: 'p_superyacht', name: '🛳️ Суперяхта 50м', cost: 250000 },
             { id: 'p_eclipse', name: '⚓ Мегаяхта "Eclipse"', cost: 500000 },
-            { id: 'p_somnio', name: '🏢 Яхта-лайнер Somnio', cost: 900000 },
+            { id: 'p_somnio', name: '🏢 Яхта-лайнер Somnio Residential', cost: 900000 },
             { id: 'p_nautilus', name: '🐙 Подлодка Наутилус', cost: 1500000 },
             { id: 'p_carrier', name: '🛩️ Авианосец', cost: 2000000 },
-            { id: 'p_cruiser', name: '🚀 Космический крейсер', cost: 25000000 }
+            { id: 'p_history', name: '✨ History Supreme (Золотая)', cost: 3000000 },
+            { id: 'p_underwater_city', name: '🌊 Подводный город', cost: 5000000 },
+            { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 },
+            { id: 'p_cruiser', name: '🚀 Космический крейсер', cost: 25000000 },
+            // --- 16 НОВЫХ ЯХТ ---
+            { id: 'p_leviathan', name: '🐉 Левиафан (Атомная Субмарина)', cost: 45000000 },
+            { id: 'p_solar_yacht', name: '☀️ Солярный Парусник Аполлона', cost: 75000000 },
+            { id: 'p_dreadnought', name: '⚓ Дредноут Морского Владыки', cost: 120000000 },
+            { id: 'p_flying_dutchman', name: '👻 Летучий Голландец Фантом', cost: 180000000 },
+            { id: 'p_poseidon_flag', name: '🔱 Флагман Посейдона', cost: 250000000 },
+            { id: 'p_cyber_barge', name: '🛸 Неоновая Кибер-Баржа', cost: 350000000 },
+            { id: 'p_sub_palace', name: '🌊 Подводный Дворец Тритона', cost: 500000000 },
+            { id: 'p_starlight_cruiser', name: '✨ Звездный Крейсер Эпохи', cost: 750000000 },
+            { id: 'p_plasma_frigate', name: '⚡ Плазменный Фрегат', cost: 1000000000 },
+            { id: 'p_void_runner', name: '🕳️ Корвет Бесконечной Пустоты', cost: 1500000000 },
+            { id: 'p_galactic_ark', name: '🌌 Галактический Ковчег', cost: 2200000000 },
+            { id: 'p_time_galleon', name: '🌀 Галеон Временных Потоков', cost: 3000000000 },
+            { id: 'p_supernova_yacht', name: '💥 Яхта Сверхновой Звезды', cost: 4500000000 },
+            { id: 'p_interstellar_base', name: '🛰️ Межзвездный Дредноут', cost: 7000000000 },
+            { id: 'p_dark_matter_ship', name: '🌑 Судно Темной Материи', cost: 10000000000 },
+            { id: 'p_universe_titan', name: '🌀 Титан Вселенских Океанов', cost: 20000000000 }
         ];
-
-        // НОВАЯ СИСТЕМА ПЕРМИТОВ И ЛИЦЕНЗИЙ
-        const permitsList = [
-            { id: 'perm_novice', name: '📜 Пермит Новичка', cost: 5000, bonusText: '+10% к майнинг тапам', dailyBonus: 100 },
-            { id: 'perm_curacao', name: '🎰 Лицензия Кюрасао', cost: 25000, bonusText: 'Пассив +1,500 $RJC/день', dailyBonus: 1500 },
-            { id: 'perm_mining', name: '⛏️ Мальтийский Майнинг-Пермит', cost: 100000, bonusText: 'Пассив +8,000 $RJC/день', dailyBonus: 8000 },
-            { id: 'perm_trade', name: '💼 Разрешение на VIP-Торговлю', cost: 500000, bonusText: 'Кэшбэк 5% со ставок', dailyBonus: 25000 },
-            { id: 'perm_guardians', name: '🛡️ Пермит Стражей Галактики', cost: 2000000, bonusText: 'Пассив +150,000 $RJC/день', dailyBonus: 150000 }
-        ];
-
-        function getSecureHeaders() {
+function getSecureHeaders() {
             const headers = { 'Content-Type': 'application/json' };
             if (tg && tg.initData) {
                 headers['x-tg-data'] = tg.initData;
@@ -525,13 +619,15 @@
         function getClickPower() {
             const currentName = currentUser.currentCitizenship;
             const citizen = citizenshipList.find(c => c.name === currentName);
-            let base = 1;
+            let basePower = 1;
             if (citizen) {
-                if (citizen.special) base = 250; 
-                else base = 1 + Math.floor(citizen.cost / 800); 
+                if (citizen.special) basePower = 250; 
+                else basePower = 1 + Math.floor(citizen.cost / 800);
             }
-            if (currentUser.activePermit === '📜 Пермит Новичка') base = Math.floor(base * 1.10);
-            return base;
+            if (currentUser.ownedProperties && currentUser.ownedProperties.includes('perm_pro')) {
+                basePower = Math.floor(basePower * 1.1);
+            }
+            return basePower;
         }
 
         function forceOwnerLuxuries(userObj) {
@@ -565,7 +661,7 @@
                         document.getElementById('maintenance-screen').style.display = 'flex';
                         return;
                     } else {
-                        showToast("⚠️ Включены тех. работы. Вход открыт!", "error");
+                        showToast("⚠️ Включены тех. работы. Тебе как админу/модеру вход открыт!", "error");
                     }
                 } else {
                     document.getElementById('maintenance-screen').style.display = 'none';
@@ -579,6 +675,11 @@
             } catch(e) {
                 currentUser.balance = Number(currentUser.balance) || 5000;
                 updateUI();
+                if (!isOwner && !currentUser.isModerator) {
+                    document.getElementById('maintenance-screen').style.display = 'flex';
+                } else {
+                    showToast("⚠️ Бэк временно недоступен, но для тебя обход!", "error");
+                }
             }
         }
 
@@ -613,6 +714,22 @@
             }, 3000);
         }
 
+        function quickFillTransfer(username) {
+            const targetInput = document.getElementById('transfer-target');
+            if (targetInput && username) {
+                targetInput.value = username;
+                showToast(`Получатель @${username} выбран!`, 'success');
+                targetInput.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function copyReferralLink() {
+            const botUser = "rejewcas_bot"; 
+            const link = `https://t.me/${botUser}/app?startapp=${userId}`;
+            navigator.clipboard.writeText(link);
+            showToast("Рефералка скопирована в буфер обмена!", "gold");
+        }
+
         function updateUI() {
             currentUser.balance = Number(currentUser.balance) || 0;
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
@@ -621,7 +738,6 @@
             
             if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
             document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
-            document.getElementById('prof-permit').innerText = `Пермит: ${currentUser.activePermit || 'Нет активного'}`;
 
             const clickPower = getClickPower();
             document.getElementById('clicker-profit-label').innerText = `+${clickPower.toLocaleString()} $RJC за каждый тап`;
@@ -629,37 +745,83 @@
             const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
             document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
 
+            const btnMaint = document.getElementById('maint-toggle-btn');
+            if (currentUser.maintenanceActive) {
+                btnMaint.innerText = "ВЫЙТИ ИЗ ТЕХОБСЛУЖИВАНИЯ";
+                btnMaint.style.background = "linear-gradient(135deg, var(--green), #00c853)";
+            } else {
+                btnMaint.innerText = "ЗАКРЫТЬ НА ТЕХОБСЛУЖИВАНИЕ";
+                btnMaint.style.background = "linear-gradient(135deg, var(--red), #c62828)";
+            }
+
+            const canSeeAdmin = isOwner || currentUser.isModerator;
+            if (canSeeAdmin) {
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('player-stats-block').style.display = 'none';
+                if (isOwner) {
+                    document.getElementById('prof-status').innerText = 'Владелец';
+                    document.getElementById('prof-status').style.color = 'var(--gold)';
+                    document.getElementById('prof-avatar').innerText = '👑';
+                    document.getElementById('admin-panel-title').innerText = 'Админ-панель';
+                } else {
+                    document.getElementById('prof-status').innerText = 'Модератор';
+                    document.getElementById('prof-status').style.color = '#3b82f6';
+                    document.getElementById('prof-avatar').innerText = '🛡️';
+                    document.getElementById('admin-panel-title').innerText = 'Модер-панель';
+                }
+            } else {
+                document.getElementById('prof-status').innerText = 'Игрок';
+                document.getElementById('prof-status').style.color = 'var(--text-secondary)';
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('player-stats-block').style.display = 'block';
+                document.getElementById('prof-avatar').innerText = '🕹️';
+                
+                document.getElementById('stat-total').innerText = currentUser.stats.total || 0;
+                document.getElementById('stat-wins').innerText = currentUser.stats.wins || 0;
+                document.getElementById('stat-losses').innerText = currentUser.stats.losses || 0;
+            }
+
+            const transListBlock = document.getElementById('transactions-list');
+            if (currentUser.messages && currentUser.messages.length > 0) {
+                transListBlock.innerHTML = '';
+                [...currentUser.messages].reverse().forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'msg-box';
+                    
+                    const isOutgoing = String(msg.fromId) === String(userId) || String(msg.senderId) === String(userId);
+                    const color = isOutgoing ? 'var(--red)' : 'var(--green)';
+                    const prefix = isOutgoing ? '-' : '+';
+                    
+                    const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
+                    const partnerUser = isOutgoing ? msg.receiverUsername : msg.senderUsername;
+                    const commentText = msg.comment ? msg.comment : "Без комментария";
+
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${Number(msg.amount || 0).toLocaleString()} $RJC</span>
+                            <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
+                                ${msg.type || 'Операция'}
+                            </span>
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:6px;">
+                            ${isOutgoing ? 'Кому' : 'От'}: 
+                            <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} ${partnerUser ? '@' + partnerUser : ''}</span>
+                            <div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:6px; margin-top:6px; color:#fff;">💬 ${commentText}</div>
+                        </div>
+                    `;
+                    transListBlock.appendChild(div);
+                });
+            } else {
+                transListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
+            }
+
+            renderCategoryShop('permits-shop', permitsList, 'permit');
             renderCategoryShop('citizenship-shop', citizenshipList, 'citizen');
             renderCategoryShop('cars-shop', carsList, 'item');
             renderCategoryShop('houses-shop', housesList, 'item');
             renderCategoryShop('yachts-shop', yachtsList, 'item');
-            renderPermitsShop();
         }
 
-        function renderPermitsShop() {
-            const block = document.getElementById('permits-shop');
-            if(!block) return;
-            block.innerHTML = '';
-
-            permitsList.forEach(perm => {
-                const div = document.createElement('div');
-                div.className = 'shop-item';
-                const isOwned = currentUser.activePermit === perm.name;
-
-                let btnHtml = isOwned 
-                    ? `<button class="buy-btn owned">Активен</button>` 
-                    : `<button class="buy-btn" onclick="buyPermit('${perm.id}', '${perm.name}', ${perm.cost})">Оформить</button>`;
-
-                div.innerHTML = `
-                    <div class="shop-item-info">
-                        <span class="shop-item-name">${perm.name}</span>
-                        <span class="shop-item-cost">${perm.cost.toLocaleString()} $RJC<br><span style="color:var(--purple); font-size:0.72rem;">${perm.bonusText}</span></span>
-                    </div>
-                    ${btnHtml}
-                `;
-                block.appendChild(div);
-            });
-        }
         function renderCategoryShop(elementId, itemsList, type) {
             const block = document.getElementById(elementId);
             if(!block) return;
@@ -668,21 +830,42 @@
             itemsList.forEach(itemData => {
                 const div = document.createElement('div');
                 div.className = 'shop-item';
+                
                 let btnHtml = '';
-                const isOwned = currentUser.ownedProperties.includes(itemData.id) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
+                const isOwned = (currentUser.ownedProperties && currentUser.ownedProperties.includes(itemData.id)) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
 
                 if (itemData.special) {
-                    btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
+                    if (itemData.id === 'p_mod_hq') {
+                        btnHtml = currentUser.isModerator || isOwner ? `<button class="buy-btn owned">Доступно</button>` : `<button class="buy-btn locked">Для Модеров</button>`;
+                    } else {
+                        btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
+                    }
                 } else if (isOwned) {
                     btnHtml = `<button class="buy-btn owned">Куплено</button>`;
+                } else if (itemData.id === 'p_hamam_resort') {
+                    const hasIsland = currentUser.ownedProperties && currentUser.ownedProperties.includes('p_island');
+                    if (hasIsland) {
+                        btnHtml = `<button class="buy-btn" style="background: linear-gradient(135deg, var(--green), #00c853); color: #000; font-weight: 800;" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Улучшить</button>`;
+                    } else {
+                        btnHtml = `<button class="buy-btn locked" style="background: #221515; border-color: var(--red); color: var(--red);">Нужен Атолл</button>`;
+                    }
                 } else {
                     btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
+                }
+
+                let bonusInfo = '';
+                if (itemData.bonus) bonusInfo = `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>`;
+                if (type === 'citizen' && itemData.cost > 0) {
+                     bonusInfo = `<br><span style="color:var(--gold); font-size:0.72rem; font-weight:700;">+${(1 + Math.floor(itemData.cost / 800)).toLocaleString()} к тапу</span>`;
+                }
+                if (type === 'permit') {
+                    bonusInfo = `<br><span style="color:var(--purple); font-size:0.72rem; font-weight:700;">${itemData.bonusText}</span>`;
                 }
 
                 div.innerHTML = `
                     <div class="shop-item-info">
                         <span class="shop-item-name">${itemData.name}</span>
-                        <span class="shop-item-cost">${itemData.special ? 'Спец. статус' : itemData.cost.toLocaleString() + ' $RJC'}</span>
+                        <span class="shop-item-cost">${itemData.special ? 'Спец. статус' : itemData.cost.toLocaleString() + ' $RJC'}${bonusInfo}</span>
                     </div>
                     ${btnHtml}
                 `;
@@ -702,32 +885,724 @@
                 let data = await res.json();
                 if(data.error) return showToast(data.error, 'error');
                 currentUser = data;
+                currentUser.balance = Number(currentUser.balance) || 0;
                 forceOwnerLuxuries(currentUser);
                 showToast(`🎉 Успешная сделка: ${itemName}`, 'gold');
                 updateUI();
             } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
-        async function buyPermit(permitId, permitName, cost) {
-            if (currentUser.balance < cost) return showToast("Недостаточно коинов на пермит!", 'error');
+        async function processTransfer() {
+            const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
+            const comment = document.getElementById('transfer-comment').value.trim();
+            const amount = parseInt(document.getElementById('transfer-amount').value);
+
+            if (!receiverUsername) return showToast("Введите юзернейм получателя", 'error');
+            if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
+            if (currentUser.balance < amount) return showToast("Недостаточно коинов!", 'error');
+
             try {
-                let res = await fetch(`${API_URL}/api/permits/buy`, {
+                let res = await fetch(`${API_URL}/api/rejewpay/transfer`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, permitId, permitName, cost })
+                    body: JSON.stringify({ senderId: userId, receiverUsername, amount, comment })
+                });
+                let data = await res.json();
+                if(data.error) return showToast(data.error, 'error');
+                
+                showToast(`💸 Перевод выполнен!`, 'success');
+                document.getElementById('transfer-target').value = '';
+                document.getElementById('transfer-comment').value = '';
+                document.getElementById('transfer-amount').value = '';
+                syncProfile();
+            } catch(e) { showToast("Ошибка RejewPay", "error"); }
+        }
+
+        function switchScreen(screenName) {
+            if (accumulatedClicks > 0) {
+                clearTimeout(clickSyncTimeout);
+                syncClicksWithBackend();
+            }
+
+            const activeScreen = document.querySelector('.screen.active');
+            const nextScreen = document.getElementById(`screen-${screenName}`);
+            
+            if (activeScreen) {
+                activeScreen.style.opacity = '0';
+                activeScreen.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    activeScreen.classList.remove('active');
+                    nextScreen.classList.add('active');
+                    setTimeout(() => {
+                        nextScreen.style.opacity = '1';
+                        nextScreen.style.transform = 'translateY(0)';
+                        if(screenName === 'plinko') initPlinkoCanvas();
+                    }, 20);
+                }, 150);
+            } else {
+                nextScreen.classList.add('active');
+                nextScreen.style.opacity = '1';
+                nextScreen.style.transform = 'translateY(0)';
+                if(screenName === 'plinko') initPlinkoCanvas();
+            }
+
+            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${screenName}`).classList.add('active');
+        }
+
+        function setMaxBet(inputId) {
+            currentUser.balance = Number(currentUser.balance) || 0;
+            const field = document.getElementById(inputId);
+            if (field) {
+                field.value = currentUser.balance;
+            }
+        }
+function getSecureHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (tg && tg.initData) {
+                headers['x-tg-data'] = tg.initData;
+            }
+            return headers;
+        }
+
+        function getClickPower() {
+            const currentName = currentUser.currentCitizenship;
+            const citizen = citizenshipList.find(c => c.name === currentName);
+            let basePower = 1;
+            if (citizen) {
+                if (citizen.special) basePower = 250; 
+                else basePower = 1 + Math.floor(citizen.cost / 800);
+            }
+            if (currentUser.ownedProperties && currentUser.ownedProperties.includes('perm_pro')) {
+                basePower = Math.floor(basePower * 1.1);
+            }
+            return basePower;
+        }
+
+        function forceOwnerLuxuries(userObj) {
+            if (isOwner) {
+                userObj.currentCitizenship = '🇲🇨 Монако (Княжеское)';
+                if (!userObj.ownedProperties) userObj.ownedProperties = [];
+                ['c_monaco', 'p_boattail', 'p_palace'].forEach(id => {
+                    if (!userObj.ownedProperties.includes(id)) userObj.ownedProperties.push(id);
+                });
+            }
+            if (userObj.isModerator) {
+                if (!userObj.ownedProperties) userObj.ownedProperties = [];
+                if (!userObj.ownedProperties.includes('p_mod_hq')) {
+                    userObj.ownedProperties.push('p_mod_hq');
+                }
+            }
+        }
+
+        async function syncProfile() {
+            try {
+                let res = await fetch(`${API_URL}/api/user`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, username, nickname, referredBy })
+                });
+                currentUser = await res.json();
+                currentUser.balance = Number(currentUser.balance) || 0;
+                
+                if (currentUser.maintenanceActive) {
+                    if (!isOwner && !currentUser.isModerator) {
+                        document.getElementById('maintenance-screen').style.display = 'flex';
+                        return;
+                    } else {
+                        showToast("⚠️ Включены тех. работы. Тебе как админу/модеру вход открыт!", "error");
+                    }
+                } else {
+                    document.getElementById('maintenance-screen').style.display = 'none';
+                }
+
+                forceOwnerLuxuries(currentUser);
+                updateUI();
+                if (currentUser.isModerator || isOwner) {
+                    loadTechInfo();
+                }
+            } catch(e) {
+                currentUser.balance = Number(currentUser.balance) || 5000;
+                updateUI();
+                if (!isOwner && !currentUser.isModerator) {
+                    document.getElementById('maintenance-screen').style.display = 'flex';
+                } else {
+                    showToast("⚠️ Бэк временно недоступен, но для тебя обход!", "error");
+                }
+            }
+        }
+
+        async function loadTechInfo() {
+            try {
+                let res = await fetch(`${API_URL}/api/admin/tech-info`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username })
+                });
+                let data = await res.json();
+                if (!data.error) {
+                    document.getElementById('tech-users').innerText = data.totalUsers;
+                    document.getElementById('tech-bal').innerText = Number(data.totalBalance || 0).toLocaleString();
+                    document.getElementById('tech-turnover').innerText = Number(data.totalTurnover || 0).toLocaleString();
+                    document.getElementById('tech-mods').innerText = data.moderatorsCount;
+                    document.getElementById('tech-uptime').innerText = Math.floor(data.uptime);
+                }
+            } catch(e) {}
+        }
+
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 30);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function quickFillTransfer(username) {
+            const targetInput = document.getElementById('transfer-target');
+            if (targetInput && username) {
+                targetInput.value = username;
+                showToast(`Получатель @${username} выбран!`, 'success');
+                targetInput.scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        function copyReferralLink() {
+            const botUser = "rejewcas_bot"; 
+            const link = `https://t.me/${botUser}/app?startapp=${userId}`;
+            navigator.clipboard.writeText(link);
+            showToast("Рефералка скопирована в буфер обмена!", "gold");
+        }
+
+        function updateUI() {
+            currentUser.balance = Number(currentUser.balance) || 0;
+            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
+            document.getElementById('prof-name').innerText = currentUser.nickname;
+            document.getElementById('prof-id').innerText = currentUser.userId;
+            
+            if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
+            document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
+
+            const clickPower = getClickPower();
+            document.getElementById('clicker-profit-label').innerText = `+${clickPower.toLocaleString()} $RJC за каждый тап`;
+
+            const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
+            document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
+
+            const btnMaint = document.getElementById('maint-toggle-btn');
+            if (currentUser.maintenanceActive) {
+                btnMaint.innerText = "ВЫЙТИ ИЗ ТЕХОБСЛУЖИВАНИЯ";
+                btnMaint.style.background = "linear-gradient(135deg, var(--green), #00c853)";
+            } else {
+                btnMaint.innerText = "ЗАКРЫТЬ НА ТЕХОБСЛУЖИВАНИЕ";
+                btnMaint.style.background = "linear-gradient(135deg, var(--red), #c62828)";
+            }
+
+            const canSeeAdmin = isOwner || currentUser.isModerator;
+            if (canSeeAdmin) {
+                document.getElementById('admin-panel').style.display = 'block';
+                document.getElementById('player-stats-block').style.display = 'none';
+                if (isOwner) {
+                    document.getElementById('prof-status').innerText = 'Владелец';
+                    document.getElementById('prof-status').style.color = 'var(--gold)';
+                    document.getElementById('prof-avatar').innerText = '👑';
+                    document.getElementById('admin-panel-title').innerText = 'Админ-панель';
+                } else {
+                    document.getElementById('prof-status').innerText = 'Модератор';
+                    document.getElementById('prof-status').style.color = '#3b82f6';
+                    document.getElementById('prof-avatar').innerText = '🛡️';
+                    document.getElementById('admin-panel-title').innerText = 'Модер-панель';
+                }
+            } else {
+                document.getElementById('prof-status').innerText = 'Игрок';
+                document.getElementById('prof-status').style.color = 'var(--text-secondary)';
+                document.getElementById('admin-panel').style.display = 'none';
+                document.getElementById('player-stats-block').style.display = 'block';
+                document.getElementById('prof-avatar').innerText = '🕹️';
+                
+                document.getElementById('stat-total').innerText = currentUser.stats.total || 0;
+                document.getElementById('stat-wins').innerText = currentUser.stats.wins || 0;
+                document.getElementById('stat-losses').innerText = currentUser.stats.losses || 0;
+            }
+
+            const transListBlock = document.getElementById('transactions-list');
+            if (currentUser.messages && currentUser.messages.length > 0) {
+                transListBlock.innerHTML = '';
+                [...currentUser.messages].reverse().forEach(msg => {
+                    const div = document.createElement('div');
+                    div.className = 'msg-box';
+                    
+                    const isOutgoing = String(msg.fromId) === String(userId) || String(msg.senderId) === String(userId);
+                    const color = isOutgoing ? 'var(--red)' : 'var(--green)';
+                    const prefix = isOutgoing ? '-' : '+';
+                    
+                    const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
+                    const partnerUser = isOutgoing ? msg.receiverUsername : msg.senderUsername;
+                    const commentText = msg.comment ? msg.comment : "Без комментария";
+
+                    div.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; align-items:center;">
+                            <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${Number(msg.amount || 0).toLocaleString()} $RJC</span>
+                            <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
+                                ${msg.type || 'Операция'}
+                            </span>
+                        </div>
+                        <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:6px;">
+                            ${isOutgoing ? 'Кому' : 'От'}: 
+                            <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} ${partnerUser ? '@' + partnerUser : ''}</span>
+                            <div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:6px; margin-top:6px; color:#fff;">💬 ${commentText}</div>
+                        </div>
+                    `;
+                    transListBlock.appendChild(div);
+                });
+            } else {
+                transListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
+            }
+
+            renderCategoryShop('permits-shop', permitsList, 'permit');
+            renderCategoryShop('citizenship-shop', citizenshipList, 'citizen');
+            renderCategoryShop('cars-shop', carsList, 'item');
+            renderCategoryShop('houses-shop', housesList, 'item');
+            renderCategoryShop('yachts-shop', yachtsList, 'item');
+        }
+
+        function renderCategoryShop(elementId, itemsList, type) {
+            const block = document.getElementById(elementId);
+            if(!block) return;
+            block.innerHTML = '';
+
+            itemsList.forEach(itemData => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                
+                let btnHtml = '';
+                const isOwned = (currentUser.ownedProperties && currentUser.ownedProperties.includes(itemData.id)) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
+
+                if (itemData.special) {
+                    if (itemData.id === 'p_mod_hq') {
+                        btnHtml = currentUser.isModerator || isOwner ? `<button class="buy-btn owned">Доступно</button>` : `<button class="buy-btn locked">Для Модеров</button>`;
+                    } else {
+                        btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
+                    }
+                } else if (isOwned) {
+                    btnHtml = `<button class="buy-btn owned">Куплено</button>`;
+                } else if (itemData.id === 'p_hamam_resort') {
+                    const hasIsland = currentUser.ownedProperties && currentUser.ownedProperties.includes('p_island');
+                    if (hasIsland) {
+                        btnHtml = `<button class="buy-btn" style="background: linear-gradient(135deg, var(--green), #00c853); color: #000; font-weight: 800;" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Улучшить</button>`;
+                    } else {
+                        btnHtml = `<button class="buy-btn locked" style="background: #221515; border-color: var(--red); color: var(--red);">Нужен Атолл</button>`;
+                    }
+                } else {
+                    btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
+                }
+
+                let bonusInfo = '';
+                if (itemData.bonus) bonusInfo = `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>`;
+                if (type === 'citizen' && itemData.cost > 0) {
+                     bonusInfo = `<br><span style="color:var(--gold); font-size:0.72rem; font-weight:700;">+${(1 + Math.floor(itemData.cost / 800)).toLocaleString()} к тапу</span>`;
+                }
+                if (type === 'permit') {
+                    bonusInfo = `<br><span style="color:var(--purple); font-size:0.72rem; font-weight:700;">${itemData.bonusText}</span>`;
+                }
+
+                div.innerHTML = `
+                    <div class="shop-item-info">
+                        <span class="shop-item-name">${itemData.name}</span>
+                        <span class="shop-item-cost">${itemData.special ? 'Спец. статус' : itemData.cost.toLocaleString() + ' $RJC'}${bonusInfo}</span>
+                    </div>
+                    ${btnHtml}
+                `;
+                block.appendChild(div);
+            });
+        }
+
+        async function buyItem(itemId, itemName, cost, type) {
+            currentUser.balance = Number(currentUser.balance) || 0;
+            if (currentUser.balance < cost) return showToast("Не хватает $RJC на эту сделку!", 'error');
+            try {
+                let res = await fetch(`${API_URL}/api/buy`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, itemId, itemName, cost, type })
                 });
                 let data = await res.json();
                 if(data.error) return showToast(data.error, 'error');
                 currentUser = data;
-                showToast(`📜 Выдан пермит: ${permitName}`, 'purple');
+                currentUser.balance = Number(currentUser.balance) || 0;
+                forceOwnerLuxuries(currentUser);
+                showToast(`🎉 Успешная сделка: ${itemName}`, 'gold');
                 updateUI();
-            } catch(e) { showToast("Ошибка оформления пермита", "error"); }
+            } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
-        /* --- ИСПРАВЛЕННАЯ ЛОГИКА ПЛИНКО CANVAS --- */
+        async function processTransfer() {
+            const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
+            const comment = document.getElementById('transfer-comment').value.trim();
+            const amount = parseInt(document.getElementById('transfer-amount').value);
+
+            if (!receiverUsername) return showToast("Введите юзернейм получателя", 'error');
+            if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
+            if (currentUser.balance < amount) return showToast("Недостаточно коинов!", 'error');
+
+            try {
+                let res = await fetch(`${API_URL}/api/rejewpay/transfer`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ senderId: userId, receiverUsername, amount, comment })
+                });
+                let data = await res.json();
+                if(data.error) return showToast(data.error, 'error');
+                
+                showToast(`💸 Перевод выполнен!`, 'success');
+                document.getElementById('transfer-target').value = '';
+                document.getElementById('transfer-comment').value = '';
+                document.getElementById('transfer-amount').value = '';
+                syncProfile();
+            } catch(e) { showToast("Ошибка RejewPay", "error"); }
+        }
+
+        function switchScreen(screenName) {
+            if (accumulatedClicks > 0) {
+                clearTimeout(clickSyncTimeout);
+                syncClicksWithBackend();
+            }
+
+            const activeScreen = document.querySelector('.screen.active');
+            const nextScreen = document.getElementById(`screen-${screenName}`);
+            
+            if (activeScreen) {
+                activeScreen.style.opacity = '0';
+                activeScreen.style.transform = 'translateY(-10px)';
+                setTimeout(() => {
+                    activeScreen.classList.remove('active');
+                    nextScreen.classList.add('active');
+                    setTimeout(() => {
+                        nextScreen.style.opacity = '1';
+                        nextScreen.style.transform = 'translateY(0)';
+                        if(screenName === 'plinko') initPlinkoCanvas();
+                    }, 20);
+                }, 150);
+            } else {
+                nextScreen.classList.add('active');
+                nextScreen.style.opacity = '1';
+                nextScreen.style.transform = 'translateY(0)';
+                if(screenName === 'plinko') initPlinkoCanvas();
+            }
+
+            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(`tab-${screenName}`).classList.add('active');
+        }
+
+        function setMaxBet(inputId) {
+            currentUser.balance = Number(currentUser.balance) || 0;
+            const field = document.getElementById(inputId);
+            if (field) {
+                field.value = currentUser.balance;
+            }
+        }
+function executeCoinClick() {
+            const power = getClickPower();
+            currentUser.balance = (Number(currentUser.balance) || 0) + power;
+            accumulatedClicks += power;
+            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
+
+            clearTimeout(clickSyncTimeout);
+            clickSyncTimeout = setTimeout(syncClicksWithBackend, 1500);
+        }
+
+        async function syncClicksWithBackend() {
+            if (accumulatedClicks === 0) return;
+            let clicksToSend = accumulatedClicks;
+            accumulatedClicks = 0;
+
+            try {
+                let res = await fetch(`${API_URL}/api/game/result`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, bet: 0, winAmount: clicksToSend, isWin: true })
+                });
+                currentUser = await res.json();
+                currentUser.balance = Number(currentUser.balance) || 0;
+                forceOwnerLuxuries(currentUser);
+                updateUI();
+            } catch(e) {
+                accumulatedClicks += clicksToSend;
+            }
+        }
+
+        async function sendGameResult(bet, winAmount, isWin, msg, status) {
+            try {
+                let res = await fetch(`${API_URL}/api/game/result`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, bet, winAmount, isWin })
+                });
+                currentUser = await res.json();
+                currentUser.balance = Number(currentUser.balance) || 0;
+                forceOwnerLuxuries(currentUser);
+                updateUI();
+                if (msg) showToast(msg, status || 'success');
+            } catch(e) {
+                showToast("Ошибка сохранения результата", "error");
+            }
+        }
+
+        /* 🎰 СЛОТЫ */
+        function triggerSpin() {
+            const betInput = document.getElementById('slot-bet');
+            let bet = parseInt(betInput.value);
+
+            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
+            if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
+
+            const spinBtn = document.getElementById('spin-btn');
+            spinBtn.disabled = true;
+
+            let rng = Math.random() * 100;
+            let r1, r2, r3, winAmount = 0, isWin = false, msg = '', status = 'loss';
+
+            if (rng < 5.0) { 
+                r1 = r2 = r3 = '💎'; winAmount = bet * 12; isWin = true; status = 'gold'; msg = `🎰 ДЖЕКПОТ! x12 (+${winAmount} $RJC)`;
+            } else if (rng < 16.0) { 
+                let fruit = slotItems[Math.floor(Math.random() * 3)];
+                r1 = r2 = r3 = fruit; winAmount = bet * 5; isWin = true; status = 'success'; msg = `🎉 Совпадение линий! x5 (+${winAmount} $RJC)`;
+            } else if (rng < 45.0) { 
+                let sym1 = slotItems[Math.floor(Math.random() * slotItems.length)];
+                r1 = sym1; r2 = sym1; r3 = slotItems[(slotItems.indexOf(sym1) + 1) % slotItems.length];
+                winAmount = Math.floor(bet * 1.5); isWin = true; status = 'success'; msg = `✨ Двойное комбо! (+${winAmount})`;
+            } else {
+                if (Math.random() < 0.5) {
+                    let fakeSym = slotItems[Math.floor(Math.random() * slotItems.length)];
+                    r1 = fakeSym; r2 = fakeSym;
+                    r3 = slotItems.filter(item => item !== fakeSym)[Math.floor(Math.random() * 4)];
+                } else {
+                    r1 = slotItems[0]; r2 = slotItems[2]; r3 = slotItems[4];
+                }
+                msg = "Мимо! Крути еще.";
+            }
+
+            const reels = [document.getElementById('r1'), document.getElementById('r2'), document.getElementById('r3')];
+            reels.forEach(r => r.classList.add('spinning'));
+
+            let i1 = setInterval(() => { reels[0].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
+            let i2 = setInterval(() => { reels[1].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
+            let i3 = setInterval(() => { reels[2].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
+
+            setTimeout(() => { clearInterval(i1); reels[0].classList.remove('spinning'); reels[0].innerText = r1; }, 500);
+            setTimeout(() => { clearInterval(i2); reels[1].classList.remove('spinning'); reels[1].innerText = r2; }, 1000);
+            setTimeout(() => { 
+                clearInterval(i3); 
+                reels[2].classList.remove('spinning'); 
+                reels[2].innerText = r3; 
+
+                sendGameResult(bet, winAmount, isWin, msg, status);
+                spinBtn.disabled = false;
+            }, 1500);
+        }
+
+        /* 🚀 КРАШ */
+        let crashState = 'idle'; 
+        let crashBetAmount = 0;
+        let currentMultiplier = 1.00;
+        let crashPoint = 0;
+        let crashStartTime = 0;
+        let crashAnimFrame = null;
+        let hasCashedOut = false; 
+
+        function triggerCrashAction() {
+            const btn = document.getElementById('crash-btn');
+            if (crashState === 'idle') {
+                const betInput = document.getElementById('crash-bet');
+                crashBetAmount = parseInt(betInput.value);
+
+                if (isNaN(crashBetAmount) || crashBetAmount < 10) return showToast("Минимум — 10 $RJC!", 'error');
+                currentUser.balance = Number(currentUser.balance) || 0;
+                if (currentUser.balance < crashBetAmount) return showToast("Недостаточно баланса!", 'error');
+
+                crashState = 'flying';
+                currentMultiplier = 1.00;
+                hasCashedOut = false;
+                
+                btn.innerText = 'ЗАБРАТЬ';
+                btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
+                
+                let houseEdge = 0.03; 
+                if (Math.random() < houseEdge) {
+                    crashPoint = 1.00;
+                } else {
+                    let rand = Math.random();
+                    crashPoint = parseFloat((0.99 / (1 - rand)).toFixed(2));
+                    if (crashPoint < 1.01) crashPoint = 1.01;
+                    if (crashPoint > 100) crashPoint = 100;
+                }
+
+                crashStartTime = performance.now();
+                crashAnimFrame = requestAnimationFrame(updateCrashEngine);
+            } else if (crashState === 'flying' && !hasCashedOut) {
+                hasCashedOut = true;
+                let winAmount = Math.floor(crashBetAmount * currentMultiplier);
+                showToast(`🚀 Забрал! Множитель: ${currentMultiplier.toFixed(2)}x (+${winAmount} $RJC)`, 'success');
+                sendGameResult(crashBetAmount, winAmount, true, null, 'success');
+                
+                btn.innerText = 'СМОТРИМ ПОЛЕТ...';
+                btn.disabled = true;
+                btn.style.background = 'linear-gradient(135deg, #374151, #1f2937)';
+            }
+        }
+
+        function updateCrashEngine(now) {
+            if (crashState !== 'flying') return;
+
+            let elapsed = (now - crashStartTime) / 1000;
+            currentMultiplier = parseFloat((1.00 + Math.pow(elapsed, 1.6) * 0.08).toFixed(2));
+
+            if (currentMultiplier >= crashPoint) {
+                crashState = 'crashed';
+                document.getElementById('crash-mult').innerText = 'БУМ! 💥';
+                document.getElementById('crash-mult').style.color = 'var(--red)';
+                document.getElementById('rocket-obj').innerText = '💥';
+                
+                showToast(`Взрыв на ${crashPoint.toFixed(2)}x!`, 'error');
+                
+                setTimeout(() => {
+                    const btn = document.getElementById('crash-btn');
+                    btn.disabled = false;
+                    resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
+                    document.getElementById('rocket-obj').innerText = '🚀';
+                    document.getElementById('crash-mult').style.color = '#fff';
+                }, 2200);
+
+                if (!hasCashedOut) {
+                    sendGameResult(crashBetAmount, 0, false, null, 'error');
+                }
+                return;
+            }
+
+            document.getElementById('crash-mult').innerText = currentMultiplier.toFixed(2) + 'x';
+
+            const arena = document.querySelector('.crash-arena');
+            let maxW = arena.clientWidth - 50;
+            let maxH = 200 - 50;
+
+            let progress = Math.min((currentMultiplier - 1) / 5, 0.95); 
+            
+            let curX = Math.floor(maxW * progress);
+            let curY = Math.floor(maxH * Math.sin(progress * Math.PI / 2));
+
+            const rocket = document.getElementById('rocket-obj');
+            rocket.style.transform = `translate(${curX}px, ${-curY}px) rotate(${-progress * 30}deg)`;
+
+            const path = document.getElementById('flight-line');
+            let startX = 15;
+            let startY = 185;
+            let currentPathX = startX + curX;
+            let currentPathY = startY - curY;
+            
+            path.setAttribute('d', `M ${startX} ${startY} Q ${(startX + currentPathX)/1.6} ${startY} ${currentPathX} ${currentPathY}`);
+
+            crashAnimFrame = requestAnimationFrame(updateCrashEngine);
+        }
+
+        function resetCrashUI(text, background) {
+            const btn = document.getElementById('crash-btn');
+            btn.innerText = text;
+            btn.style.background = background;
+            crashState = 'idle';
+            document.getElementById('crash-mult').innerText = '1.00x';
+            
+            const rocket = document.getElementById('rocket-obj');
+            rocket.style.transform = `translate(0px, 0px) rotate(0deg)`;
+            document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
+        }
+
+        /* ⚡ АПГРЕЙДЕР СИСТЕМА */
+        function updateUpgraderUI() {
+            const targetInput = document.getElementById('upgrader-target-input');
+            let mult = parseFloat(targetInput.value);
+            if (isNaN(mult) || mult < 1.1) mult = 1.1;
+            if (mult > 100) mult = 100;
+
+            let chance = (95 / mult).toFixed(1);
+            if (chance > 95) chance = 95;
+            if (chance < 0.95) chance = 0.95;
+
+            document.getElementById('upgrader-target-mult').innerText = `x${mult.toFixed(2)}`;
+            document.getElementById('upgrader-chance-lbl').innerText = `${chance}% Шанс`;
+
+            const deg = (chance / 100) * 360;
+            document.getElementById('upgrader-ring').style.background = `conic-gradient(var(--purple) 0deg ${deg}deg, #1f1f24 ${deg}deg 360deg)`;
+        }
+
+        async function triggerUpgrader() {
+            const betInput = document.getElementById('upgrader-bet');
+            const targetInput = document.getElementById('upgrader-target-input');
+            let bet = parseInt(betInput.value);
+            let targetMult = parseFloat(targetInput.value);
+
+            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            if (isNaN(targetMult) || targetMult < 1.1 || targetMult > 100) return showToast("Немоделируемый множитель", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
+            if (currentUser.balance < bet) return showToast("Недостаточно $RJC!", 'error');
+
+            const btn = document.getElementById('upgrader-btn');
+            btn.disabled = true;
+
+            try {
+                let res = await fetch(`${API_URL}/api/games/upgrade`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, bet, targetMultiplier: targetMult })
+                });
+                let data = await res.json();
+                if (data.error) {
+                    btn.disabled = false;
+                    return showToast(data.error, 'error');
+                }
+
+                // Анимация вращения указателя
+                const ring = document.getElementById('upgrader-ring');
+                let startAngle = 0;
+                let targetDeg = (data.roll / 100) * 360;
+                let extraTurns = 360 * 3; // 3 полных круга
+                let finalAngle = extraTurns + targetDeg;
+
+                ring.style.transition = 'transform 2s cubic-bezier(0.15, 0.9, 0.3, 1)';
+                ring.style.transform = `rotate(${finalAngle}deg)`;
+
+                setTimeout(() => {
+                    ring.style.transition = 'none';
+                    ring.style.transform = `rotate(${targetDeg}deg)`;
+
+                    if (data.isWin) {
+                        showToast(`🚀 УСПЕХ! Апгрейд прошёл! (+${data.winAmount} $RJC)`, 'purple');
+                    } else {
+                        showToast(`💥 НЕУДАЧА! Предмет сгорел (Ролл: ${data.roll.toFixed(1)}%)`, 'error');
+                    }
+
+                    currentUser.balance = Number(data.newBalance);
+                    updateUI();
+                    btn.disabled = false;
+                }, 2050);
+
+            } catch(e) {
+                btn.disabled = false;
+                showToast("Ошибка соединения Апгрейдера", "error");
+            }
+        }
+
+        /* 🎯 ПОЛНОЦЕННЫЙ ПЛИНКО CANVAS С ФИЗИКОЙ И АНИМАЦИЕЙ */
         let plinkoCanvas, ctx;
+        const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
         let plinkoPins = [];
-        let plinkoBall = null;
 
         function initPlinkoCanvas() {
             plinkoCanvas = document.getElementById('plinko-canvas');
@@ -739,22 +1614,29 @@
 
         function generatePlinkoPins() {
             plinkoPins = [];
-            let rows = 7;
+            let rows = 8;
             let startY = 40;
-            let spacingY = 35;
-            let spacingX = 30;
+            let spacingY = 30;
+            let spacingX = 26;
+            
             for (let r = 0; r < rows; r++) {
                 let cols = r + 3;
                 let startX = (plinkoCanvas.width - (cols - 1) * spacingX) / 2;
                 for (let c = 0; c < cols; c++) {
-                    plinkoPins.push({ x: startX + c * spacingX, y: startY + r * spacingY, radius: 4 });
+                    plinkoPins.push({
+                        x: startX + c * spacingX,
+                        y: startY + r * spacingY,
+                        radius: 3.5
+                    });
                 }
             }
         }
 
-        function drawPlinkoBoard() {
+        function drawPlinkoBoard(activeBall = null) {
             if (!ctx) return;
             ctx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
+            
+            // Отрисовка колышков
             ctx.fillStyle = '#ffffff';
             plinkoPins.forEach(pin => {
                 ctx.beginPath();
@@ -762,21 +1644,31 @@
                 ctx.fill();
             });
 
-            // Отрисовка лунок множителей внизу
-            const multipliers = [5.6, 1.6, 1.1, 0.6, 1.1, 1.6, 5.6];
-            let slotW = plinkoCanvas.width / multipliers.length;
-            multipliers.forEach((m, idx) => {
-                ctx.fillStyle = m >= 1.5 ? '#ffd700' : '#71717a';
-                ctx.font = 'bold 11px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(`${m}x`, idx * slotW + slotW/2, plinkoCanvas.height - 10);
-            });
+            // Отрисовка корзин множителей внизу
+            let cols = 9;
+            let bucketWidth = plinkoCanvas.width / cols;
+            let bucketY = plinkoCanvas.height - 25;
 
-            if (plinkoBall) {
-                ctx.fillStyle = '#00e676';
+            for(let i = 0; i < cols; i++) {
+                let mult = plinkoMultipliers[i];
+                ctx.fillStyle = mult >= 1.5 ? '#f59e0b' : (mult >= 1.0 ? '#10b981' : '#374151');
+                ctx.fillRect(i * bucketWidth + 2, bucketY, bucketWidth - 4, 20);
+                
+                ctx.fillStyle = '#000';
+                ctx.font = 'bold 10px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${mult}x`, i * bucketWidth + bucketWidth/2, bucketY + 14);
+            }
+
+            // Отрисовка падения шарика
+            if (activeBall) {
+                ctx.fillStyle = '#ffd700';
+                ctx.shadowColor = '#ffd700';
+                ctx.shadowBlur = 10;
                 ctx.beginPath();
-                ctx.arc(plinkoBall.x, plinkoBall.y, plinkoBall.radius, 0, Math.PI * 2);
+                ctx.arc(activeBall.x, activeBall.y, 6, 0, Math.PI * 2);
                 ctx.fill();
+                ctx.shadowBlur = 0;
             }
         }
 
@@ -784,7 +1676,11 @@
             const betInput = document.getElementById('plinko-bet');
             let bet = parseInt(betInput.value);
             if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            currentUser.balance = Number(currentUser.balance) || 0;
             if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
+
+            const btn = document.getElementById('plinko-btn');
+            btn.disabled = true;
 
             try {
                 let res = await fetch(`${API_URL}/api/games/plinko`, {
@@ -793,109 +1689,154 @@
                     body: JSON.stringify({ userId, bet })
                 });
                 let data = await res.json();
-                if (data.error) return showToast(data.error, 'error');
-
-                // Анимация падения шарика
-                animatePlinkoBall(data.slotIndex, () => {
-                    currentUser.balance = Number(data.newBalance);
-                    updateUI();
-                    showToast(`🎯 Плинко: x${data.multiplier} (+${data.winAmount} $RJC)`, data.multiplier >= 1 ? 'success' : 'error');
-                });
-            } catch(e) { showToast("Ошибка Плинко", "error"); }
-        }
-
-        function animatePlinkoBall(targetSlot, onComplete) {
-            let slotW = plinkoCanvas.width / 7;
-            let targetX = targetSlot * slotW + slotW / 2;
-            plinkoBall = { x: plinkoCanvas.width / 2, y: 15, radius: 7, vx: (Math.random() - 0.5) * 2, vy: 2 };
-
-            let anim = setInterval(() => {
-                plinkoBall.y += plinkoBall.vy;
-                plinkoBall.x += plinkoBall.vx;
-                plinkoBall.vy += 0.25;
-
-                // Столкновение с гвоздиками
-                plinkoPins.forEach(pin => {
-                    let dx = plinkoBall.x - pin.x;
-                    let dy = plinkoBall.y - pin.y;
-                    let dist = Math.sqrt(dx*dx + dy*dy);
-                    if (dist < plinkoBall.radius + pin.radius) {
-                        plinkoBall.vy *= -0.3;
-                        plinkoBall.vx += (dx / dist) * 1.5;
-                    }
-                });
-
-                // Достиг дна
-                if (plinkoBall.y >= plinkoCanvas.height - 25) {
-                    clearInterval(anim);
-                    plinkoBall = null;
-                    drawPlinkoBoard();
-                    onComplete();
-                } else {
-                    drawPlinkoBoard();
+                if (data.error) {
+                    btn.disabled = false;
+                    return showToast(data.error, 'error');
                 }
-            }, 20);
+                
+                // Физическая анимация траектории
+                let targetBucket = data.slotIndex; 
+                let ball = { x: plinkoCanvas.width / 2, y: 15 };
+                let rows = 8;
+                let stepY = (plinkoCanvas.height - 60) / rows;
+                let currentStep = 0;
+
+                let animInterval = setInterval(() => {
+                    currentStep++;
+                    ball.y += stepY;
+
+                    // Отклонения влево/вправо в зависимости от конечного слота
+                    let targetX = (targetBucket + 0.5) * (plinkoCanvas.width / 9);
+                    let progress = currentStep / rows;
+                    ball.x = (plinkoCanvas.width / 2) + (targetX - plinkoCanvas.width / 2) * progress + (Math.random() * 8 - 4);
+
+                    drawPlinkoBoard(ball);
+
+                    if (currentStep >= rows) {
+                        clearInterval(animInterval);
+                        drawPlinkoBoard(null);
+                        
+                        currentUser.balance = Number(data.newBalance);
+                        updateUI();
+                        
+                        let winType = data.multiplier >= 1 ? 'success' : 'error';
+                        showToast(`🎯 Плинко: x${data.multiplier} (+${data.winAmount} $RJC)`, winType);
+                        btn.disabled = false;
+                    }
+                }, 120);
+
+            } catch(e) {
+                btn.disabled = false;
+                showToast("Ошибка сети в Плинко", "error");
+            }
         }
-
-        /* --- ЛОГИКА АПГРЕЙДЕРА --- */
-        function updateUpgraderVisuals() {
-            let mult = parseFloat(document.getElementById('upgrader-mult-input').value) || 2.0;
-            if (mult < 1.1) mult = 1.1;
-            if (mult > 100) mult = 100;
-            
-            let chance = ((1 / mult) * 0.95 * 100).toFixed(1); // 5% house edge
-            document.getElementById('upgrader-target-mult').innerText = `${mult.toFixed(2)}x`;
-            document.getElementById('upgrader-chance-lbl').innerText = `Шанс: ${chance}%`;
-
-            let ring = document.getElementById('upgrader-ring');
-            let maxOffset = 502;
-            let newOffset = maxOffset - (maxOffset * (chance / 100));
-            ring.style.strokeDashoffset = newOffset;
-        }
-
-        async function triggerUpgrader() {
-            const bet = parseInt(document.getElementById('upgrader-bet').value);
-            const targetMult = parseFloat(document.getElementById('upgrader-mult-input').value);
-            if (isNaN(bet) || bet < 10) return showToast("Минимум 10 $RJC!", 'error');
-            if (currentUser.balance < bet) return showToast("Не хватает баланса!", 'error');
+async function activatePromo() {
+            const codeInput = document.getElementById('user-promo-input');
+            const code = codeInput.value.trim();
+            if (!code) return showToast("Введите промокод", "error");
 
             try {
-                let res = await fetch(`${API_URL}/api/games/upgrader`, {
+                let res = await fetch(`${API_URL}/api/promo/activate`, {
                     method: 'POST',
                     headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, bet, targetMultiplier: targetMult })
+                    body: JSON.stringify({ userId, code })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, 'error');
+                
+                currentUser.balance = Number(data.newBalance) || currentUser.balance;
+                codeInput.value = '';
+                showToast(`🎁 Промокод активирован! Награда: +${data.reward} $RJC`, 'gold');
+                syncProfile();
+            } catch(e) {
+                showToast("Ошибка активации промокода", "error");
+            }
+        }
+
+        async function adminExecute() {
+            const amountInput = document.getElementById('adm-amount');
+            const amount = parseInt(amountInput.value);
+            if (isNaN(amount)) return showToast("Введите сумму", "error");
+
+            try {
+                let res = await fetch(`${API_URL}/api/admin/add`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ targetUserId: userId, amount })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, 'error');
+                amountInput.value = '';
+                showToast(`💰 Начислено ${amount} $RJC!`, 'gold');
+                syncProfile();
+            } catch(e) {
+                showToast("Ошибка админ-панели", "error");
+            }
+        }
+
+        async function toggleMaintenance() {
+            try {
+                let res = await fetch(`${API_URL}/api/admin/maintenance/toggle`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, 'error');
+                currentUser.maintenanceActive = data.maintenanceActive;
+                showToast(`🛠️ Техобслуживание: ${data.maintenanceActive ? 'ВКЛ' : 'ВЫКЛ'}`, 'gold');
+                updateUI();
+            } catch(e) {
+                showToast("Ошибка переключения режима", "error");
+            }
+        }
+
+        async function adminCreatePromo() {
+            const name = document.getElementById('promo-name').value.trim();
+            const limit = parseInt(document.getElementById('promo-limit').value);
+            const reward = parseInt(document.getElementById('promo-reward').value);
+
+            if (!name || isNaN(limit) || isNaN(reward)) return showToast("Заполни все поля промокода", "error");
+
+            try {
+                let res = await fetch(`${API_URL}/api/admin/promo/create`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ code: name, limit, reward })
                 });
                 let data = await res.json();
                 if (data.error) return showToast(data.error, 'error');
 
-                if (data.isWin) {
-                    showToast(`🔥 АПГРЕЙД УСПЕШЕН! +${data.winAmount} $RJC`, 'purple');
-                } else {
-                    showToast(`💥 Апгрейд сорвался!`, 'error');
-                }
-                currentUser.balance = data.newBalance;
-                updateUI();
-            } catch(e) { showToast("Ошибка Апгрейдера", "error"); }
+                document.getElementById('promo-name').value = '';
+                document.getElementById('promo-limit').value = '';
+                document.getElementById('promo-reward').value = '';
+                showToast(`🎉 Промокод ${name.toUpperCase()} успешно выпущен!`, 'gold');
+            } catch(e) {
+                showToast("Ошибка создания промокода", "error");
+            }
         }
 
-        function switchScreen(screenName) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-            
-            const target = document.getElementById(`screen-${screenName}`);
-            const tab = document.getElementById(`tab-${screenName}`);
-            if (target) target.classList.add('active');
-            if (tab) tab.classList.add('active');
+        function copyUserId() {
+            navigator.clipboard.writeText(userId);
+            showToast("ID скопирован в буфер!", "gold");
+        }
 
-            if (screenName === 'plinko') setTimeout(initPlinkoCanvas, 50);
-            if (screenName === 'upgrader') updateUpgraderVisuals();
+        function editNickname() {
+            const newNick = prompt("Введи новый никнейм:", currentUser.nickname);
+            if (newNick && newNick.trim().length > 0) {
+                nickname = newNick.trim();
+                currentUser.nickname = nickname;
+                updateUI();
+                syncProfile();
+            }
         }
 
         window.onload = () => {
             syncProfile();
             initPlinkoCanvas();
+            updateUpgraderUI();
         };
     </script>
 </body>
 </html>
-
+ 
