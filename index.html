@@ -3,63 +3,133 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RejewCas Online Casino</title>
+    <title>RejewCas Ultimate Extended</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
             --bg: #09090b; --surface: #141417; --surface-accent: #1f1f24;
-            --gold: #ffd700; --green: #00e676; --red: #ff5252;
+            --gold: #ffd700; --green: #00e676; --red: #ff5252; --purple: #a855f7;
             --text: #ffffff; --text-secondary: #71717a;
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        
-        header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(to bottom, #141417, transparent); position: fixed; top: 0; width: 100%; z-index: 10; border-bottom: 1px solid rgba(255, 215, 0, 0.03); }
+        body {
+            margin: 0; background: var(--bg); color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex; flex-direction: column; height: 100vh; overflow: hidden;
+        }
+        #maintenance-screen {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #09090b; z-index: 99999; flex-direction: column;
+            align-items: center; justify-content: center; padding: 30px; text-align: center;
+        }
+        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 280px; pointer-events: none; }
+        .toast {
+            background: #18181b; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.85rem; font-weight: 600;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5); opacity: 0; transform: translateX(50px) scale(0.9);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 4px solid #fff; pointer-events: auto;
+        }
+        .toast.show { opacity: 1; transform: translateX(0) scale(1); }
+        .toast.success { border-left-color: var(--green); }
+        .toast.error { border-left-color: var(--red); }
+        .toast.gold { border-left-color: var(--gold); }
+        .toast.purple { border-left-color: var(--purple); }
+
+        header {
+            display: flex; justify-content: space-between; align-items: center; padding: 15px 20px;
+            background: linear-gradient(to bottom, #141417, transparent); position: fixed; top: 0; width: 100%; z-index: 10;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.03);
+        }
         .brand { font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; color: #fff; }
         .brand span { color: var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
-        .capsule { background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
+        .header-capsules { display: flex; gap: 8px; }
+        .capsule {
+            background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px;
+            padding: 6px 12px; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: transform 0.2s ease;
+        }
+        .capsule:active { transform: scale(0.95); }
         .capsule.wallet { border-color: rgba(0, 230, 118, 0.15); color: var(--green); }
-
         .main-container { flex: 1; margin-top: 75px; margin-bottom: 75px; position: relative; width: 100%; z-index: 2; overflow-x: hidden; overflow-y: auto; }
-        .screen { display: none; padding: 20px; flex-direction: column; align-items: center; width: 100%; min-height: 100%; opacity: 0; transform: translateY(15px); transition: opacity 0.35s ease, transform 0.35s ease; }
+        .screen {
+            display: none; padding: 20px; flex-direction: column; align-items: center; width: 100%; min-height: 100%; opacity: 0; transform: translateY(15px);
+            transition: opacity 0.35s cubic-bezier(0.4, 0, 0.2, 1), transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
         .screen.active { display: flex; opacity: 1; transform: translateY(0); }
         .game-card, .profile-card, .panel-card { background: var(--surface); border: 1px solid rgba(255, 215, 0, 0.08); border-radius: 24px; padding: 22px; width: 100%; max-width: 360px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 15px; }
-
         .reels { display: flex; gap: 12px; margin: 25px 0; background: #0c0c0e; padding: 15px 25px; border-radius: 16px; width: 100%; justify-content: center; }
-        .reel { font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; }
+        .reel { font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.35), filter 0.1s ease; }
+        .reel.spinning { filter: blur(5px); transform: scale(1.08) translateY(-5px); }
+        .crash-arena { width: 100%; height: 200px; background: #0c0c0e; border-radius: 16px; position: relative; overflow: hidden; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04); }
+        .rocket { position: absolute; bottom: 15px; left: 15px; font-size: 2.5rem; z-index: 5; will-change: transform; transform-origin: center center; }
+        .crash-multiplier { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: 900; color: #fff; z-index: 4; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
+        .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
+        
+        /* ПЛИНКО CANVAS СТИЛИ */
+        .plinko-arena-wrapper { width: 100%; background: #0c0c0e; border-radius: 16px; padding: 10px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        #plinko-canvas { max-width: 100%; height: auto; display: block; border-radius: 8px; }
+        
+        /* АПГРЕЙДЕР СТИЛИ */
+        .upgrader-circle-wrapper { position: relative; width: 200px; height: 200px; margin: 20px auto; display: flex; align-items: center; justify-content: center; }
+        .upgrader-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+        .upgrader-bg-ring { fill: none; stroke: #1f1f24; stroke-width: 14; }
+        .upgrader-win-ring { fill: none; stroke: var(--gold); stroke-width: 14; stroke-dasharray: 502; stroke-dashoffset: 250; transition: stroke-dashoffset 0.3s ease; }
+        .upgrader-arrow { position: absolute; top: 10px; left: 50%; transform: translateX(-50%); width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 15px solid #fff; z-index: 10; }
+        .upgrader-center-text { position: absolute; text-align: center; display: flex; flex-direction: column; align-items: center; }
+        .upgrader-multiplier { font-size: 1.8rem; font-weight: 900; color: #fff; }
+        .upgrader-chance { font-size: 0.85rem; color: var(--text-secondary); font-weight: 700; margin-top: 2px; }
 
-        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin: 15px 0; }
-        .mine-btn { aspect-ratio: 1; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-
-        .upgrader-wheel-container { position: relative; width: 200px; height: 200px; margin: 15px 0; display: flex; align-items: center; justify-content: center; }
-        #upgrader-canvas { width: 200px; height: 200px; border-radius: 50%; }
-        .upgrader-pointer { position: absolute; top: -10px; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 18px solid var(--gold); z-index: 5; }
-
+        .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
+        .click-coin {
+            width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; cursor: pointer; user-select: none;
+            box-shadow: 0 0 35px rgba(255, 215, 0, 0.35), inset 0 0 20px rgba(255,255,255,0.4); transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.08s ease; will-change: transform; border: 6px solid #1c1917;
+        }
+        .click-coin:active { transform: scale(0.88); box-shadow: 0 0 50px rgba(255, 215, 0, 0.6), inset 0 0 10px rgba(255,255,255,0.2); }
         .bet-input-wrapper { width: 100%; margin-bottom: 15px; }
         .bet-label { font-size: 0.75rem; color: var(--text-secondary); font-weight: 700; margin-bottom: 6px; display: block; text-transform: uppercase; }
         .bet-field-group { display: flex; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.06); border-radius: 12px; overflow: hidden; margin-bottom: 8px; }
         .bet-input { flex: 1; background: transparent; border: none; color: #fff; font-size: 1.1rem; font-weight: 700; padding: 12px; outline: none; }
-        .max-btn { background: var(--surface-accent); border: none; color: var(--gold); font-size: 0.8rem; font-weight: 700; padding: 0 15px; cursor: pointer; }
-        .action-btn { background: linear-gradient(135deg, var(--gold), #d4af37); border: none; color: #000; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; }
-
-        .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
-        .click-coin { width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; cursor: pointer; user-select: none; border: 6px solid #1c1917; }
-
-        .shop-section { width: 100%; max-width: 360px; }
-        .shop-title { font-size: 0.8rem; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 25px 0 12px 0; border-left: 3px solid var(--gold); padding-left: 8px; }
+        .max-btn { background: var(--surface-accent); border: none; color: var(--gold); font-size: 0.8rem; font-weight: 700; padding: 0 15px; cursor: pointer; transition: background 0.2s; }
+        .max-btn:active { background: #2a2a30; }
+        .action-btn { background: linear-gradient(135deg, var(--gold), #d4af37); border: none; color: #000; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1); text-transform: uppercase; }
+        .action-btn:active { transform: scale(0.96); opacity: 0.9; }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+        .profile-header { display: flex; align-items: center; gap: 15px; margin-bottom: 20px; text-align: left; }
+        .avatar-stub { width: 65px; height: 65px; background: var(--surface-accent); border: 2px solid var(--gold); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.8rem; }
+        .user-id-badge { background: #0c0c0e; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; color: var(--text-secondary); cursor: pointer; border: 1px solid rgba(255,255,255,0.04); display: inline-flex; align-items: center; gap: 4px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 15px 0; }
+        .stat-box { background: #0c0c0e; padding: 10px; border-radius: 10px; text-align: center; border: 1px solid rgba(255,255,255,0.02); }
+        .stat-val { font-size: 1.1rem; font-weight: 800; color: #fff; }
+        .stat-val.win { color: var(--green); }
+        .stat-val.loss { color: var(--red); }
+        .stat-lbl { font-size: 0.65rem; color: var(--text-secondary); margin-top: 4px; text-transform: uppercase; }
+        .shop-section { width: 100%; max-width: 360px; margin-top: 0; }
+        .shop-title { font-size: 0.8rem; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 25px 0 12px 0; letter-spacing: 1px; border-left: 3px solid var(--gold); padding-left: 8px; }
         .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 14px 16px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
         .shop-item-info { display: flex; flex-direction: column; text-align: left; max-width: 65%; }
         .shop-item-name { font-size: 0.88rem; font-weight: 700; color: #fff; }
         .shop-item-cost { font-size: 0.78rem; color: var(--text-secondary); font-weight: 600; margin-top: 4px; }
-        .buy-btn { background: var(--surface-accent); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
-        .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; }
-
-        nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; overflow-x: auto; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.62rem; gap: 4px; font-weight: 600; min-width: 60px; }
+        .buy-btn { background: var(--surface-accent); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer; white-space: nowrap; transition: all 0.2s; }
+        .buy-btn:active { transform: scale(0.92); }
+        .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; transform: none; }
+        .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; transform: none; }
+        .msg-box { background: #0c0c0e; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
+        .user-link { color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; }
+        
+        nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.6rem; gap: 4px; font-weight: 600; flex: 1; transition: color 0.2s ease, transform 0.1s ease; }
+        .nav-item:active { transform: scale(0.93); }
         .nav-item.active { color: var(--gold); }
+        .nav-item svg { fill: currentColor; width: 18px; height: 18px; }
     </style>
 </head>
 <body>
+
+    <div id="maintenance-screen">
+        <h1 style="font-size: 4rem; margin: 0;">🛠️</h1>
+        <h2 style="color: var(--gold); text-transform: uppercase; font-weight: 900; letter-spacing: 1px;">Технические работы</h2>
+        <p style="color: var(--text-secondary); max-width: 280px; font-size: 0.9rem;">Казино временно закрыто на обслуживание. Зайди чуть позже!</p>
+    </div>
+
+    <div id="toast-container"></div>
 
     <header>
         <div class="brand">Rejew<span>Cas</span></div>
@@ -69,11 +139,12 @@
             </div>
         </div>
     </header>
+
     <div class="main-container">
         <!-- СЛОТЫ -->
         <div id="screen-spins" class="screen active">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Classic Slots</div>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Classic Slots</div>
                 <div class="reels">
                     <div class="reel" id="r1">💎</div>
                     <div class="reel" id="r2">💎</div>
@@ -86,515 +157,745 @@
                         <button class="max-btn" onclick="setMaxBet('slot-bet')">MAX</button>
                     </div>
                 </div>
-                <button class="action-btn" onclick="triggerSpin()">SPIN</button>
+                <button class="action-btn" id="spin-btn" onclick="triggerSpin()">SPIN</button>
             </div>
         </div>
 
-        <!-- МИНЫ -->
-        <div id="screen-mines" class="screen">
+        <!-- КРАШ -->
+        <div id="screen-crash" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Mines Game</div>
-                <div class="mines-grid" id="mines-board"></div>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Ракетка (Crash)</div>
+                <div class="crash-arena">
+                    <div class="crash-multiplier" id="crash-mult">1.00x</div>
+                    <div class="rocket" id="rocket-obj">🚀</div>
+                    <svg class="crash-svg-path">
+                        <path id="flight-line" d="M 15 185 Q 15 185 15 185" stroke="rgba(255, 215, 0, 0.6)" stroke-width="3" fill="none" />
+                    </svg>
+                </div>
                 <div class="bet-input-wrapper">
-                    <label class="bet-label">Количество Мин (1-24)</label>
-                    <input type="number" class="bet-input" id="mines-count" value="3" min="1" max="24" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
-                    
-                    <label class="bet-label">Ставка ($RJC)</label>
+                    <label class="bet-label">Ставка на полет ($RJC)</label>
                     <div class="bet-field-group">
-                        <input type="number" class="bet-input" id="mines-bet" value="100">
-                        <button class="max-btn" onclick="setMaxBet('mines-bet')">MAX</button>
+                        <input type="number" class="bet-input" id="crash-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('crash-bet')">MAX</button>
                     </div>
                 </div>
-                <button class="action-btn" id="mines-btn" onclick="handleMinesBtn()">СТАРТ</button>
+                <button class="action-btn" id="crash-btn" onclick="triggerCrashAction()" style="background: linear-gradient(135deg, var(--green), #00c853);">ВЗЛЕТ</button>
             </div>
         </div>
 
-        <!-- ДАЙС -->
-        <div id="screen-dice" class="screen">
+        <!-- ИСПРАВЛЕННЫЙ ПЛИНКО -->
+        <div id="screen-plinko" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Dice Under/Over</div>
-                <h2 id="dice-result" style="font-size:2.5rem; text-align:center; margin:15px 0;">50</h2>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко Физика</div>
+                <div class="plinko-arena-wrapper">
+                    <canvas id="plinko-canvas" width="320" height="340"></canvas>
+                </div>
                 <div class="bet-input-wrapper">
-                    <label class="bet-label">Целевое Число (1-98)</label>
-                    <input type="number" class="bet-input" id="dice-target" value="50" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
-                    
-                    <label class="bet-label">Ставка ($RJC)</label>
+                    <label class="bet-label">Ставка на шарик ($RJC)</label>
                     <div class="bet-field-group">
-                        <input type="number" class="bet-input" id="dice-bet" value="100">
-                        <button class="max-btn" onclick="setMaxBet('dice-bet')">MAX</button>
+                        <input type="number" class="bet-input" id="plinko-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('plinko-bet')">MAX</button>
                     </div>
                 </div>
-                <div style="display:flex; gap:10px;">
-                    <button class="action-btn" onclick="playDice('under')">МЕНЬШЕ</button>
-                    <button class="action-btn" onclick="playDice('over')" style="background:var(--surface-accent); color:#fff;">БОЛЬШЕ</button>
-                </div>
+                <button class="action-btn" id="plinko-btn" onclick="triggerPlinko()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">БРОСИТЬ ШАРИК</button>
             </div>
         </div>
 
-        <!-- UPGRADER РУЛЕТКА -->
+        <!-- АПГРЕЙДЕР (НОВАЯ ИГРА) -->
         <div id="screen-upgrader" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Upgrader Рулетка</div>
-                <div class="upgrader-wheel-container">
-                    <div class="upgrader-pointer"></div>
-                    <canvas id="upgrader-canvas" width="200" height="200"></canvas>
-                </div>
-                <div id="upgrader-chance-lbl" style="font-size: 1rem; font-weight: 800; color: var(--gold); margin-bottom: 12px;">Шанс: 50%</div>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Апгрейдер Удачи</div>
                 
-                <div class="bet-input-wrapper">
-                    <label class="bet-label">Заложить Недвижимость</label>
-                    <select id="upgrader-mortgage-select" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:10px; width:100%;" onchange="onUpgraderInputsChange()">
-                        <option value="">-- Без залога --</option>
-                    </select>
+                <div class="upgrader-circle-wrapper">
+                    <div class="upgrader-arrow"></div>
+                    <svg class="upgrader-svg" viewBox="0 0 180 180">
+                        <circle class="upgrader-bg-ring" cx="90" cy="90" r="80"></circle>
+                        <circle id="upgrader-ring" class="upgrader-win-ring" cx="90" cy="90" r="80"></circle>
+                    </svg>
+                    <div class="upgrader-center-text">
+                        <span class="upgrader-multiplier" id="upgrader-target-mult">2.00x</span>
+                        <span class="upgrader-chance" id="upgrader-chance-lbl">Шанс: 47.5%</span>
+                    </div>
+                </div>
 
-                    <label class="bet-label">Ставка коинами ($RJC)</label>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Ставка ($RJC)</label>
                     <div class="bet-field-group">
-                        <input type="number" class="bet-input" id="upgrader-bet" value="100" oninput="onUpgraderInputsChange()">
+                        <input type="number" class="bet-input" id="upgrader-bet" value="100" min="10">
                         <button class="max-btn" onclick="setMaxBet('upgrader-bet')">MAX</button>
                     </div>
+                </div>
 
-                    <label class="bet-label">Желаемый Выигрыш ($RJC)</label>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Целевой множитель (от 1.1x до 100x)</label>
                     <div class="bet-field-group">
-                        <input type="number" class="bet-input" id="upgrader-target" value="200" oninput="onUpgraderInputsChange()">
+                        <input type="number" step="0.1" class="bet-input" id="upgrader-mult-input" value="2.0" min="1.1" max="100" oninput="updateUpgraderVisuals()">
                     </div>
                 </div>
-                <button class="action-btn" id="upgrader-btn" onclick="triggerUpgraderSpin()">КРУТИТЬ</button>
+
+                <button class="action-btn" id="upgrader-btn" onclick="triggerUpgrader()" style="background: linear-gradient(135deg, var(--purple), #7c3aed); color: #fff;">УЛУЧШИТЬ</button>
             </div>
         </div>
 
         <!-- КЛИКЕР -->
         <div id="screen-clicker" class="screen">
             <div class="clicker-container">
-                <div style="color:var(--text-secondary); font-size:0.85rem; font-weight:800; text-transform:uppercase; margin-bottom: 30px;">Майнинг кликами</div>
+                <div style="color:var(--text-secondary); font-size:0.85rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase; margin-bottom: 30px;">Майнинг кликами</div>
                 <div class="click-coin" onclick="executeCoinClick()">🟡</div>
-                <div id="clicker-profit-label" style="margin-top:35px; font-weight:800; font-size:1rem; color:var(--gold);">+1 $RJC за тап</div>
+                <div id="clicker-profit-label" style="margin-top:35px; font-weight:800; font-size:1rem; color:var(--gold);">+1 $RJC за каждый тап</div>
             </div>
         </div>
-
-        <!-- ХАММАМ -->
-        <div id="screen-hammam" class="screen">
-            <div class="game-card" id="hammam-locked-card" style="display:none; text-align:center;">
-                <h1 style="font-size:3rem; margin:0;">🔒</h1>
-                <h3 style="color:var(--red);">Доступ заблокирован</h3>
-                <p style="color:var(--text-secondary); font-size:0.85rem;">Для входа в Хаммам нужен Пермит! Запроси его у Администратора.</p>
-            </div>
-
-            <div class="game-card" id="hammam-active-card" style="display:none;">
-                <div style="color:var(--gold); font-size:0.75rem; font-weight:800; text-transform:uppercase;">🧖‍♂️ Элитный Хаммам</div>
-                <h2 id="hammam-lvl-lbl" style="margin:10px 0;">Уровень 1</h2>
-                <div style="background:#0c0c0e; padding:12px; border-radius:12px; margin-bottom:15px;">
-                    <div style="font-size:0.8rem; color:var(--text-secondary);">Накоплено пассива:</div>
-                    <div style="font-size:1.4rem; font-weight:800; color:var(--green);" id="hammam-uncollected">0 $RJC</div>
-                </div>
-                <button class="action-btn" onclick="collectHammamCash()" style="margin-bottom:10px;">Собрать Прибыль</button>
-                <button class="action-btn" id="hammam-upg-btn" onclick="upgradeHammam()" style="background:var(--surface-accent); color:#fff;">Улучшить Хаммам</button>
-            </div>
-        </div>
-
         <!-- МАРКЕТ -->
         <div id="screen-market" class="screen">
             <div class="shop-section">
-                <div class="shop-title">🌍 Гражданства & Паспорта (15 типов)</div>
+                <div class="shop-title">🌍 Паспорта и Инвестиции (Буст Кликов)</div>
                 <div id="citizenship-shop"></div>
-                <div class="shop-title">🚗 Автопарк & Гараж (15 типов)</div>
+                <div class="shop-title">🚗 Элитный Гараж (16 авто)</div>
                 <div id="cars-shop"></div>
-                <div class="shop-title">🏰 Элитная Недвижимость (15 типов)</div>
+                <div class="shop-title">🏰 Премиальная Недвижимость (16 домов)</div>
                 <div id="houses-shop"></div>
-                <div class="shop-title">⚓ Яхты & Суда (15 типов)</div>
+                <div class="shop-title">🚢 Королевские Яхты (16 судов)</div>
                 <div id="yachts-shop"></div>
             </div>
         </div>
 
-        <!-- ПРОФИЛЬ & REJEWPAY -->
+        <!-- ПЕРМИТЫ / ЛИЦЕНЗИИ (НОВЫЙ БЛОК) -->
+        <div id="screen-permits" class="screen">
+            <div class="shop-section">
+                <div class="shop-title">📜 Пермиты и Спец-Лицензии</div>
+                <div id="permits-shop"></div>
+            </div>
+        </div>
+
+        <!-- ПРОФИЛЬ И ПАНЕЛИ -->
         <div id="screen-profile" class="screen">
             <div class="profile-card">
-                <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
-                    <div style="font-size:2rem;" id="prof-avatar">🕹️</div>
+                <div class="profile-header">
+                    <div class="avatar-stub" id="prof-avatar">🕹️</div>
                     <div>
-                        <h3 style="margin:0;" id="prof-name">Игрок</h3>
-                        <div style="font-size:0.75rem; color:var(--text-secondary);" id="prof-id">ID: 000000</div>
+                        <div style="display:flex; align-items:center; gap:8px;">
+                            <h3 style="margin:0; font-weight:800; font-size:1.2rem;" id="prof-name">Игрок</h3>
+                            <span onclick="editNickname()" style="cursor:pointer; font-size:0.9rem; color:var(--gold);">✏️</span>
+                        </div>
+                        <div class="user-id-badge" onclick="copyUserId()">
+                            ID: <span id="prof-id">000000</span> 📋
+                        </div>
                     </div>
                 </div>
-                <div style="font-size:0.85rem; color:var(--gold);" id="prof-citizen">Без гражданства</div>
+                <div style="text-align: left; background: #0c0c0e; padding: 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.03);">
+                    <div style="font-size:0.7rem; color:var(--text-secondary); font-weight:700; text-transform:uppercase;">Статус & Гражданство</div>
+                    <div style="font-size:1rem; font-weight:800; margin-top:4px;" id="prof-status">Игрок</div>
+                    <div style="font-size:0.85rem; font-weight:600; color:var(--gold); margin-top:2px;" id="prof-citizen">Без гражданства</div>
+                    <div style="font-size:0.8rem; font-weight:600; color:var(--purple); margin-top:4px;" id="prof-permit">Пермит: Нет активного</div>
+                </div>
+                <div id="player-stats-block">
+                    <h4 style="text-align:left; margin:15px 0 8px 0; font-size:0.8rem; color:var(--text-secondary); text-transform:uppercase;">Статистика сессии</h4>
+                    <div class="stats-grid">
+                        <div class="stat-box"><div class="stat-val" id="stat-total">0</div><div class="stat-lbl">Всего</div></div>
+                        <div class="stat-box"><div class="stat-val win" id="stat-wins">0</div><div class="stat-lbl">Победы</div></div>
+                        <div class="stat-box"><div class="stat-val loss" id="stat-losses">0</div><div class="stat-lbl">Сливы</div></div>
+                    </div>
+                </div>
             </div>
 
-            <!-- REJEWPAY -->
             <div class="panel-card">
-                <h4 style="margin-top:0; color:var(--gold);">💸 Переводы RejewPay</h4>
-                <div class="bet-input-wrapper">
-                    <label class="bet-label">Юзернейм получателя (@username)</label>
-                    <input type="text" class="bet-input" id="pay-target" placeholder="username" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
-                    <label class="bet-label">Сумма ($RJC)</label>
-                    <input type="number" class="bet-input" id="pay-amount" placeholder="1000" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">👥 Реферальная система</h4>
+                <p style="font-size:0.75rem; color:var(--text-secondary); margin:5px 0 12px 0; line-height:1.4; text-align:left;">
+                    Приглашай друзей! Если твой реферал сделает оборот более <b>2,000 $RJC</b>, ты получишь бонус <b>+5,000 $RJC</b>!
+                </p>
+                <button class="action-btn" onclick="copyReferralLink()" style="background:linear-gradient(135deg, #a855f7, #7c3aed); color:#fff; padding:10px 14px; font-size:0.85rem;">
+                    📋 Скопировать реф-ссылку
+                </button>
+                <div id="ref-status-lbl" style="font-size:0.75rem; color:var(--green); font-weight:700; margin-top:12px; text-align:center;">
+                    Получено бонусов за рефералов: 0
                 </div>
-                <button class="action-btn" onclick="sendRejewPay()">Отправить $RJC</button>
             </div>
 
-            <!-- АДМИН ПАНЕЛЬ -->
-            <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold);">
-                <h4 style="margin-top:0; color:var(--gold);">👑 Админ / Мод Панель</h4>
-                <div style="margin-bottom:15px;">
-                    <label class="bet-label">Выдать Пермит на Хаммам (@username)</label>
-                    <div style="display:flex; gap:5px;">
-                        <input type="text" class="bet-input" id="grant-hammam-user" placeholder="username" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:8px;">
-                        <button class="buy-btn" onclick="grantHammamPermit()" style="background:var(--gold); color:#000;">Выдать</button>
-                    </div>
+            <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
+                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;" id="admin-panel-title">Админ / Мод Панель</h4>
+                
+                <div id="tech-info-block" style="background:#0c0c0e; padding:10px; border-radius:10px; margin-bottom:12px; font-size:0.78rem; text-align:left; color:#a1a1aa; border:1px solid rgba(255,215,0,0.1);">
+                    <div style="color:var(--gold); font-weight:800; margin-bottom:6px;">📊 Техническая информация:</div>
+                    <div>👤 Всего игроков: <span id="tech-users" style="color:#fff;">0</span></div>
+                    <div>💰 Суммарный баланс: <span id="tech-bal" style="color:#green;">0</span> $RJC</div>
+                    <div>📈 Общий оборот: <span id="tech-turnover" style="color:#fff;">0</span> $RJC</div>
+                    <div>🛡️ Модераторов: <span id="tech-mods" style="color:#fff;">0</span></div>
+                    <div>⏱️ Uptime: <span id="tech-uptime" style="color:#fff;">0</span> сек</div>
                 </div>
-                <button class="action-btn" onclick="toggleMaintenance()" style="background:var(--red); color:#fff;">Вкл/Выкл Техобслуживание</button>
+
+                <input type="number" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; width:100%; color:#fff; margin-bottom:10px;" id="adm-amount" placeholder="Количество $RJC">
+                <button class="action-btn" onclick="adminExecute()" style="margin-bottom: 12px;">Нарисовать бабки</button>
+                <button class="action-btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="background: linear-gradient(135deg, var(--red), #c62828); color: #fff; margin-bottom: 20px;">
+                    Включить техобслуживание
+                </button>
+                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 15px;">Создать Промокод</h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <input type="text" id="promo-name" placeholder="Название промокода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none; text-transform:uppercase;">
+                    <input type="number" id="promo-limit" placeholder="Макс. количество активаций" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <input type="number" id="promo-reward" placeholder="Сумма награды ($RJC)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <button class="action-btn" onclick="adminCreatePromo()" style="background:linear-gradient(135deg, #eab308, #ca8a04); color:#000;">Выпустить промокод</button>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">🎁 Подарочный промокод</h4>
+                <div style="display:flex; gap:8px;">
+                    <input type="text" id="user-promo-input" placeholder="Введите промокод..." style="flex:1; background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <button class="action-btn" onclick="activatePromo()" style="width:auto; padding:0 20px; background:linear-gradient(135deg, var(--green), #00c853); color:#000;">ОК</button>
+                </div>
+            </div>
+
+            <div class="panel-card">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold);">💎 Сервис переводов RejewPay</h4>
+                <div style="display:flex; flex-direction:column; gap:8px;">
+                    <input type="text" id="transfer-target" placeholder="Юзернейм получателя (без @)" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <input type="text" id="transfer-comment" placeholder="Комментарий к переводу" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;" maxlength="60">
+                    <input type="number" id="transfer-amount" placeholder="Сумма перевода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none;">
+                    <button class="action-btn" onclick="processTransfer()" style="background:linear-gradient(135deg, #ffd700, #b49400); color:#000;">Подтвердить и перевести</button>
+                </div>
+            </div>
+
+            <div class="panel-card" style="max-height: 350px; display: flex; flex-direction: column;">
+                <h4 style="margin-top:0; font-weight:800; text-transform:uppercase; font-size:0.85rem; color:var(--gold); margin-bottom: 12px;">История транзакций</h4>
+                <div id="transactions-list" style="overflow-y: auto; flex: 1; padding-right: 4px;">
+                    <div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>
+                </div>
             </div>
         </div>
     </div>
 
     <nav>
-        <button class="nav-item active" id="tab-spins" onclick="switchScreen('spins')">Спины</button>
-        <button class="nav-item" id="tab-mines" onclick="switchScreen('mines')">Мины</button>
-        <button class="nav-item" id="tab-dice" onclick="switchScreen('dice')">Дайс</button>
-        <button class="nav-item" id="tab-upgrader" onclick="switchScreen('upgrader')">Upgrader</button>
-        <button class="nav-item" id="tab-clicker" onclick="switchScreen('clicker')">Кликер</button>
-        <button class="nav-item" id="tab-hammam" onclick="switchScreen('hammam')">Хаммам</button>
-        <button class="nav-item" id="tab-market" onclick="switchScreen('market')">Маркет</button>
-        <button class="nav-item" id="tab-profile" onclick="switchScreen('profile')">Профиль</button>
+        <button class="nav-item active" id="tab-spins" onclick="switchScreen('spins')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 17h-2v-2h2v2zm2.07-7.75l-.9.92C13.45 12.9 13 13.5 13 15h-2v-.5c0-1.1.45-2.1 1.17-2.83l1.24-1.26c.37-.36.59-.86.59-1.41 0-1.1-.9-2-2-2s-2 .9-2 2H7c0-2.76 2.24-5 5-5s5 2.24 5 5c0 1.04-.42 1.99-1.07 2.75z"/></svg>
+            Спины
+        </button>
+        <button class="nav-item" id="tab-crash" onclick="switchScreen('crash')">
+            <svg viewBox="0 0 24 24"><path d="M13.13 2.18c-.38-.38-1.01-.38-1.39 0L2.35 11.56c-.47.47-.14 1.28.53 1.28H7v7c0 .55.45 1 1 1h8c.55 0 1-.45 1-1v-7h4.12c.67 0 1-.81.53-1.28L13.13 2.18z"/></svg>
+            Ракетка
+        </button>
+        <button class="nav-item" id="tab-plinko" onclick="switchScreen('plinko')">
+            <svg viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 14c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5z"/></svg>
+            Плинко
+        </button>
+        <button class="nav-item" id="tab-upgrader" onclick="switchScreen('upgrader')">
+            <svg viewBox="0 0 24 24"><path d="M12 2L4.5 20.29l.71.71L12 18l6.79 3 .71-.71z"/></svg>
+            Апгрейдер
+        </button>
+        <button class="nav-item" id="tab-clicker" onclick="switchScreen('clicker')">
+            <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 13h-2v-2h2v2zm0-4h-2V7h2v4z"/></svg>
+            Кликер
+        </button>
+        <button class="nav-item" id="tab-market" onclick="switchScreen('market')">
+            <svg viewBox="0 0 24 24"><path d="M7 18c-1.1 0-1.99.9-1.99 2S5.9 22 7 22s2-.9 2-2-.9-2-2-2zM1 2v2h2l3.6 7.59-1.35 2.45c-.16.28-.25.61-.25.96 0 1.1.9 2 2 2h12v-2H7.42c-.14 0-.25-.11-.25-.25l.03-.12.9-1.63h7.45c.75 0 1.41-.41 1.75-1.03l3.58-6.49c.08-.14.12-.31.12-.48 0-.55-.45-1-1-1H5.21l-.94-2H1zm16 16c-1.1 0-1.99.9-1.99 2s.89 2 1.99 2 2-.9 2-2-.9-2-2-2z"/></svg>
+            Маркет
+        </button>
+        <button class="nav-item" id="tab-permits" onclick="switchScreen('permits')">
+            <svg viewBox="0 0 24 24"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm2 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
+            Пермиты
+        </button>
+        <button class="nav-item" id="tab-profile" onclick="switchScreen('profile')">
+            <svg viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></svg>
+            Профиль
+        </button>
     </nav>
     <script>
         const API_URL = "https://rejewcas-backend.onrender.com"; 
 
-        let tg, username = 'root', userId = '777777', nickname = 'Создатель';
-        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], hammam: { permit: false, level: 0, uncollected: 0 } };
+        let tg;
+        let username = 'root'; 
+        let userId = '777777'; 
+        let nickname = 'Создатель';
+        let referredBy = null;
+        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', activePermit: 'Нет активного', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false };
+
+        let accumulatedClicks = 0;
+        let clickSyncTimeout = null;
 
         try {
-            tg = window.Telegram.WebApp; tg.expand();
+            tg = window.Telegram.WebApp;
+            tg.expand();
             if(tg.initDataUnsafe && tg.initDataUnsafe.user) {
                 username = tg.initDataUnsafe.user.username || 'player';
                 userId = tg.initDataUnsafe.user.id.toString();
                 nickname = tg.initDataUnsafe.user.first_name || username;
             }
+            if(tg.initDataUnsafe && tg.initDataUnsafe.start_param) {
+                referredBy = tg.initDataUnsafe.start_param.toString();
+            }
         } catch(e) {}
 
-        // 15 ГРАЖДАНСТВ
+        const normalizedUser = username.toLowerCase().replace('@', '');
+        const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
+        const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
+
+        // КАТЕГОРИИ МАРКЕТА - РОВНО ПО 16 ЭЛЕМЕНТОВ
         const citizenshipList = [
-            { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0 }, { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
-            { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 }, { id: 'c_ge', name: '🇬🇪 Грузия (ИП)', cost: 8000 },
-            { id: 'c_thailand', name: '🇹🇭 Таиланд (Elite)', cost: 12000 }, { id: 'c_ar', name: '🇦🇷 Аргентина', cost: 22000 },
-            { id: 'c_turkey', name: '🇹🇷 Турция (ПМЖ)', cost: 35000 }, { id: 'c_pt', name: '🇵🇹 Португалия', cost: 50000 },
-            { id: 'c_cyprus', name: '🇨🇾 Кипр (ПМЖ)', cost: 65000 }, { id: 'c_spain', name: '🇪🇸 Испания', cost: 85000 },
-            { id: 'c_gr', name: '🇬🇷 Греция', cost: 100000 }, { id: 'c_uae', name: '🇦🇪 ОАЭ (Golden ID)', cost: 140000 },
-            { id: 'c_switzerland', name: '🇨🇭 Швейцария', cost: 500000 }, { id: 'c_norway', name: '🇳🇴 Норвегия', cost: 20000000 },
-            { id: 'c_godmode', name: '⚡ Олимп', cost: 5000000000 }
+            { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
+            { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
+            { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
+            { id: 'c_ge', name: '🇬🇪 Грузия (ИП)', cost: 8000 },
+            { id: 'c_thailand', name: '🇹🇭 Таиланд (Elite Visa)', cost: 12000 },
+            { id: 'c_ar', name: '🇦🇷 Аргентина (По рождению)', cost: 22000 },
+            { id: 'c_turkey', name: '🇹🇷 Турция (За отель)', cost: 35000 },
+            { id: 'c_pt', name: '🇵🇹 Португалия (D7)', cost: 50000 },
+            { id: 'c_cyprus', name: '🇨🇾 Кипр (ПМЖ)', cost: 65000 },
+            { id: 'c_spain', name: '🇪🇸 Испания (Золотая Виза)', cost: 85000 },
+            { id: 'c_uae', name: '🇦🇪 ОАЭ (Golden ID)', cost: 140000 },
+            { id: 'c_swiss', name: '🇨🇭 Швейцария (Налог)', cost: 250000 },
+            { id: 'c_singapore', name: '🇸🇬 Сингапур (Бизнес)', cost: 480000 },
+            { id: 'c_usa', name: '🇺🇸 США (EB-5 Инвестор)', cost: 1500000 },
+            { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 8000000 },
+            { id: 'c_alpha', name: '🪐 Альфа Центавра (Межгалактический)', cost: 15000000 }
         ];
 
-        // 15 НЕДВИЖИМОСТЕЙ
-        const housesList = [
-            { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50 }, { id: 'p_box', name: '📦 Картонная коробка', cost: 150 },
-            { id: 'p_tent', name: '⛺ Палатка', cost: 250 }, { id: 'p_garage', name: '🔧 Гараж', cost: 450 },
-            { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000 }, { id: 'p_dacha', name: '🏡 Дача под Воронежем', cost: 9500 },
-            { id: 'p_moscow_city', name: '🏢 Москва-Сити', cost: 60000 }, { id: 'p_dubai', name: '🏙️ Пентхаус Dubai Marina', cost: 75000 },
-            { id: 'p_flanders_hq', name: '📺 Бункер @flanders1', cost: 450000 }, { id: 'p_police_hq', name: 'Police HQ Стражи Галактики', cost: 1300000 },
-            { id: 'p_float_island', name: '🏝️ Плавучий Остров', cost: 3000000 }, { id: 'p_moon_base', name: '🌕 Лунная База', cost: 6500000 },
-            { id: 'p_death_star', name: '🛰️ Звезда Смерти', cost: 35000000 }, { id: 'p_matrix_core', name: '💻 Ядро Матрицы', cost: 350000000 },
-            { id: 'p_absolute_universe', name: '♾️ Абсолютная Вселенная', cost: 10000000000 }
-        ];
-
-        // 15 МАШИН
         const carsList = [
-            { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 }, { id: 'p_zhiga', name: '🚗 ВАЗ 2107 Боевка', cost: 800 },
-            { id: 'p_prio', name: '🚙 Лада Приора Опер', cost: 2500 }, { id: 'p_camry', name: '🚘 Toyota Camry 3.5', cost: 5500 },
-            { id: 'p_bmw', name: '🖤 BMW M5 F90', cost: 9500 }, { id: 'p_gelik', name: '🚙 G-Wagen AMG', cost: 35000 },
-            { id: 'p_porsche', name: '🏎️ Porsche 911 GT3', cost: 70000 }, { id: 'p_lambo', name: '🟡 Lambo Revuelto', cost: 120000 },
-            { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 }, { id: 'p_pagani', name: '💎 Pagani Huayra', cost: 350000 },
-            { id: 'p_cybertruck', name: '📐 Tesla Cybertruck', cost: 600000 }, { id: 'p_tank_t90', name: '🪖 Танк Т-90М', cost: 2500000 },
-            { id: 'p_f1_car', name: '🏎️ Болид Формулы 1', cost: 8000000 }, { id: 'p_batmobile', name: '🦇 Бетмобиль Tumbler', cost: 50000000 },
-            { id: 'p_chariot', name: '☀️ Колесница Аполлона', cost: 2000000000 }
+            { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
+            { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 },
+            { id: 'p_bike', name: '🚲 Дедовский Урал', cost: 400 },
+            { id: 'p_zhiga', name: '🚗 ВАЗ 2107 "Жига"', cost: 800 },
+            { id: 'p_granta', name: '🏎️ Lada Granta Sport', cost: 1600 },
+            { id: 'p_camry', name: '🚘 Toyota Camry 70', cost: 3200 },
+            { id: 'p_bmw', name: '🖤 BMW M5 F90 LCI', cost: 9500 },
+            { id: 'p_porsche', name: '🏎️ Porsche 911 Turbo S', cost: 18000 },
+            { id: 'p_cybertruck', name: '📐 Tesla CyberTruck', cost: 27000 },
+            { id: 'p_gelik', name: '🚙 G-Wagen', cost: 35000 },
+            { id: 'p_lambo', name: '⚡ Lamborghini Revuelto', cost: 48000 },
+            { id: 'p_mclaren', name: '🏎️ McLaren 720S', cost: 65000 },
+            { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 },
+            { id: 'p_jesko', name: '🏎️ Koenigsegg Jesko', cost: 450000 },
+            { id: 'p_rolls', name: '💎 Rolls-Royce La Rose Noire', cost: 1500000 },
+            { id: 'p_ufo', name: '🛸 НЛО Розуэлл', cost: 5000000 }
         ];
 
-        // 15 ЯХТ И СУДОВ
+        const housesList = [
+            { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
+            { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50, bonus: 2 },
+            { id: 'p_box', name: '📦 Коробка под мостом', cost: 150, bonus: 10 },
+            { id: 'p_garage', name: '🔧 Гараж с ямой', cost: 450, bonus: 30 },
+            { id: 'p_communalka', name: '🏢 Комната в коммуналке', cost: 1100, bonus: 90 },
+            { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000, bonus: 180 },
+            { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000, bonus: 550 },
+            { id: 'p_dacha', name: '🏡 Дача в СНТ', cost: 9500, bonus: 900 },
+            { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000, bonus: 2300 },
+            { id: 'p_moscow_city', name: '🏢 Апартаменты Москва-Сити', cost: 60000, bonus: 6000 },
+            { id: 'p_dubai', name: '🏙️ Пентхаус Dubai Marina', cost: 75000, bonus: 8200 },
+            { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000, bonus: 20000 },
+            { id: 'p_flanders_hq', name: '📺 Бункер @flanders1', cost: 450000, bonus: 55000 },
+            { id: 'p_police_hq', name: '🚓 Главный штаб Стражей Галактики', cost: 1300000, bonus: 180000 },
+            { id: 'p_island', name: '🏝️ Личный Атолл на Мальдивах', cost: 4000000, bonus: 600000 },
+            { id: 'p_hamam_resort', name: '🧖‍♂️ VIP-Курорт с Хаммамом', cost: 5500000, bonus: 900000 }
+        ];
+
         const yachtsList = [
-            { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 }, { id: 'p_lodka', name: '🛶 Лодка Уфимка', cost: 400 },
-            { id: 'p_kater', name: '🛥️ Катер Ветерок', cost: 1500 }, { id: 'p_gidro', name: '🌊 Гидроцикл Yamaha', cost: 4000 },
-            { id: 'p_yacht_small', name: '⛵ Парусник Bavarian', cost: 12000 }, { id: 'p_azimut', name: '🚢 Azimut 66 Fly', cost: 28000 },
-            { id: 'p_sunseeker', name: '🛥️ Sunseeker Predator', cost: 85000 }, { id: 'p_mangusta', name: '⚡ Mangusta 165', cost: 190000 },
-            { id: 'p_eclipse', name: '⚓ Мегаяхта Eclipse', cost: 500000 }, { id: 'p_history_yacht', name: '🔱 History Supreme', cost: 1800000 },
-            { id: 'p_hovercraft', name: '💨 Воздушная подушка', cost: 5000000 }, { id: 'p_sub_nuclear', name: '⚛️ Атомная подлодка', cost: 25000000 },
-            { id: 'p_flying_dutchman', name: '🏴‍☠️ Летучий Голландец', cost: 150000000 }, { id: 'p_space_yacht', name: '🚀 Межгалактическая Яхта', cost: 800000000 },
-            { id: 'p_eternity_vessel', name: '♾️ Корабль Вечности', cost: 8000000000 }
+            { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 },
+            { id: 'p_pvh', name: '🚣‍♂️ Лодка ПВХ', cost: 400 },
+            { id: 'p_catamaran', name: '🛶 Катамаран', cost: 800 },
+            { id: 'p_kater', name: '🛥️ Катер "Ветерок"', cost: 1500 },
+            { id: 'p_jet', name: '🌊 Гидроцикл Yamaha', cost: 3500 },
+            { id: 'p_raft', name: '🪵 Плот из пивных покрышек', cost: 7000 },
+            { id: 'p_sail', name: '⛵ Парусная яхта', cost: 12000 },
+            { id: 'p_azimut', name: '🚢 Azimut 66 Fly', cost: 28000 },
+            { id: 'p_riva', name: '🚤 Катер Riva', cost: 65000 },
+            { id: 'p_benetti', name: '⚓ Benetti Oasis 40M', cost: 120000 },
+            { id: 'p_superyacht', name: '🛳️ Суперяхта 50м', cost: 250000 },
+            { id: 'p_eclipse', name: '⚓ Мегаяхта "Eclipse"', cost: 500000 },
+            { id: 'p_somnio', name: '🏢 Яхта-лайнер Somnio', cost: 900000 },
+            { id: 'p_nautilus', name: '🐙 Подлодка Наутилус', cost: 1500000 },
+            { id: 'p_carrier', name: '🛩️ Авианосец', cost: 2000000 },
+            { id: 'p_cruiser', name: '🚀 Космический крейсер', cost: 25000000 }
         ];
 
-        function getSecureHeaders() { return { 'Content-Type': 'application/json', 'x-tg-data': tg ? tg.initData : '' }; }
+        // НОВАЯ СИСТЕМА ПЕРМИТОВ И ЛИЦЕНЗИЙ
+        const permitsList = [
+            { id: 'perm_novice', name: '📜 Пермит Новичка', cost: 5000, bonusText: '+10% к майнинг тапам', dailyBonus: 100 },
+            { id: 'perm_curacao', name: '🎰 Лицензия Кюрасао', cost: 25000, bonusText: 'Пассив +1,500 $RJC/день', dailyBonus: 1500 },
+            { id: 'perm_mining', name: '⛏️ Мальтийский Майнинг-Пермит', cost: 100000, bonusText: 'Пассив +8,000 $RJC/день', dailyBonus: 8000 },
+            { id: 'perm_trade', name: '💼 Разрешение на VIP-Торговлю', cost: 500000, bonusText: 'Кэшбэк 5% со ставок', dailyBonus: 25000 },
+            { id: 'perm_guardians', name: '🛡️ Пермит Стражей Галактики', cost: 2000000, bonusText: 'Пассив +150,000 $RJC/день', dailyBonus: 150000 }
+        ];
+
+        function getSecureHeaders() {
+            const headers = { 'Content-Type': 'application/json' };
+            if (tg && tg.initData) {
+                headers['x-tg-data'] = tg.initData;
+            }
+            return headers;
+        }
+
+        function getClickPower() {
+            const currentName = currentUser.currentCitizenship;
+            const citizen = citizenshipList.find(c => c.name === currentName);
+            let base = 1;
+            if (citizen) {
+                if (citizen.special) base = 250; 
+                else base = 1 + Math.floor(citizen.cost / 800); 
+            }
+            if (currentUser.activePermit === '📜 Пермит Новичка') base = Math.floor(base * 1.10);
+            return base;
+        }
+
+        function forceOwnerLuxuries(userObj) {
+            if (isOwner) {
+                userObj.currentCitizenship = '🇲🇨 Монако (Княжеское)';
+                if (!userObj.ownedProperties) userObj.ownedProperties = [];
+                ['c_monaco', 'p_boattail', 'p_palace'].forEach(id => {
+                    if (!userObj.ownedProperties.includes(id)) userObj.ownedProperties.push(id);
+                });
+            }
+            if (userObj.isModerator) {
+                if (!userObj.ownedProperties) userObj.ownedProperties = [];
+                if (!userObj.ownedProperties.includes('p_mod_hq')) {
+                    userObj.ownedProperties.push('p_mod_hq');
+                }
+            }
+        }
 
         async function syncProfile() {
             try {
-                let res = await fetch(`${API_URL}/api/user`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, username, nickname }) });
+                let res = await fetch(`${API_URL}/api/user`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, username, nickname, referredBy })
+                });
                 currentUser = await res.json();
                 currentUser.balance = Number(currentUser.balance) || 0;
+                
+                if (currentUser.maintenanceActive) {
+                    if (!isOwner && !currentUser.isModerator) {
+                        document.getElementById('maintenance-screen').style.display = 'flex';
+                        return;
+                    } else {
+                        showToast("⚠️ Включены тех. работы. Вход открыт!", "error");
+                    }
+                } else {
+                    document.getElementById('maintenance-screen').style.display = 'none';
+                }
+
+                forceOwnerLuxuries(currentUser);
                 updateUI();
-                populateMortgageSelect();
+                if (currentUser.isModerator || isOwner) {
+                    loadTechInfo();
+                }
+            } catch(e) {
+                currentUser.balance = Number(currentUser.balance) || 5000;
+                updateUI();
+            }
+        }
+
+        async function loadTechInfo() {
+            try {
+                let res = await fetch(`${API_URL}/api/admin/tech-info`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username })
+                });
+                let data = await res.json();
+                if (!data.error) {
+                    document.getElementById('tech-users').innerText = data.totalUsers;
+                    document.getElementById('tech-bal').innerText = Number(data.totalBalance || 0).toLocaleString();
+                    document.getElementById('tech-turnover').innerText = Number(data.totalTurnover || 0).toLocaleString();
+                    document.getElementById('tech-mods').innerText = data.moderatorsCount;
+                    document.getElementById('tech-uptime').innerText = Math.floor(data.uptime);
+                }
             } catch(e) {}
         }
 
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerText = message;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 30);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
         function updateUI() {
+            currentUser.balance = Number(currentUser.balance) || 0;
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
             document.getElementById('prof-name').innerText = currentUser.nickname;
-            document.getElementById('prof-id').innerText = `ID: ${currentUser.userId}`;
-            document.getElementById('prof-citizen').innerText = currentUser.currentCitizenship;
+            document.getElementById('prof-id').innerText = currentUser.userId;
+            
+            if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
+            document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
+            document.getElementById('prof-permit').innerText = `Пермит: ${currentUser.activePermit || 'Нет активного'}`;
 
-            if (currentUser.isModerator) document.getElementById('admin-panel').style.display = 'block';
+            const clickPower = getClickPower();
+            document.getElementById('clicker-profit-label').innerText = `+${clickPower.toLocaleString()} $RJC за каждый тап`;
 
-            if (!currentUser.hammam || !currentUser.hammam.permit) {
-                document.getElementById('hammam-locked-card').style.display = 'block';
-                document.getElementById('hammam-active-card').style.display = 'none';
-            } else {
-                document.getElementById('hammam-locked-card').style.display = 'none';
-                document.getElementById('hammam-active-card').style.display = 'block';
-                document.getElementById('hammam-lvl-lbl').innerText = `Уровень ${currentUser.hammam.level || 1}`;
-                document.getElementById('hammam-uncollected').innerText = `${(currentUser.hammam.uncollected || 0).toLocaleString()} $RJC`;
-                const nextCost = ((currentUser.hammam.level || 1) + 1) * 100000;
-                document.getElementById('hammam-upg-btn').innerText = `Улучшить (${nextCost.toLocaleString()} $RJC)`;
-            }
+            const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
+            document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
 
             renderCategoryShop('citizenship-shop', citizenshipList, 'citizen');
             renderCategoryShop('cars-shop', carsList, 'item');
             renderCategoryShop('houses-shop', housesList, 'item');
             renderCategoryShop('yachts-shop', yachtsList, 'item');
+            renderPermitsShop();
         }
 
+        function renderPermitsShop() {
+            const block = document.getElementById('permits-shop');
+            if(!block) return;
+            block.innerHTML = '';
+
+            permitsList.forEach(perm => {
+                const div = document.createElement('div');
+                div.className = 'shop-item';
+                const isOwned = currentUser.activePermit === perm.name;
+
+                let btnHtml = isOwned 
+                    ? `<button class="buy-btn owned">Активен</button>` 
+                    : `<button class="buy-btn" onclick="buyPermit('${perm.id}', '${perm.name}', ${perm.cost})">Оформить</button>`;
+
+                div.innerHTML = `
+                    <div class="shop-item-info">
+                        <span class="shop-item-name">${perm.name}</span>
+                        <span class="shop-item-cost">${perm.cost.toLocaleString()} $RJC<br><span style="color:var(--purple); font-size:0.72rem;">${perm.bonusText}</span></span>
+                    </div>
+                    ${btnHtml}
+                `;
+                block.appendChild(div);
+            });
+        }
         function renderCategoryShop(elementId, itemsList, type) {
             const block = document.getElementById(elementId);
-            if (!block) return;
+            if(!block) return;
             block.innerHTML = '';
+
             itemsList.forEach(itemData => {
                 const div = document.createElement('div');
                 div.className = 'shop-item';
-                const isOwned = currentUser.ownedProperties && currentUser.ownedProperties.includes(itemData.id);
-                let btnHtml = isOwned ? `<button class="buy-btn owned">Куплено</button>` : `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
-                div.innerHTML = `<div class="shop-item-info"><span class="shop-item-name">${itemData.name}</span><span class="shop-item-cost">${itemData.cost.toLocaleString()} $RJC</span></div>${btnHtml}`;
+                let btnHtml = '';
+                const isOwned = currentUser.ownedProperties.includes(itemData.id) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
+
+                if (itemData.special) {
+                    btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
+                } else if (isOwned) {
+                    btnHtml = `<button class="buy-btn owned">Куплено</button>`;
+                } else {
+                    btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
+                }
+
+                div.innerHTML = `
+                    <div class="shop-item-info">
+                        <span class="shop-item-name">${itemData.name}</span>
+                        <span class="shop-item-cost">${itemData.special ? 'Спец. статус' : itemData.cost.toLocaleString() + ' $RJC'}</span>
+                    </div>
+                    ${btnHtml}
+                `;
                 block.appendChild(div);
             });
         }
 
         async function buyItem(itemId, itemName, cost, type) {
-            if (currentUser.balance < cost) return alert("Не хватает коинов!");
-            let res = await fetch(`${API_URL}/api/buy`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, itemId, itemName, cost, type }) });
-            currentUser = await res.json();
-            updateUI();
-            populateMortgageSelect();
-        }
-
-        // АНИМАЦИЯ СЛОТОВ
-        async function triggerSpin() {
-            const bet = Number(document.getElementById('slot-bet').value);
-            if(currentUser.balance < bet || bet <= 0) return alert("Недостаточно средств!");
-
-            const symbols = ['💎', '🍋', '🍒', '7️⃣', '👑'];
-            const r1 = symbols[Math.floor(Math.random() * symbols.length)];
-            const r2 = symbols[Math.floor(Math.random() * symbols.length)];
-            const r3 = symbols[Math.floor(Math.random() * symbols.length)];
-
-            document.getElementById('r1').innerText = r1;
-            document.getElementById('r2').innerText = r2;
-            document.getElementById('r3').innerText = r3;
-
-            let isWin = (r1 === r2 && r2 === r3);
-            let winAmount = isWin ? bet * 5 : 0;
-
-            let res = await fetch(`${API_URL}/api/game/result`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, winAmount, isWin }) });
-            currentUser = await res.json();
-            updateUI();
-        }
-
-        // ДАЙС
-        async function playDice(condition) {
-            const bet = Number(document.getElementById('dice-bet').value);
-            const target = Number(document.getElementById('dice-target').value);
-            if(currentUser.balance < bet || bet <= 0) return alert("Ошибка ставки!");
-
-            let res = await fetch(`${API_URL}/api/games/dice`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, target, condition }) });
-            let data = await res.json();
-            if(data.error) return alert(data.error);
-
-            document.getElementById('dice-result').innerText = data.roll;
-            currentUser = data.user;
-            updateUI();
-        }
-
-        // МИНЫ
-        let isMinesPlaying = false;
-        async function handleMinesBtn() {
-            const btn = document.getElementById('mines-btn');
-            if(!isMinesPlaying) {
-                const bet = Number(document.getElementById('mines-bet').value);
-                const minesCount = Number(document.getElementById('mines-count').value);
-                let res = await fetch(`${API_URL}/api/games/mines/start`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, minesCount }) });
+            currentUser.balance = Number(currentUser.balance) || 0;
+            if (currentUser.balance < cost) return showToast("Не хватает $RJC на эту сделку!", 'error');
+            try {
+                let res = await fetch(`${API_URL}/api/buy`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, itemId, itemName, cost, type })
+                });
                 let data = await res.json();
-                if(data.error) return alert(data.error);
-                
-                isMinesPlaying = true;
-                btn.innerText = "ЗАБРАТЬ 0 $RJC";
-                btn.style.background = "var(--green)";
-                renderMinesGrid();
-                syncProfile();
-            } else {
-                let res = await fetch(`${API_URL}/api/games/mines/cashout`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId }) });
+                if(data.error) return showToast(data.error, 'error');
+                currentUser = data;
+                forceOwnerLuxuries(currentUser);
+                showToast(`🎉 Успешная сделка: ${itemName}`, 'gold');
+                updateUI();
+            } catch(e) { showToast("Ошибка сети при покупке", "error"); }
+        }
+
+        async function buyPermit(permitId, permitName, cost) {
+            if (currentUser.balance < cost) return showToast("Недостаточно коинов на пермит!", 'error');
+            try {
+                let res = await fetch(`${API_URL}/api/permits/buy`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, permitId, permitName, cost })
+                });
                 let data = await res.json();
-                if(data.error) return alert(data.error);
-                
-                alert(`Выиграно: ${data.winAmount.toLocaleString()} $RJC`);
-                isMinesPlaying = false;
-                btn.innerText = "СТАРТ";
-                btn.style.background = "linear-gradient(135deg, var(--gold), #d4af37)";
-                currentUser = data.user;
+                if(data.error) return showToast(data.error, 'error');
+                currentUser = data;
+                showToast(`📜 Выдан пермит: ${permitName}`, 'purple');
                 updateUI();
+            } catch(e) { showToast("Ошибка оформления пермита", "error"); }
+        }
+
+        /* --- ИСПРАВЛЕННАЯ ЛОГИКА ПЛИНКО CANVAS --- */
+        let plinkoCanvas, ctx;
+        let plinkoPins = [];
+        let plinkoBall = null;
+
+        function initPlinkoCanvas() {
+            plinkoCanvas = document.getElementById('plinko-canvas');
+            if(!plinkoCanvas) return;
+            ctx = plinkoCanvas.getContext('2d');
+            generatePlinkoPins();
+            drawPlinkoBoard();
+        }
+
+        function generatePlinkoPins() {
+            plinkoPins = [];
+            let rows = 7;
+            let startY = 40;
+            let spacingY = 35;
+            let spacingX = 30;
+            for (let r = 0; r < rows; r++) {
+                let cols = r + 3;
+                let startX = (plinkoCanvas.width - (cols - 1) * spacingX) / 2;
+                for (let c = 0; c < cols; c++) {
+                    plinkoPins.push({ x: startX + c * spacingX, y: startY + r * spacingY, radius: 4 });
+                }
             }
         }
 
-        function renderMinesGrid() {
-            const board = document.getElementById('mines-board');
-            board.innerHTML = '';
-            for(let i=0; i<25; i++) {
-                const btn = document.createElement('button');
-                btn.className = 'mine-btn';
-                btn.innerText = '❓';
-                btn.onclick = () => stepMine(i, btn);
-                board.appendChild(btn);
+        function drawPlinkoBoard() {
+            if (!ctx) return;
+            ctx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
+            ctx.fillStyle = '#ffffff';
+            plinkoPins.forEach(pin => {
+                ctx.beginPath();
+                ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
+                ctx.fill();
+            });
+
+            // Отрисовка лунок множителей внизу
+            const multipliers = [5.6, 1.6, 1.1, 0.6, 1.1, 1.6, 5.6];
+            let slotW = plinkoCanvas.width / multipliers.length;
+            multipliers.forEach((m, idx) => {
+                ctx.fillStyle = m >= 1.5 ? '#ffd700' : '#71717a';
+                ctx.font = 'bold 11px sans-serif';
+                ctx.textAlign = 'center';
+                ctx.fillText(`${m}x`, idx * slotW + slotW/2, plinkoCanvas.height - 10);
+            });
+
+            if (plinkoBall) {
+                ctx.fillStyle = '#00e676';
+                ctx.beginPath();
+                ctx.arc(plinkoBall.x, plinkoBall.y, plinkoBall.radius, 0, Math.PI * 2);
+                ctx.fill();
             }
         }
 
-        async function stepMine(cellIndex, btn) {
-            if(!isMinesPlaying) return;
-            let res = await fetch(`${API_URL}/api/games/mines/step`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, cellIndex }) });
-            let data = await res.json();
-            
-            if(data.isMine) {
-                alert("💥 БУМ! Проиграли.");
-                isMinesPlaying = false;
-                document.getElementById('mines-btn').innerText = "СТАРТ";
-                document.getElementById('mines-btn').style.background = "linear-gradient(135deg, var(--gold), #d4af37)";
-                currentUser = data.user;
-                updateUI();
-            } else {
-                btn.innerText = '💎';
-                btn.disabled = true;
-                document.getElementById('mines-btn').innerText = `ЗАБРАТЬ ${data.currentWin.toLocaleString()} $RJC`;
-            }
+        async function triggerPlinko() {
+            const betInput = document.getElementById('plinko-bet');
+            let bet = parseInt(betInput.value);
+            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
+            if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
+
+            try {
+                let res = await fetch(`${API_URL}/api/games/plinko`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, bet })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, 'error');
+
+                // Анимация падения шарика
+                animatePlinkoBall(data.slotIndex, () => {
+                    currentUser.balance = Number(data.newBalance);
+                    updateUI();
+                    showToast(`🎯 Плинко: x${data.multiplier} (+${data.winAmount} $RJC)`, data.multiplier >= 1 ? 'success' : 'error');
+                });
+            } catch(e) { showToast("Ошибка Плинко", "error"); }
         }
 
-        // UPGRADER
-        function onUpgraderInputsChange() {
-            const mortgageId = document.getElementById('upgrader-mortgage-select').value;
-            let betVal = Number(document.getElementById('upgrader-bet').value) || 0;
-            if (mortgageId) {
-                const house = housesList.find(h => h.id === mortgageId);
-                if (house) betVal = house.cost;
-            }
-            const targetVal = Number(document.getElementById('upgrader-target').value) || 0;
-            let chance = 0;
-            if (targetVal > betVal && betVal > 0) chance = Math.min(95, Math.max(1, (betVal / targetVal) * 95));
-            document.getElementById('upgrader-chance-lbl').innerText = `Шанс: ${chance.toFixed(2)}%`;
-            drawUpgraderWheel(chance);
-        }
+        function animatePlinkoBall(targetSlot, onComplete) {
+            let slotW = plinkoCanvas.width / 7;
+            let targetX = targetSlot * slotW + slotW / 2;
+            plinkoBall = { x: plinkoCanvas.width / 2, y: 15, radius: 7, vx: (Math.random() - 0.5) * 2, vy: 2 };
 
-        function drawUpgraderWheel(winChancePercent) {
-            const canvas = document.getElementById('upgrader-canvas');
-            if(!canvas) return;
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 200, 200);
-            const winAngle = (winChancePercent / 100) * (2 * Math.PI);
+            let anim = setInterval(() => {
+                plinkoBall.y += plinkoBall.vy;
+                plinkoBall.x += plinkoBall.vx;
+                plinkoBall.vy += 0.25;
 
-            ctx.beginPath();
-            ctx.moveTo(100, 100);
-            ctx.arc(100, 100, 95, -Math.PI/2, -Math.PI/2 + winAngle);
-            ctx.fillStyle = '#00e676';
-            ctx.fill();
-
-            ctx.beginPath();
-            ctx.moveTo(100, 100);
-            ctx.arc(100, 100, 95, -Math.PI/2 + winAngle, 1.5 * Math.PI);
-            ctx.fillStyle = '#ff5252';
-            ctx.fill();
-        }
-
-        async function triggerUpgraderSpin() {
-            const mortgageItemId = document.getElementById('upgrader-mortgage-select').value;
-            const bet = Number(document.getElementById('upgrader-bet').value);
-            const targetPayout = Number(document.getElementById('upgrader-target').value);
-
-            let res = await fetch(`${API_URL}/api/games/upgrader`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, mortgageItemId, targetPayout }) });
-            let data = await res.json();
-            if(data.error) return alert(data.error);
-
-            alert(data.isWin ? `🎉 ПОБЕДА! Выигрыш: ${targetPayout} $RJC` : (data.lostMortgage ? "💥 Вы проиграли заложенный предмет!" : "❌ Не повезло!"));
-            currentUser = data.user;
-            updateUI();
-            populateMortgageSelect();
-        }
-
-        // ХАММАМ И REJEWPAY
-        async function upgradeHammam() {
-            let res = await fetch(`${API_URL}/api/hammam/upgrade`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId }) });
-            let data = await res.json();
-            if (data.error) return alert(data.error);
-            currentUser = data.user;
-            updateUI();
-        }
-
-        async function collectHammamCash() {
-            let res = await fetch(`${API_URL}/api/hammam/collect`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId }) });
-            let data = await res.json();
-            if (data.error) return alert(data.error);
-            alert(`Собрано ${data.collected.toLocaleString()} $RJC!`);
-            currentUser = data.user;
-            updateUI();
-        }
-
-        async function grantHammamPermit() {
-            const targetUsername = document.getElementById('grant-hammam-user').value;
-            if (!targetUsername) return alert("Укажи юзернейм!");
-            let res = await fetch(`${API_URL}/api/admin/hammam/grant`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ targetUsername }) });
-            let data = await res.json();
-            if (data.error) return alert(data.error);
-            alert(data.message);
-        }
-
-        async function sendRejewPay() {
-            const receiverUsername = document.getElementById('pay-target').value;
-            const amount = document.getElementById('pay-amount').value;
-            let res = await fetch(`${API_URL}/api/rejewpay/transfer`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ senderId: userId, receiverUsername, amount, comment: 'RejewPay Transfer' }) });
-            let data = await res.json();
-            if (data.error) return alert(data.error);
-            alert("Перевод успешно отправлен!");
-            syncProfile();
-        }
-
-        function populateMortgageSelect() {
-            const select = document.getElementById('upgrader-mortgage-select');
-            if(!select) return;
-            select.innerHTML = '<option value="">-- Без залога --</option>';
-            if(currentUser.ownedProperties) {
-                currentUser.ownedProperties.forEach(id => {
-                    const house = housesList.find(h => h.id === id);
-                    if(house) {
-                        const opt = document.createElement('option');
-                        opt.value = house.id;
-                        opt.innerText = `${house.name} (${house.cost.toLocaleString()} $RJC)`;
-                        select.appendChild(opt);
+                // Столкновение с гвоздиками
+                plinkoPins.forEach(pin => {
+                    let dx = plinkoBall.x - pin.x;
+                    let dy = plinkoBall.y - pin.y;
+                    let dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < plinkoBall.radius + pin.radius) {
+                        plinkoBall.vy *= -0.3;
+                        plinkoBall.vx += (dx / dist) * 1.5;
                     }
                 });
-            }
+
+                // Достиг дна
+                if (plinkoBall.y >= plinkoCanvas.height - 25) {
+                    clearInterval(anim);
+                    plinkoBall = null;
+                    drawPlinkoBoard();
+                    onComplete();
+                } else {
+                    drawPlinkoBoard();
+                }
+            }, 20);
         }
 
-        function switchScreen(name) {
+        /* --- ЛОГИКА АПГРЕЙДЕРА --- */
+        function updateUpgraderVisuals() {
+            let mult = parseFloat(document.getElementById('upgrader-mult-input').value) || 2.0;
+            if (mult < 1.1) mult = 1.1;
+            if (mult > 100) mult = 100;
+            
+            let chance = ((1 / mult) * 0.95 * 100).toFixed(1); // 5% house edge
+            document.getElementById('upgrader-target-mult').innerText = `${mult.toFixed(2)}x`;
+            document.getElementById('upgrader-chance-lbl').innerText = `Шанс: ${chance}%`;
+
+            let ring = document.getElementById('upgrader-ring');
+            let maxOffset = 502;
+            let newOffset = maxOffset - (maxOffset * (chance / 100));
+            ring.style.strokeDashoffset = newOffset;
+        }
+
+        async function triggerUpgrader() {
+            const bet = parseInt(document.getElementById('upgrader-bet').value);
+            const targetMult = parseFloat(document.getElementById('upgrader-mult-input').value);
+            if (isNaN(bet) || bet < 10) return showToast("Минимум 10 $RJC!", 'error');
+            if (currentUser.balance < bet) return showToast("Не хватает баланса!", 'error');
+
+            try {
+                let res = await fetch(`${API_URL}/api/games/upgrader`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, bet, targetMultiplier: targetMult })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, 'error');
+
+                if (data.isWin) {
+                    showToast(`🔥 АПГРЕЙД УСПЕШЕН! +${data.winAmount} $RJC`, 'purple');
+                } else {
+                    showToast(`💥 Апгрейд сорвался!`, 'error');
+                }
+                currentUser.balance = data.newBalance;
+                updateUI();
+            } catch(e) { showToast("Ошибка Апгрейдера", "error"); }
+        }
+
+        function switchScreen(screenName) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-            document.getElementById(`screen-${name}`).classList.add('active');
-            document.getElementById(`tab-${name}`).classList.add('active');
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            const target = document.getElementById(`screen-${screenName}`);
+            const tab = document.getElementById(`tab-${screenName}`);
+            if (target) target.classList.add('active');
+            if (tab) tab.classList.add('active');
+
+            if (screenName === 'plinko') setTimeout(initPlinkoCanvas, 50);
+            if (screenName === 'upgrader') updateUpgraderVisuals();
         }
 
-        function setMaxBet(id) { document.getElementById(id).value = currentUser.balance; }
-
-        function executeCoinClick() {
-            currentUser.balance += 1;
-            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
-        }
-
-        window.onload = () => { syncProfile(); onUpgraderInputsChange(); };
+        window.onload = () => {
+            syncProfile();
+            initPlinkoCanvas();
+        };
     </script>
 </body>
 </html>
+
