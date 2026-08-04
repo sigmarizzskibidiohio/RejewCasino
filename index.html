@@ -64,16 +64,13 @@
         .crash-multiplier { position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%); font-size: 3rem; font-weight: 900; color: #fff; z-index: 4; text-shadow: 0 0 20px rgba(255,255,255,0.2); }
         .crash-svg-path { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; pointer-events: none; }
         
-        /* Плинко Canvas */
         .plinko-arena-wrapper { width: 100%; background: #0c0c0e; border-radius: 16px; padding: 10px; margin: 15px 0; border: 1px solid rgba(255,255,255,0.04); display: flex; flex-direction: column; justify-content: center; align-items: center; }
         #plinko-canvas { max-width: 100%; height: auto; display: block; background: transparent; }
 
-        /* Апгрейдер CSS */
         .upgrader-arena { width: 100%; height: 220px; background: #0c0c0e; border-radius: 16px; position: relative; margin: 15px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.04); }
         .upgrader-circle-outer { width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(var(--purple) 0deg, #1f1f24 0deg); display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 25px rgba(168,85,247,0.25); }
         .upgrader-circle-inner { width: 110px; height: 110px; border-radius: 50%; background: #0c0c0e; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; z-index: 2; }
         
-        /* Плавная стрелка апгрейдера */
         .upgrader-needle-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; z-index: 3; pointer-events: none; }
         .upgrader-needle { position: absolute; top: -6px; left: calc(50% - 4px); width: 8px; height: 24px; background: var(--gold); border-radius: 4px; box-shadow: 0 0 12px var(--gold); }
         .upgrader-needle::after { content: ''; position: absolute; bottom: -6px; left: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid var(--gold); }
@@ -253,6 +250,7 @@
                 <div id="cars-shop"></div>
                 <div class="shop-title">🏰 Премиальная Недвижимость (Пассивный доход)</div>
                 <div id="houses-shop"></div>
+
                 <div class="shop-title">🚢 Королевские Яхты</div>
                 <div id="yachts-shop"></div>
             </div>
@@ -264,7 +262,7 @@
                 <div class="profile-header">
                     <div class="avatar-stub" id="prof-avatar">🕹️</div>
                     <div>
-<div style="display:flex; align-items:center; gap:8px;">
+                        <div style="display:flex; align-items:center; gap:8px;">
                             <h3 style="margin:0; font-weight:800; font-size:1.2rem;" id="prof-name">Игрок</h3>
                             <span onclick="editNickname()" style="cursor:pointer; font-size:0.9rem; color:var(--gold);">✏️</span>
                         </div>
@@ -429,7 +427,8 @@
             { id: 'perm_cyber', name: '🛸 Кибер-Пермит R-2077', cost: 3000000, bonusText: 'Неограниченный лимит вывода' },
             { id: 'perm_god', name: '⚡ Пермит Бога Удачи', cost: 10000000, bonusText: 'Золотая аура в профиле' }
         ];
-const citizenshipList = [
+
+        const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
             { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
@@ -471,7 +470,6 @@ const citizenshipList = [
             { id: 'c_multiverse', name: '🌀 Мультивселенная (Код 01)', cost: 2500000000 },
             { id: 'c_creator_id', name: '👑 Паспорт Всевышнего', cost: 5000000000 }
         ];
-
         const carsList = [
             { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
             { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 },
@@ -607,7 +605,8 @@ const citizenshipList = [
             { id: 'p_dark_matter_ship', name: '🌑 Судно Темной Материи', cost: 10000000000 },
             { id: 'p_universe_titan', name: '🌀 Титан Вселенских Океанов', cost: 20000000000 }
         ];
-function getSecureHeaders() {
+
+        function getSecureHeaders() {
             const headers = { 'Content-Type': 'application/json' };
             if (tg && tg.initData) {
                 headers['x-tg-data'] = tg.initData;
@@ -702,6 +701,7 @@ function getSecureHeaders() {
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
+            if(!container) return;
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
             toast.innerText = message;
@@ -731,192 +731,107 @@ function getSecureHeaders() {
 
         function updateUI() {
             currentUser.balance = Number(currentUser.balance) || 0;
-            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
-            document.getElementById('prof-name').innerText = currentUser.nickname;
-            document.getElementById('prof-id').innerText = currentUser.userId;
+            const headBal = document.getElementById('header-bal');
+            if(headBal) headBal.innerText = currentUser.balance.toLocaleString();
+
+            const profName = document.getElementById('prof-name');
+            if(profName) profName.innerText = currentUser.nickname || nickname;
+
+            const profId = document.getElementById('prof-id');
+            if(profId) profId.innerText = currentUser.userId || userId;
             
             if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
-
-if (!userObj.ownedProperties) userObj.ownedProperties = [];
-                ['c_monaco', 'p_boattail', 'p_palace'].forEach(id => {
-                    if (!userObj.ownedProperties.includes(id)) userObj.ownedProperties.push(id);
-                });
-            }
-            if (userObj.isModerator) {
-                if (!userObj.ownedProperties) userObj.ownedProperties = [];
-                if (!userObj.ownedProperties.includes('p_mod_hq')) {
-                    userObj.ownedProperties.push('p_mod_hq');
-                }
-            }
-        }
-
-        async function syncProfile() {
-            try {
-                let res = await fetch(`${API_URL}/api/user`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, username, nickname, referredBy })
-                });
-                currentUser = await res.json();
-                currentUser.balance = Number(currentUser.balance) || 0;
-                
-                if (currentUser.maintenanceActive) {
-                    if (!isOwner && !currentUser.isModerator) {
-                        document.getElementById('maintenance-screen').style.display = 'flex';
-                        return;
-                    } else {
-                        showToast("⚠️ Включены тех. работы. Тебе как админу/модеру вход открыт!", "error");
-                    }
-                } else {
-                    document.getElementById('maintenance-screen').style.display = 'none';
-                }
-
-                forceOwnerLuxuries(currentUser);
-                updateUI();
-                if (currentUser.isModerator || isOwner) {
-                    loadTechInfo();
-                }
-            } catch(e) {
-                currentUser.balance = Number(currentUser.balance) || 5000;
-                updateUI();
-                if (!isOwner && !currentUser.isModerator) {
-                    document.getElementById('maintenance-screen').style.display = 'flex';
-                } else {
-                    showToast("⚠️ Бэк временно недоступен, но для тебя обход!", "error");
-                }
-            }
-        }
-
-        async function loadTechInfo() {
-            try {
-                let res = await fetch(`${API_URL}/api/admin/tech-info`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ username })
-                });
-                let data = await res.json();
-                if (!data.error) {
-                    document.getElementById('tech-users').innerText = data.totalUsers;
-                    document.getElementById('tech-bal').innerText = Number(data.totalBalance || 0).toLocaleString();
-                    document.getElementById('tech-turnover').innerText = Number(data.totalTurnover || 0).toLocaleString();
-                    document.getElementById('tech-mods').innerText = data.moderatorsCount;
-                    document.getElementById('tech-uptime').innerText = Math.floor(data.uptime);
-                }
-            } catch(e) {}
-        }
-
-function showToast(message, type = 'success') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            toast.innerText = message;
-            container.appendChild(toast);
-            setTimeout(() => toast.classList.add('show'), 30);
-            setTimeout(() => {
-                toast.classList.remove('show');
-                setTimeout(() => toast.remove(), 300);
-            }, 3000);
-        }
-
-        function quickFillTransfer(username) {
-            const targetInput = document.getElementById('transfer-target');
-            if (targetInput && username) {
-                targetInput.value = username;
-                showToast(`Получатель @${username} выбран!`, 'success');
-                targetInput.scrollIntoView({ behavior: 'smooth' });
-            }
-        }
-
-        function copyReferralLink() {
-            const botUser = "rejewcas_bot"; 
-            const link = `https://t.me/${botUser}/app?startapp=${userId}`;
-            navigator.clipboard.writeText(link);
-            showToast("Рефералка скопирована в буфер обмена!", "gold");
-        }
-
-        function updateUI() {
-            currentUser.balance = Number(currentUser.balance) || 0;
-            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
-            document.getElementById('prof-name').innerText = currentUser.nickname;
-            document.getElementById('prof-id').innerText = currentUser.userId;
-            
-            if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
-            document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
+            const profCit = document.getElementById('prof-citizen');
+            if(profCit) profCit.innerText = `Гражданство: ${currentUser.currentCitizenship}`;
 
             const clickPower = getClickPower();
-            document.getElementById('clicker-profit-label').innerText = `+${clickPower.toLocaleString()} $RJC за каждый тап`;
+            const clickLbl = document.getElementById('clicker-profit-label');
+            if(clickLbl) clickLbl.innerText = `+${clickPower.toLocaleString()} $RJC за каждый тап`;
 
             const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
-            document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
+            const refLbl = document.getElementById('ref-status-lbl');
+            if(refLbl) refLbl.innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
 
             const btnMaint = document.getElementById('maint-toggle-btn');
-            if (currentUser.maintenanceActive) {
-                btnMaint.innerText = "ВЫЙТИ ИЗ ТЕХОБСЛУЖИВАНИЯ";
-                btnMaint.style.background = "linear-gradient(135deg, var(--green), #00c853)";
-            } else {
-                btnMaint.innerText = "ЗАКРЫТЬ НА ТЕХОБСЛУЖИВАНИЕ";
-                btnMaint.style.background = "linear-gradient(135deg, var(--red), #c62828)";
+            if (btnMaint) {
+                if (currentUser.maintenanceActive) {
+                    btnMaint.innerText = "ВЫЙТИ ИЗ ТЕХОБСЛУЖИВАНИЯ";
+                    btnMaint.style.background = "linear-gradient(135deg, var(--green), #00c853)";
+                } else {
+                    btnMaint.innerText = "ЗАКРЫТЬ НА ТЕХОБСЛУЖИВАНИЕ";
+                    btnMaint.style.background = "linear-gradient(135deg, var(--red), #c62828)";
+                }
             }
 
             const canSeeAdmin = isOwner || currentUser.isModerator;
+            const admPanel = document.getElementById('admin-panel');
+            const statsBlock = document.getElementById('player-stats-block');
+            const profStatus = document.getElementById('prof-status');
+            const profAvatar = document.getElementById('prof-avatar');
+            const admTitle = document.getElementById('admin-panel-title');
+
             if (canSeeAdmin) {
-                document.getElementById('admin-panel').style.display = 'block';
-                document.getElementById('player-stats-block').style.display = 'none';
+                if(admPanel) admPanel.style.display = 'block';
+                if(statsBlock) statsBlock.style.display = 'none';
                 if (isOwner) {
-                    document.getElementById('prof-status').innerText = 'Владелец';
-                    document.getElementById('prof-status').style.color = 'var(--gold)';
-                    document.getElementById('prof-avatar').innerText = '👑';
-                    document.getElementById('admin-panel-title').innerText = 'Админ-панель';
+                    if(profStatus) { profStatus.innerText = 'Владелец'; profStatus.style.color = 'var(--gold)'; }
+                    if(profAvatar) profAvatar.innerText = '👑';
+                    if(admTitle) admTitle.innerText = 'Админ-панель';
                 } else {
-                    document.getElementById('prof-status').innerText = 'Модератор';
-                    document.getElementById('prof-status').style.color = '#3b82f6';
-                    document.getElementById('prof-avatar').innerText = '🛡️';
-                    document.getElementById('admin-panel-title').innerText = 'Модер-панель';
+                    if(profStatus) { profStatus.innerText = 'Модератор'; profStatus.style.color = '#3b82f6'; }
+                    if(profAvatar) profAvatar.innerText = '🛡️';
+                    if(admTitle) admTitle.innerText = 'Модер-панель';
                 }
             } else {
-                document.getElementById('prof-status').innerText = 'Игрок';
-                document.getElementById('prof-status').style.color = 'var(--text-secondary)';
-                document.getElementById('admin-panel').style.display = 'none';
-                document.getElementById('player-stats-block').style.display = 'block';
-                document.getElementById('prof-avatar').innerText = '🕹️';
+                if(profStatus) { profStatus.innerText = 'Игрок'; profStatus.style.color = 'var(--text-secondary)'; }
+                if(admPanel) admPanel.style.display = 'none';
+                if(statsBlock) statsBlock.style.display = 'block';
+                if(profAvatar) profAvatar.innerText = '🕹️';
                 
-                document.getElementById('stat-total').innerText = currentUser.stats.total || 0;
-                document.getElementById('stat-wins').innerText = currentUser.stats.wins || 0;
-                document.getElementById('stat-losses').innerText = currentUser.stats.losses || 0;
+                if (currentUser.stats) {
+                    const stTot = document.getElementById('stat-total');
+                    const stWin = document.getElementById('stat-wins');
+                    const stLos = document.getElementById('stat-losses');
+                    if(stTot) stTot.innerText = currentUser.stats.total || 0;
+                    if(stWin) stWin.innerText = currentUser.stats.wins || 0;
+                    if(stLos) stLos.innerText = currentUser.stats.losses || 0;
+                }
             }
 
             const transListBlock = document.getElementById('transactions-list');
-            if (currentUser.messages && currentUser.messages.length > 0) {
-                transListBlock.innerHTML = '';
-                [...currentUser.messages].reverse().forEach(msg => {
-                    const div = document.createElement('div');
-                    div.className = 'msg-box';
-                    
-                    const isOutgoing = String(msg.fromId) === String(userId) || String(msg.senderId) === String(userId);
-                    const color = isOutgoing ? 'var(--red)' : 'var(--green)';
-                    const prefix = isOutgoing ? '-' : '+';
-                    
-                    const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
-                    const partnerUser = isOutgoing ? msg.receiverUsername : msg.senderUsername;
-                    const commentText = msg.comment ? msg.comment : "Без комментария";
+            if (transListBlock) {
+                if (currentUser.messages && currentUser.messages.length > 0) {
+                    transListBlock.innerHTML = '';
+                    [...currentUser.messages].reverse().forEach(msg => {
+                        const div = document.createElement('div');
+                        div.className = 'msg-box';
+                        
+                        const isOutgoing = String(msg.fromId) === String(userId) || String(msg.senderId) === String(userId);
+                        const color = isOutgoing ? 'var(--red)' : 'var(--green)';
+                        const prefix = isOutgoing ? '-' : '+';
+                        
+                        const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
+                        const partnerUser = isOutgoing ? msg.receiverUsername : msg.senderUsername;
+                        const commentText = msg.comment ? msg.comment : "Без комментария";
 
-                    div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${Number(msg.amount || 0).toLocaleString()} $RJC</span>
-                            <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
-                                ${msg.type || 'Операция'}
-                            </span>
-                        </div>
-                        <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:6px;">
-                            ${isOutgoing ? 'Кому' : 'От'}: 
-                            <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} ${partnerUser ? '@' + partnerUser : ''}</span>
-                            <div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:6px; margin-top:6px; color:#fff;">💬 ${commentText}</div>
-                        </div>
-                    `;
-                    transListBlock.appendChild(div);
-                });
-            } else {
-                transListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
+                        div.innerHTML = `
+                            <div style="display:flex; justify-content:space-between; align-items:center;">
+                                <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${Number(msg.amount || 0).toLocaleString()} $RJC</span>
+                                <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
+                                    ${msg.type || 'Операция'}
+                                </span>
+                            </div>
+                            <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:6px;">
+                                ${isOutgoing ? 'Кому' : 'От'}: 
+                                <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} ${partnerUser ? '@' + partnerUser : ''}</span>
+                                <div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:6px; margin-top:6px; color:#fff;">💬 ${commentText}</div>
+                            </div>
+                        `;
+                        transListBlock.appendChild(div);
+                    });
+                } else {
+                    transListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
+                }
             }
 
             renderCategoryShop('permits-shop', permitsList, 'permit');
@@ -927,7 +842,7 @@ function showToast(message, type = 'success') {
             updateUpgraderUI();
         }
 
-function renderCategoryShop(elementId, itemsList, type) {
+        function renderCategoryShop(elementId, itemsList, type) {
             const block = document.getElementById(elementId);
             if(!block) return;
             block.innerHTML = '';
@@ -997,7 +912,7 @@ function renderCategoryShop(elementId, itemsList, type) {
             } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
-async function processTransfer() {
+        async function processTransfer() {
             const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
             const comment = document.getElementById('transfer-comment').value.trim();
             const amount = parseInt(document.getElementById('transfer-amount').value);
@@ -1023,7 +938,6 @@ async function processTransfer() {
                 syncProfile();
             } catch(e) { showToast("Ошибка RejewPay", "error"); }
         }
-
         function switchScreen(screenName) {
             if (accumulatedClicks > 0) {
                 clearTimeout(clickSyncTimeout);
@@ -1064,7 +978,7 @@ async function processTransfer() {
             }
         }
 
-/* --- СЛОТЫ --- */
+        /* --- СЛОТЫ --- */
         async function triggerSpin() {
             const betInput = document.getElementById('slot-bet');
             const bet = parseInt(betInput.value);
@@ -1112,7 +1026,7 @@ async function processTransfer() {
             }, 1000);
         }
 
-/* --- РАКЕТКА (CRASH) --- */
+        /* --- РАКЕТКА (CRASH) --- */
         let crashInterval = null;
         function triggerCrashAction() {
             const bet = parseInt(document.getElementById('crash-bet').value);
@@ -1144,7 +1058,7 @@ async function processTransfer() {
             }, 100);
         }
 
-/* --- ПЛАВНОЕ ПЛИНКО (CANVAS PHYSICS) --- */
+        /* --- ПЛАВНОЕ ПЛИНКО (CANVAS PHYSICS) --- */
         let plinkoCanvas, plinkoCtx;
         let plinkoBall = null;
         let plinkoAnimId = null;
@@ -1174,7 +1088,6 @@ async function processTransfer() {
             if(!plinkoCtx) return;
             plinkoCtx.clearRect(0, 0, 320, 340);
 
-            // Отрисовка колышков
             plinkoCtx.fillStyle = "#a855f7";
             plinkoPegs.forEach(p => {
                 plinkoCtx.beginPath();
@@ -1182,7 +1095,6 @@ async function processTransfer() {
                 plinkoCtx.fill();
             });
 
-            // Отрисовка корзин внизу
             const binWidth = 320 / plinkoMultipliers.length;
             plinkoMultipliers.forEach((m, idx) => {
                 plinkoCtx.fillStyle = m >= 2 ? "rgba(0, 230, 118, 0.2)" : "rgba(255, 215, 0, 0.1)";
@@ -1193,7 +1105,6 @@ async function processTransfer() {
                 plinkoCtx.fillText(m + 'x', idx * binWidth + binWidth / 2, 318);
             });
 
-            // Отрисовка плавно падающего шарика
             if (plinkoBall) {
                 plinkoCtx.fillStyle = "#ffd700";
                 plinkoCtx.shadowColor = "#ffd700";
@@ -1205,8 +1116,8 @@ async function processTransfer() {
             }
         }
 
-function triggerPlinko() {
-            if (plinkoBall) return; // уже падает
+        function triggerPlinko() {
+            if (plinkoBall) return;
             const bet = parseInt(document.getElementById('plinko-bet').value);
             if (isNaN(bet) || bet <= 0 || bet > currentUser.balance) return showToast("Некорректная ставка!", "error");
 
@@ -1227,11 +1138,10 @@ function triggerPlinko() {
             function updatePhysics() {
                 if (!plinkoBall) return;
                 
-                plinkoBall.vy += 0.2; // гравитация
+                plinkoBall.vy += 0.2;
                 plinkoBall.x += plinkoBall.vx;
                 plinkoBall.y += plinkoBall.vy;
 
-                // Столкновение с колышками
                 plinkoPegs.forEach(p => {
                     const dx = plinkoBall.x - p.x;
                     const dy = plinkoBall.y - p.y;
@@ -1243,13 +1153,11 @@ function triggerPlinko() {
                     }
                 });
 
-                // Ограничение по стенкам
                 if (plinkoBall.x - plinkoBall.r < 5) { plinkoBall.x = 5 + plinkoBall.r; plinkoBall.vx *= -0.5; }
                 if (plinkoBall.x + plinkoBall.r > 315) { plinkoBall.x = 315 - plinkoBall.r; plinkoBall.vx *= -0.5; }
 
                 drawPlinkoFrame();
 
-                // Приземление
                 if (plinkoBall.y >= 300) {
                     const binWidth = 320 / plinkoMultipliers.length;
                     let binIndex = Math.floor(plinkoBall.x / binWidth);
@@ -1274,9 +1182,10 @@ function triggerPlinko() {
             updatePhysics();
         }
 
-/* --- АНИМАЦИЯ АПГРЕЙДЕРА (РАЗГОН И ПЛАВНАЯ ОСТАНОВКА) --- */
+        /* --- АНИМАЦИЯ АПГРЕЙДЕРА --- */
         function updateUpgraderUI() {
             const multInput = document.getElementById('upgrader-target-input');
+            if(!multInput) return;
             let targetMult = parseFloat(multInput.value);
             if (isNaN(targetMult) || targetMult < 1.1) targetMult = 1.1;
             if (targetMult > 100) targetMult = 100;
@@ -1287,7 +1196,7 @@ function triggerPlinko() {
 
             const winDeg = (chance / 100) * 360;
             const ring = document.getElementById('upgrader-ring');
-            ring.style.background = `conic-gradient(var(--purple) 0deg ${winDeg}deg, #1f1f24 ${winDeg}deg 360deg)`;
+            if(ring) ring.style.background = `conic-gradient(var(--purple) 0deg ${winDeg}deg, #1f1f24 ${winDeg}deg 360deg)`;
         }
 
         function triggerUpgrader() {
@@ -1308,23 +1217,20 @@ function triggerPlinko() {
             const chance = 95 / targetMult;
             const winDeg = (chance / 100) * 360;
             
-            // Определяем исход
             const isWin = (Math.random() * 100) < chance;
             let finalLandingDegree;
             if (isWin) {
-                finalLandingDegree = Math.random() * (winDeg - 10) + 5; // Попал в фиолетовую зону
+                finalLandingDegree = Math.random() * (winDeg - 10) + 5;
             } else {
-                finalLandingDegree = winDeg + Math.random() * (350 - winDeg) + 5; // Попал в сероватую зону
+                finalLandingDegree = winDeg + Math.random() * (350 - winDeg) + 5;
             }
 
-            // Плавное вращение (5 полных кругов + угол приземления)
             const needle = document.getElementById('upgrader-needle');
             const totalRotation = currentNeedleAngle + (360 * 5) + (finalLandingDegree - (currentNeedleAngle % 360));
             
             let startTime = null;
-            const duration = 4000; // 4 секунды анимации
+            const duration = 4000;
 
-            // Плавная кубическая функция замедления (slow start -> fast -> smooth deceleration)
             function easeInOutCubic(t) {
                 return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
             }
@@ -1359,7 +1265,55 @@ function triggerPlinko() {
             requestAnimationFrame(animateSpin);
         }
 
-/* --- АДМИНКА И ПРОМОКОДЫ --- */
+        /* --- КЛИКЕР, АДМИНКА, ПРОМОКОДЫ --- */
+        function executeCoinClick() {
+            const power = getClickPower();
+            currentUser.balance += power;
+            accumulatedClicks += power;
+            updateUI();
+            
+            if (clickSyncTimeout) clearTimeout(clickSyncTimeout);
+            clickSyncTimeout = setTimeout(() => {
+                syncClicksWithBackend();
+            }, 1000);
+        }
+
+        async function syncClicksWithBackend() {
+            if (accumulatedClicks <= 0) return;
+            const clicksToSend = accumulatedClicks;
+            accumulatedClicks = 0;
+            try {
+                await fetch(`${API_URL}/api/click`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, clicks: clicksToSend })
+                });
+            } catch(e) {}
+        }
+
+        async function editNickname() {
+            const newNick = prompt("Введите новый никнейм:", currentUser.nickname || nickname);
+            if (newNick && newNick.trim().length > 0) {
+                currentUser.nickname = newNick.trim();
+                updateUI();
+                try {
+                    await fetch(`${API_URL}/api/user/update-nickname`, {
+                        method: 'POST',
+                        headers: getSecureHeaders(),
+                        body: JSON.stringify({ userId, nickname: currentUser.nickname })
+                    });
+                    showToast("Никнейм обновлен!", "success");
+                } catch(e) {
+                    showToast("Ошибка сохранения ника", "error");
+                }
+            }
+        }
+
+        function copyUserId() {
+            navigator.clipboard.writeText(userId);
+            showToast(`ID ${userId} скопирован!`, "gold");
+        }
+
         async function adminExecute() {
             const amount = parseInt(document.getElementById('adm-amount').value);
             if(isNaN(amount)) return showToast("Введи сумму!", "error");
@@ -1369,46 +1323,80 @@ function triggerPlinko() {
         }
 
         async function toggleMaintenance() {
-            currentUser.maintenanceActive = !currentUser.maintenanceActive;
-            showToast(`Техобслуживание: ${currentUser.maintenanceActive ? 'Включено' : 'Выключено'}`, "purple");
-            updateUI();
+            try {
+                let res = await fetch(`${API_URL}/api/admin/toggle-maintenance`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, "error");
+                currentUser.maintenanceActive = data.maintenanceActive;
+                showToast(currentUser.maintenanceActive ? "⛔ Техобслуживание включено!" : "✅ Техобслуживание выключено!", "gold");
+                updateUI();
+            } catch(e) {
+                currentUser.maintenanceActive = !currentUser.maintenanceActive;
+                showToast(currentUser.maintenanceActive ? "⛔ Техобслуживание включено (локально)!" : "✅ Техобслуживание выключено (локально)!", "gold");
+                updateUI();
+            }
         }
 
         async function adminCreatePromo() {
-            const name = document.getElementById('promo-name').value.trim().toUpperCase();
-            const limit = parseInt(document.getElementById('promo-limit').value);
-            const reward = parseInt(document.getElementById('promo-reward').value);
-            if(!name || isNaN(limit) || isNaN(reward)) return showToast("Заполни все поля промо!", "error");
-            showToast(`Промокод ${name} создан на +${reward} $RJC!`, "success");
+            const nameInput = document.getElementById('promo-name');
+            const limitInput = document.getElementById('promo-limit');
+            const rewardInput = document.getElementById('promo-reward');
+
+            const code = nameInput.value.trim().toUpperCase();
+            const limit = parseInt(limitInput.value);
+            const reward = parseInt(rewardInput.value);
+
+            if (!code) return showToast("Введите название промокода!", "error");
+            if (isNaN(limit) || limit <= 0) return showToast("Укажите лимит активаций!", "error");
+            if (isNaN(reward) || reward <= 0) return showToast("Укажите сумму награды!", "error");
+
+            try {
+                let res = await fetch(`${API_URL}/api/admin/create-promo`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username, code, limit, reward })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, "error");
+                showToast(`🎁 Промокод ${code} на ${reward} $RJC создан!`, "success");
+                nameInput.value = '';
+                limitInput.value = '';
+                rewardInput.value = '';
+                syncProfile();
+            } catch(e) {
+                showToast("Ошибка создания промокода", "error");
+            }
         }
 
         async function activatePromo() {
             const input = document.getElementById('user-promo-input');
             const code = input.value.trim().toUpperCase();
-            if(!code) return showToast("Введите код", "error");
-            showToast(`Промокод ${code} активирован!`, "gold");
-            input.value = '';
-        }
+            if (!code) return showToast("Введите промокод!", "error");
 
-        function editNickname() {
-            const newName = prompt("Введи новый никнейм:", currentUser.nickname);
-            if(newName && newName.trim().length > 0) {
-                currentUser.nickname = newName.trim();
-                updateUI();
+            try {
+                let res = await fetch(`${API_URL}/api/promo/activate`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ userId, code })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, "error");
+                showToast(`🎉 Промокод активирован! +${data.reward.toLocaleString()} $RJC`, "gold");
+                input.value = '';
+                syncProfile();
+            } catch(e) {
+                showToast("Ошибка активации промокода", "error");
             }
         }
 
-        function copyUserId() {
-            navigator.clipboard.writeText(userId);
-            showToast("ID скопирован!", "gold");
-        }
-
-        // Старт приложения
-        window.onload = () => {
+        window.addEventListener('DOMContentLoaded', () => {
             syncProfile();
             initPlinkoCanvas();
-        };
+        });
     </script>
 </body>
-</html>            
-          
+</html>
