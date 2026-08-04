@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>RejewCas Ultimate</title>
+    <title>RejewCas Online Casino</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <style>
         :root {
@@ -13,30 +13,26 @@
         }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, sans-serif; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
-        #maintenance-screen { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #09090b; z-index: 99999; flex-direction: column; align-items: center; justify-content: center; padding: 30px; text-align: center; }
-        #toast-container { position: fixed; top: 80px; right: 20px; z-index: 9999; display: flex; flex-direction: column; gap: 10px; width: 280px; pointer-events: none; }
-        .toast { background: #18181b; color: #fff; padding: 14px; border-radius: 12px; font-size: 0.85rem; font-weight: 600; box-shadow: 0 10px 25px rgba(0,0,0,0.5); opacity: 0; transform: translateX(50px) scale(0.9); transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); border-left: 4px solid #fff; pointer-events: auto; }
-        .toast.show { opacity: 1; transform: translateX(0) scale(1); }
-        .toast.success { border-left-color: var(--green); }
-        .toast.error { border-left-color: var(--red); }
-        .toast.gold { border-left-color: var(--gold); }
-
+        
         header { display: flex; justify-content: space-between; align-items: center; padding: 15px 20px; background: linear-gradient(to bottom, #141417, transparent); position: fixed; top: 0; width: 100%; z-index: 10; border-bottom: 1px solid rgba(255, 215, 0, 0.03); }
         .brand { font-size: 1.4rem; font-weight: 900; letter-spacing: 1px; color: #fff; }
         .brand span { color: var(--gold); text-shadow: 0 0 10px rgba(255, 215, 0, 0.4); }
         .capsule { background: var(--surface); border: 1px solid rgba(255,255,255,0.06); border-radius: 20px; padding: 6px 12px; display: flex; align-items: center; gap: 6px; font-size: 0.85rem; font-weight: 600; cursor: pointer; }
         .capsule.wallet { border-color: rgba(0, 230, 118, 0.15); color: var(--green); }
+
         .main-container { flex: 1; margin-top: 75px; margin-bottom: 75px; position: relative; width: 100%; z-index: 2; overflow-x: hidden; overflow-y: auto; }
         .screen { display: none; padding: 20px; flex-direction: column; align-items: center; width: 100%; min-height: 100%; opacity: 0; transform: translateY(15px); transition: opacity 0.35s ease, transform 0.35s ease; }
         .screen.active { display: flex; opacity: 1; transform: translateY(0); }
         .game-card, .profile-card, .panel-card { background: var(--surface); border: 1px solid rgba(255, 215, 0, 0.08); border-radius: 24px; padding: 22px; width: 100%; max-width: 360px; box-shadow: 0 15px 35px rgba(0,0,0,0.4); margin-bottom: 15px; }
-        
+
         .reels { display: flex; gap: 12px; margin: 25px 0; background: #0c0c0e; padding: 15px 25px; border-radius: 16px; width: 100%; justify-content: center; }
         .reel { font-size: 3.2rem; width: 65px; text-align: center; height: 75px; line-height: 75px; }
-        .reel.spinning { filter: blur(5px); transform: scale(1.08); }
 
-        .upgrader-wheel-container { position: relative; width: 220px; height: 220px; margin: 20px 0; display: flex; align-items: center; justify-content: center; }
-        #upgrader-canvas { width: 220px; height: 220px; border-radius: 50%; }
+        .mines-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 8px; width: 100%; margin: 15px 0; }
+        .mine-btn { aspect-ratio: 1; background: #0c0c0e; border: 1px solid rgba(255,255,255,0.08); border-radius: 10px; font-size: 1.3rem; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+
+        .upgrader-wheel-container { position: relative; width: 200px; height: 200px; margin: 15px 0; display: flex; align-items: center; justify-content: center; }
+        #upgrader-canvas { width: 200px; height: 200px; border-radius: 50%; }
         .upgrader-pointer { position: absolute; top: -10px; width: 0; height: 0; border-left: 10px solid transparent; border-right: 10px solid transparent; border-top: 18px solid var(--gold); z-index: 5; }
 
         .bet-input-wrapper { width: 100%; margin-bottom: 15px; }
@@ -45,9 +41,10 @@
         .bet-input { flex: 1; background: transparent; border: none; color: #fff; font-size: 1.1rem; font-weight: 700; padding: 12px; outline: none; }
         .max-btn { background: var(--surface-accent); border: none; color: var(--gold); font-size: 0.8rem; font-weight: 700; padding: 0 15px; cursor: pointer; }
         .action-btn { background: linear-gradient(135deg, var(--gold), #d4af37); border: none; color: #000; font-weight: 800; font-size: 1rem; padding: 14px; border-radius: 12px; cursor: pointer; width: 100%; text-transform: uppercase; }
+
         .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
         .click-coin { width: 180px; height: 180px; background: linear-gradient(135deg, var(--gold), #d4af37); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 5.5rem; cursor: pointer; user-select: none; border: 6px solid #1c1917; }
-        
+
         .shop-section { width: 100%; max-width: 360px; }
         .shop-title { font-size: 0.8rem; font-weight: 800; color: var(--gold); text-transform: uppercase; margin: 25px 0 12px 0; border-left: 3px solid var(--gold); padding-left: 8px; }
         .shop-item { display: flex; justify-content: space-between; align-items: center; background: var(--surface); padding: 14px 16px; border-radius: 14px; margin-bottom: 8px; border: 1px solid rgba(255,255,255,0.04); }
@@ -57,21 +54,12 @@
         .buy-btn { background: var(--surface-accent); border: 1px solid rgba(255,255,255,0.1); color: #fff; font-size: 0.72rem; font-weight: 700; padding: 8px 12px; border-radius: 8px; cursor: pointer; }
         .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; }
 
-        nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.65rem; gap: 5px; font-weight: 600; flex: 1; }
+        nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; overflow-x: auto; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.62rem; gap: 4px; font-weight: 600; min-width: 60px; }
         .nav-item.active { color: var(--gold); }
-        .nav-item svg { fill: currentColor; width: 18px; height: 18px; }
     </style>
 </head>
 <body>
-
-    <div id="maintenance-screen">
-        <h1 style="font-size: 4rem; margin: 0;">🛠️</h1>
-        <h2 style="color: var(--gold);">Технические работы</h2>
-        <p style="color: var(--text-secondary);">Скоро откроемся!</p>
-    </div>
-
-    <div id="toast-container"></div>
 
     <header>
         <div class="brand">Rejew<span>Cas</span></div>
@@ -81,7 +69,6 @@
             </div>
         </div>
     </header>
-
     <div class="main-container">
         <!-- СЛОТЫ -->
         <div id="screen-spins" class="screen active">
@@ -99,24 +86,65 @@
                         <button class="max-btn" onclick="setMaxBet('slot-bet')">MAX</button>
                     </div>
                 </div>
-                <button class="action-btn" id="spin-btn" onclick="triggerSpin()">SPIN</button>
+                <button class="action-btn" onclick="triggerSpin()">SPIN</button>
             </div>
         </div>
 
-        <!-- UPGRADED / ROULETTE (РУЛЕТКА КАК НА UPGRADER.PRO) -->
+        <!-- МИНЫ -->
+        <div id="screen-mines" class="screen">
+            <div class="game-card">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Mines Game</div>
+                <div class="mines-grid" id="mines-board"></div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Количество Мин (1-24)</label>
+                    <input type="number" class="bet-input" id="mines-count" value="3" min="1" max="24" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
+                    
+                    <label class="bet-label">Ставка ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="mines-bet" value="100">
+                        <button class="max-btn" onclick="setMaxBet('mines-bet')">MAX</button>
+                    </div>
+                </div>
+                <button class="action-btn" id="mines-btn" onclick="handleMinesBtn()">СТАРТ</button>
+            </div>
+        </div>
+
+        <!-- ДАЙС -->
+        <div id="screen-dice" class="screen">
+            <div class="game-card">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Dice Under/Over</div>
+                <h2 id="dice-result" style="font-size:2.5rem; text-align:center; margin:15px 0;">50</h2>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Целевое Число (1-98)</label>
+                    <input type="number" class="bet-input" id="dice-target" value="50" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
+                    
+                    <label class="bet-label">Ставка ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="dice-bet" value="100">
+                        <button class="max-btn" onclick="setMaxBet('dice-bet')">MAX</button>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button class="action-btn" onclick="playDice('under')">МЕНЬШЕ</button>
+                    <button class="action-btn" onclick="playDice('over')" style="background:var(--surface-accent); color:#fff;">БОЛЬШЕ</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- UPGRADER РУЛЕТКА -->
         <div id="screen-upgrader" class="screen">
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Upgrader Рулетка</div>
                 <div class="upgrader-wheel-container">
                     <div class="upgrader-pointer"></div>
-                    <canvas id="upgrader-canvas" width="220" height="220"></canvas>
+                    <canvas id="upgrader-canvas" width="200" height="200"></canvas>
                 </div>
-                <div id="upgrader-chance-lbl" style="font-size: 1.1rem; font-weight: 800; color: var(--gold); margin-bottom: 12px;">Шанс: 50%</div>
+                <div id="upgrader-chance-lbl" style="font-size: 1rem; font-weight: 800; color: var(--gold); margin-bottom: 12px;">Шанс: 50%</div>
                 
                 <div class="bet-input-wrapper">
-                    <label class="bet-label">Заложить Недвижимость (Опция)</label>
+                    <label class="bet-label">Заложить Недвижимость</label>
                     <select id="upgrader-mortgage-select" class="bet-input" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:10px; width:100%;" onchange="onUpgraderInputsChange()">
-                        <option value="">-- Без залога (Обычная ставка) --</option>
+                        <option value="">-- Без залога --</option>
                     </select>
 
                     <label class="bet-label">Ставка коинами ($RJC)</label>
@@ -130,33 +158,54 @@
                         <input type="number" class="bet-input" id="upgrader-target" value="200" oninput="onUpgraderInputsChange()">
                     </div>
                 </div>
-                <button class="action-btn" id="upgrader-btn" onclick="triggerUpgraderSpin()">КРУТИТЬ UPGRADER</button>
+                <button class="action-btn" id="upgrader-btn" onclick="triggerUpgraderSpin()">КРУТИТЬ</button>
             </div>
         </div>
+
         <!-- КЛИКЕР -->
         <div id="screen-clicker" class="screen">
             <div class="clicker-container">
                 <div style="color:var(--text-secondary); font-size:0.85rem; font-weight:800; text-transform:uppercase; margin-bottom: 30px;">Майнинг кликами</div>
                 <div class="click-coin" onclick="executeCoinClick()">🟡</div>
-                <div id="clicker-profit-label" style="margin-top:35px; font-weight:800; font-size:1rem; color:var(--gold);">+1 $RJC за каждый тап</div>
+                <div id="clicker-profit-label" style="margin-top:35px; font-weight:800; font-size:1rem; color:var(--gold);">+1 $RJC за тап</div>
+            </div>
+        </div>
+
+        <!-- ХАММАМ -->
+        <div id="screen-hammam" class="screen">
+            <div class="game-card" id="hammam-locked-card" style="display:none; text-align:center;">
+                <h1 style="font-size:3rem; margin:0;">🔒</h1>
+                <h3 style="color:var(--red);">Доступ заблокирован</h3>
+                <p style="color:var(--text-secondary); font-size:0.85rem;">Для входа в Хаммам нужен Пермит! Запроси его у Администратора.</p>
+            </div>
+
+            <div class="game-card" id="hammam-active-card" style="display:none;">
+                <div style="color:var(--gold); font-size:0.75rem; font-weight:800; text-transform:uppercase;">🧖‍♂️ Элитный Хаммам</div>
+                <h2 id="hammam-lvl-lbl" style="margin:10px 0;">Уровень 1</h2>
+                <div style="background:#0c0c0e; padding:12px; border-radius:12px; margin-bottom:15px;">
+                    <div style="font-size:0.8rem; color:var(--text-secondary);">Накоплено пассива:</div>
+                    <div style="font-size:1.4rem; font-weight:800; color:var(--green);" id="hammam-uncollected">0 $RJC</div>
+                </div>
+                <button class="action-btn" onclick="collectHammamCash()" style="margin-bottom:10px;">Собрать Прибыль</button>
+                <button class="action-btn" id="hammam-upg-btn" onclick="upgradeHammam()" style="background:var(--surface-accent); color:#fff;">Улучшить Хаммам</button>
             </div>
         </div>
 
         <!-- МАРКЕТ -->
         <div id="screen-market" class="screen">
             <div class="shop-section">
-                <div class="shop-title">🌍 Паспорта и Инвестиции (+10 Новых)</div>
+                <div class="shop-title">🌍 Гражданства & Паспорта (15 типов)</div>
                 <div id="citizenship-shop"></div>
-                <div class="shop-title">🚗 Элитный Гараж (+10 Новых)</div>
+                <div class="shop-title">🚗 Автопарк & Гараж (15 типов)</div>
                 <div id="cars-shop"></div>
-                <div class="shop-title">🏰 Недвижимость (+10 Новых)</div>
+                <div class="shop-title">🏰 Элитная Недвижимость (15 типов)</div>
                 <div id="houses-shop"></div>
-                <div class="shop-title">🚢 Королевские Яхты (+10 Новых)</div>
+                <div class="shop-title">⚓ Яхты & Суда (15 типов)</div>
                 <div id="yachts-shop"></div>
             </div>
         </div>
 
-        <!-- ПРОФИЛЬ -->
+        <!-- ПРОФИЛЬ & REJEWPAY -->
         <div id="screen-profile" class="screen">
             <div class="profile-card">
                 <div style="display:flex; gap:15px; align-items:center; margin-bottom:15px;">
@@ -168,28 +217,49 @@
                 </div>
                 <div style="font-size:0.85rem; color:var(--gold);" id="prof-citizen">Без гражданства</div>
             </div>
-            
+
+            <!-- REJEWPAY -->
+            <div class="panel-card">
+                <h4 style="margin-top:0; color:var(--gold);">💸 Переводы RejewPay</h4>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Юзернейм получателя (@username)</label>
+                    <input type="text" class="bet-input" id="pay-target" placeholder="username" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
+                    <label class="bet-label">Сумма ($RJC)</label>
+                    <input type="number" class="bet-input" id="pay-amount" placeholder="1000" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; margin-bottom:8px; width:100%;">
+                </div>
+                <button class="action-btn" onclick="sendRejewPay()">Отправить $RJC</button>
+            </div>
+
+            <!-- АДМИН ПАНЕЛЬ -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold);">
-                <h4 style="margin-top:0; color:var(--gold);">Админ / Мод Панель</h4>
-                <button class="action-btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="background:var(--red); color:#fff;">Вкл/Выкл Техобслуживание</button>
+                <h4 style="margin-top:0; color:var(--gold);">👑 Админ / Мод Панель</h4>
+                <div style="margin-bottom:15px;">
+                    <label class="bet-label">Выдать Пермит на Хаммам (@username)</label>
+                    <div style="display:flex; gap:5px;">
+                        <input type="text" class="bet-input" id="grant-hammam-user" placeholder="username" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:8px;">
+                        <button class="buy-btn" onclick="grantHammamPermit()" style="background:var(--gold); color:#000;">Выдать</button>
+                    </div>
+                </div>
+                <button class="action-btn" onclick="toggleMaintenance()" style="background:var(--red); color:#fff;">Вкл/Выкл Техобслуживание</button>
             </div>
         </div>
     </div>
 
     <nav>
         <button class="nav-item active" id="tab-spins" onclick="switchScreen('spins')">Спины</button>
+        <button class="nav-item" id="tab-mines" onclick="switchScreen('mines')">Мины</button>
+        <button class="nav-item" id="tab-dice" onclick="switchScreen('dice')">Дайс</button>
         <button class="nav-item" id="tab-upgrader" onclick="switchScreen('upgrader')">Upgrader</button>
         <button class="nav-item" id="tab-clicker" onclick="switchScreen('clicker')">Кликер</button>
+        <button class="nav-item" id="tab-hammam" onclick="switchScreen('hammam')">Хаммам</button>
         <button class="nav-item" id="tab-market" onclick="switchScreen('market')">Маркет</button>
         <button class="nav-item" id="tab-profile" onclick="switchScreen('profile')">Профиль</button>
     </nav>
-
     <script>
         const API_URL = "https://rejewcas-backend.onrender.com"; 
 
-        let tg, username = 'root', userId = '777777', nickname = 'Создатель', referredBy = null;
-        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[] };
-        let accumulatedClicks = 0, clickSyncTimeout = null;
+        let tg, username = 'root', userId = '777777', nickname = 'Создатель';
+        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], hammam: { permit: false, level: 0, uncollected: 0 } };
 
         try {
             tg = window.Telegram.WebApp; tg.expand();
@@ -200,124 +270,51 @@
             }
         } catch(e) {}
 
-        const isOwner = ['root', 'tacuv', 'rejew'].includes(username.toLowerCase().replace('@',''));
-        const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
-
-        // ВСЕ ПАСПОРТА (+10 НОВЫХ)
+        // 15 ГРАЖДАНСТВ
         const citizenshipList = [
-            { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
-            { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 }, { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
-            { id: 'c_ge', name: '🇬🇪 Грузия (ИП)', cost: 8000 }, { id: 'c_thailand', name: '🇹🇭 Таиланд (Elite)', cost: 12000 },
-            { id: 'c_ar', name: '🇦🇷 Аргентина', cost: 22000 }, { id: 'c_turkey', name: '🇹🇷 Турция (За отель)', cost: 35000 },
-            { id: 'c_pt', name: '🇵🇹 Португалия', cost: 50000 }, { id: 'c_cyprus', name: '🇨🇾 Кипр (ПМЖ)', cost: 65000 },
-            { id: 'c_spain', name: '🇪🇸 Испания', cost: 85000 }, { id: 'c_gr', name: '🇬🇷 Греция', cost: 100000 },
-            { id: 'c_uae', name: '🇦🇪 ОАЭ (Golden ID)', cost: 140000 }, { id: 'c_vu', name: '🇻🇺 Вануату', cost: 180000 },
-            { id: 'c_swiss', name: '🇨🇭 Швейцария', cost: 250000 }, { id: 'c_ca', name: '🇨🇦 Канада', cost: 350000 },
-            { id: 'c_singapore', name: '🇸🇬 Сингапур', cost: 480000 }, { id: 'c_au', name: '🇦🇺 Австралия', cost: 600000 },
-            { id: 'c_uk', name: '🇬🇧 Великобритания', cost: 750000 }, { id: 'c_nz', name: '🇳🇿 Новая Зеландия', cost: 1000000 },
-            { id: 'c_usa', name: '🇺🇸 США (EB-5)', cost: 1500000 }, { id: 'c_japan', name: '🇯🇵 Япония', cost: 3000000 },
-            { id: 'c_crypto', name: '🐳 Эль-Сальвадор', cost: 4500000 }, { id: 'c_mars', name: '🚀 Марс', cost: 8000000 },
-            { id: 'c_alpha', name: '🪐 Альфа Центавра', cost: 15000000 },
-            // 10 новых
-            { id: 'c_norway', name: '🇳🇴 Норвегия (Нефтяной ВНЖ)', cost: 20000000 },
-            { id: 'c_sweden', name: '🇸🇪 Швеция (Скандинавия)', cost: 28000000 },
-            { id: 'c_iceland', name: '🇮🇸 Исландия (Вулканический)', cost: 35000000 },
-            { id: 'c_luxembourg', name: '🇱🇺 Люксембург (Герцогство)', cost: 50000000 },
-            { id: 'c_liechtenstein', name: '🇱🇮 Лихтенштейн (Банкир)', cost: 75000000 },
-            { id: 'c_qatar', name: '🇶🇦 Катар (Шейх ВНЖ)', cost: 100000000 },
-            { id: 'c_atlantis', name: '🔱 Атлантида (Морской)', cost: 200000000 },
-            { id: 'c_cybertron', name: '🤖 Кибертрон (Трансформер)', cost: 500000000 },
-            { id: 'c_multiverse', name: '🌌 Мультивселенная (Рик)', cost: 1000000000 },
-            { id: 'c_godmode', name: '⚡ Олимп (Божественный)', cost: 5000000000 }
+            { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0 }, { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
+            { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 }, { id: 'c_ge', name: '🇬🇪 Грузия (ИП)', cost: 8000 },
+            { id: 'c_thailand', name: '🇹🇭 Таиланд (Elite)', cost: 12000 }, { id: 'c_ar', name: '🇦🇷 Аргентина', cost: 22000 },
+            { id: 'c_turkey', name: '🇹🇷 Турция (ПМЖ)', cost: 35000 }, { id: 'c_pt', name: '🇵🇹 Португалия', cost: 50000 },
+            { id: 'c_cyprus', name: '🇨🇾 Кипр (ПМЖ)', cost: 65000 }, { id: 'c_spain', name: '🇪🇸 Испания', cost: 85000 },
+            { id: 'c_gr', name: '🇬🇷 Греция', cost: 100000 }, { id: 'c_uae', name: '🇦🇪 ОАЭ (Golden ID)', cost: 140000 },
+            { id: 'c_switzerland', name: '🇨🇭 Швейцария', cost: 500000 }, { id: 'c_norway', name: '🇳🇴 Норвегия', cost: 20000000 },
+            { id: 'c_godmode', name: '⚡ Олимп', cost: 5000000000 }
         ];
 
-        // ВСЕ МАШИНЫ (+10 НОВЫХ)
+        // 15 НЕДВИЖИМОСТЕЙ
+        const housesList = [
+            { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50 }, { id: 'p_box', name: '📦 Картонная коробка', cost: 150 },
+            { id: 'p_tent', name: '⛺ Палатка', cost: 250 }, { id: 'p_garage', name: '🔧 Гараж', cost: 450 },
+            { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000 }, { id: 'p_dacha', name: '🏡 Дача под Воронежем', cost: 9500 },
+            { id: 'p_moscow_city', name: '🏢 Москва-Сити', cost: 60000 }, { id: 'p_dubai', name: '🏙️ Пентхаус Dubai Marina', cost: 75000 },
+            { id: 'p_flanders_hq', name: '📺 Бункер @flanders1', cost: 450000 }, { id: 'p_police_hq', name: 'Police HQ Стражи Галактики', cost: 1300000 },
+            { id: 'p_float_island', name: '🏝️ Плавучий Остров', cost: 3000000 }, { id: 'p_moon_base', name: '🌕 Лунная База', cost: 6500000 },
+            { id: 'p_death_star', name: '🛰️ Звезда Смерти', cost: 35000000 }, { id: 'p_matrix_core', name: '💻 Ядро Матрицы', cost: 350000000 },
+            { id: 'p_absolute_universe', name: '♾️ Абсолютная Вселенная', cost: 10000000000 }
+        ];
+
+        // 15 МАШИН
         const carsList = [
-            { id: 'p_boattail', name: '🚗 RR Boat Tail', cost: 0, special: true },
-            { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 }, { id: 'p_bike', name: '🚲 Дедовский Урал', cost: 400 },
-            { id: 'p_zhiga', name: '🚗 ВАЗ 2107', cost: 800 }, { id: 'p_granta', name: '🏎️ Lada Granta', cost: 1600 },
-            { id: 'p_vesta', name: '🚗 Lada Vesta', cost: 2500 }, { id: 'p_camry', name: '🚘 Toyota Camry 70', cost: 3200 },
-            { id: 'p_rio', name: '🚙 Kia Rio', cost: 4500 }, { id: 'p_bmw', name: '🖤 BMW M5 F90', cost: 9500 },
-            { id: 'p_mustang', name: '🏎️ Ford Mustang', cost: 14000 }, { id: 'p_porsche', name: '🏎️ Porsche 911', cost: 18000 },
-            { id: 'p_cybertruck', name: '📐 Tesla CyberTruck', cost: 27000 }, { id: 'p_gelik', name: '🚙 G-Wagen', cost: 35000 },
-            { id: 'p_lambo', name: '⚡ Lamborghini Revuelto', cost: 48000 }, { id: 'p_mclaren', name: '🏎️ McLaren 720S', cost: 65000 },
-            { id: 'p_ferrari', name: '🐎 Ferrari SF90', cost: 90000 }, { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 },
-            { id: 'p_aston', name: '🏎️ Aston Martin Valkyrie', cost: 250000 }, { id: 'p_jesko', name: '🛸 Koenigsegg Jesko', cost: 450000 },
-            { id: 'p_ssc', name: '🏎️ SSC Tuatara', cost: 650000 }, { id: 'p_pagani', name: '🎭 Pagani Utopia', cost: 950000 },
-            { id: 'p_rolls', name: '💎 Rolls-Royce La Rose', cost: 1500000 }, { id: 'p_batmobile', name: '🦇 Бэтмобиль', cost: 3500000 },
-            { id: 'p_ufo', name: '🛸 НЛО Розуэлл', cost: 5000000 },
-            // 10 новых
-            { id: 'p_delorean', name: '🏎️ DeLorean DMC-12 Time', cost: 7500000 },
-            { id: 'p_pagani_huayra', name: '🌬️ Pagani Huayra BC', cost: 12000000 },
-            { id: 'p_rimac', name: '⚡ Rimac Nevera R', cost: 18000000 },
-            { id: 'p_veneno', name: '🦂 Lambo Veneno', cost: 25000000 },
-            { id: 'p_chiron_hermes', name: '👜 Bugatti Hermes', cost: 40000000 },
-            { id: 'p_f1_car', name: '🏎️ Болид F1 Red Bull', cost: 65000000 },
-            { id: 'p_cyber_hover', name: '🚀 Кибер-Левитатор', cost: 100000000 },
-            { id: 'p_death_mobile', name: '💀 Танк Т-14 "Армата"', cost: 250000000 },
-            { id: 'p_warp_ship', name: '🌌 Межзвездный Спидер', cost: 750000000 },
+            { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 }, { id: 'p_zhiga', name: '🚗 ВАЗ 2107 Боевка', cost: 800 },
+            { id: 'p_prio', name: '🚙 Лада Приора Опер', cost: 2500 }, { id: 'p_camry', name: '🚘 Toyota Camry 3.5', cost: 5500 },
+            { id: 'p_bmw', name: '🖤 BMW M5 F90', cost: 9500 }, { id: 'p_gelik', name: '🚙 G-Wagen AMG', cost: 35000 },
+            { id: 'p_porsche', name: '🏎️ Porsche 911 GT3', cost: 70000 }, { id: 'p_lambo', name: '🟡 Lambo Revuelto', cost: 120000 },
+            { id: 'p_bugatti', name: '🌌 Bugatti Tourbillon', cost: 160000 }, { id: 'p_pagani', name: '💎 Pagani Huayra', cost: 350000 },
+            { id: 'p_cybertruck', name: '📐 Tesla Cybertruck', cost: 600000 }, { id: 'p_tank_t90', name: '🪖 Танк Т-90М', cost: 2500000 },
+            { id: 'p_f1_car', name: '🏎️ Болид Формулы 1', cost: 8000000 }, { id: 'p_batmobile', name: '🦇 Бетмобиль Tumbler', cost: 50000000 },
             { id: 'p_chariot', name: '☀️ Колесница Аполлона', cost: 2000000000 }
         ];
 
-        // 5-секундный запрос против засыпания фронта
-        setInterval(() => {
-            fetch(`${API_URL}/api/ping`).catch(() => {});
-        }, 5000);
-        // ВСЯ НЕДВИЖИМОСТЬ (+10 НОВЫХ)
-        const housesList = [
-            { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
-            { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50, bonus: 2 }, { id: 'p_box', name: '📦 Коробка под мостом', cost: 150, bonus: 10 },
-            { id: 'p_tent', name: '⛺ Палатка в лесу', cost: 250, bonus: 15 }, { id: 'p_garage', name: '🔧 Гараж с ямой', cost: 450, bonus: 30 },
-            { id: 'p_baza', name: '⛺ Бытовка', cost: 500, bonus: 40 }, { id: 'p_basement', name: '🧱 Подвал', cost: 800, bonus: 60 },
-            { id: 'p_communalka', name: '🏢 Комната в коммуналке', cost: 1100, bonus: 90 }, { id: 'p_flat_ru', name: '🏢 Бабушкин хрущ', cost: 2000, bonus: 180 },
-            { id: 'p_hostel', name: '🛏️ Хостел', cost: 3500, bonus: 300 }, { id: 'p_studio', name: '🌆 Студия в Мурино', cost: 6000, bonus: 550 },
-            { id: 'p_dacha', name: '🏡 Дача в СНТ', cost: 9500, bonus: 900 }, { id: 'p_cyber_village', name: '🧑‍🌾 Кибердеревня', cost: 14000, bonus: 1400 },
-            { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 22000, bonus: 2300 }, { id: 'p_miami', name: '🏖️ Дом в Майами', cost: 45000, bonus: 4800 },
-            { id: 'p_moscow_city', name: '🏢 Москва-Сити', cost: 60000, bonus: 6000 }, { id: 'p_dubai', name: '🏙️ Пентхаус Dubai', cost: 75000, bonus: 8200 },
-            { id: 'p_blogger_mansion', name: '📸 Особняк блогера', cost: 115000, bonus: 13000 }, { id: 'p_rublevka', name: '💎 Усадьба на Рублевке', cost: 170000, bonus: 20000 },
-            { id: 'p_como', name: '🏡 Вилла Комо', cost: 220000, bonus: 25000 }, { id: 'p_courch', name: '🏔️ Шале Куршевель', cost: 300000, bonus: 36000 },
-            { id: 'p_mod_hq', name: '🛡️ Штаб модеров', cost: 0, special: true, bonus: 75000 }, { id: 'p_flanders_hq', name: '📺 Бункер @flanders1', cost: 450000, bonus: 55000 },
-            { id: 'p_rancho', name: '🐎 Ранчо Техас', cost: 600000, bonus: 75000 }, { id: 'p_castle', name: '🏰 Замок Шотландия', cost: 850000, bonus: 110000 },
-            { id: 'p_police_hq', name: '🚓 Главный штаб Стражей Галактики', cost: 1300000, bonus: 180000 }, { id: 'p_penthouse_ny', name: '🗽 Пентхаус NY', cost: 1800000, bonus: 260000 },
-            { id: 'p_float_island', name: '☁️ Парящий остров', cost: 3000000, bonus: 400000 }, { id: 'p_island', name: '🏝️ Личный Атолл', cost: 4000000, bonus: 600000 },
-            { id: 'p_hamam_resort', name: '🧖‍♂️ Курорт с Хаммамом', cost: 5500000, bonus: 900000 }, { id: 'p_moon_base', name: '🌙 Станция на Луне', cost: 6500000, bonus: 1100000 },
-            { id: 'p_cyber_palace', name: '🛸 Кибер-Дворец', cost: 8200000, bonus: 1500000 }, { id: 'p_bunker', name: '🛡️ Бункер R-100', cost: 9900000, bonus: 2000000 },
-            { id: 'p_orbit', name: '🛰️ Орбитальная станция', cost: 15000000, bonus: 3000000 }, { id: 'p_death_star', name: '🌑 Звезда Смерти', cost: 35000000, bonus: 8000000 },
-            // 10 новых
-            { id: 'p_dyson_sphere', name: '🪐 Сфера Дайсона', cost: 50000000, bonus: 12000000 },
-            { id: 'p_black_hole', name: '🕳️ База в Черной Дыре', cost: 80000000, bonus: 20000000 },
-            { id: 'p_asgard', name: '⚡ Цитадель Асгард', cost: 120000000, bonus: 30000000 },
-            { id: 'p_valhalla', name: '⚔️ Чертоги Вальгаллы', cost: 200000000, bonus: 50000000 },
-            { id: 'p_matrix_core', name: '🟢 Ядро Матрицы', cost: 350000000, bonus: 90000000 },
-            { id: 'p_multiverse_hq', name: '🔮 Цитадель Риков', cost: 600000000, bonus: 160000000 },
-            { id: 'p_big_bang_lab', name: '💥 Лаборатория Большого Взрыва', cost: 1000000000, bonus: 280000000 },
-            { id: 'p_god_realm', name: '🏛️ Олимп Всевышнего', cost: 2500000000, bonus: 700000000 },
-            { id: 'p_time_vault', name: '⏳ Хранилище Времени', cost: 5000000000, bonus: 1500000000 },
-            { id: 'p_absolute_universe', name: '♾️ Абсолютная Вселенная', cost: 10000000000, bonus: 3500000000 }
-        ];
-
-        // ВСЕ ЯХТЫ (+10 НОВЫХ)
+        // 15 ЯХТ И СУДОВ
         const yachtsList = [
-            { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 }, { id: 'p_pvh', name: '🚣‍♂️ Лодка ПВХ', cost: 400 },
-            { id: 'p_catamaran', name: '🛶 Катамаран', cost: 800 }, { id: 'p_kater', name: '🛥️ Катер Ветерок', cost: 1500 },
-            { id: 'p_canoe', name: '🛶 Байдарка', cost: 2000 }, { id: 'p_jet', name: '🌊 Гидроцикл', cost: 3500 },
-            { id: 'p_raft', name: '🪵 Плот', cost: 7000 }, { id: 'p_sail', name: '⛵ Парусная яхта', cost: 12000 },
-            { id: 'p_azimut', name: '🚢 Azimut 66', cost: 28000 }, { id: 'p_riva', name: '🚤 Катер Riva', cost: 65000 },
-            { id: 'p_benetti', name: '⚓ Benetti 40M', cost: 120000 }, { id: 'p_superyacht', name: '🛳️ Суперяхта', cost: 250000 },
-            { id: 'p_eclipse', name: '⚓ Мегаяхта Eclipse', cost: 500000 }, { id: 'p_somnio', name: '🏢 Яхта Somnio', cost: 900000 },
-            { id: 'p_nautilus', name: '🐙 Подлодка Наутилус', cost: 1500000 }, { id: 'p_carrier', name: '🛩️ Авианосец', cost: 2000000 },
-            { id: 'p_history', name: '✨ History Supreme', cost: 3000000 }, { id: 'p_underwater_city', name: '🌊 Подводный город', cost: 5000000 },
-            { id: 'p_starship', name: '🌌 Суперяхта Starship', cost: 9900000 }, { id: 'p_cruiser', name: '🚀 Крейсер', cost: 25000000 },
-            // 10 новых
-            { id: 'p_leviathan', name: '🐋 Левиафан 150м', cost: 45000000 },
-            { id: 'p_kraken_ship', name: '🦑 Флагман Кракен', cost: 70000000 },
-            { id: 'p_poseidon_yacht', name: '🔱 Яхта Посейдона', cost: 110000000 },
-            { id: 'p_flying_dutchman', name: '🏴‍☠️ Летучий Голландец', cost: 180000000 },
-            { id: 'p_solar_sailer', name: '☀️ Солнечный Парусник', cost: 300000000 },
-            { id: 'p_plasma_dreadnought', name: '⚡ Плазменный Дредноут', cost: 550000000 },
-            { id: 'p_dimension_clipper', name: '🌌 Клипер Измерений', cost: 900000000 },
-            { id: 'p_galaxy_destroyer', name: '💥 Разрушитель Галактик', cost: 1800000000 },
-            { id: 'p_time_ark', name: '⏳ Ковчег Времени', cost: 3500000000 },
+            { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 }, { id: 'p_lodka', name: '🛶 Лодка Уфимка', cost: 400 },
+            { id: 'p_kater', name: '🛥️ Катер Ветерок', cost: 1500 }, { id: 'p_gidro', name: '🌊 Гидроцикл Yamaha', cost: 4000 },
+            { id: 'p_yacht_small', name: '⛵ Парусник Bavarian', cost: 12000 }, { id: 'p_azimut', name: '🚢 Azimut 66 Fly', cost: 28000 },
+            { id: 'p_sunseeker', name: '🛥️ Sunseeker Predator', cost: 85000 }, { id: 'p_mangusta', name: '⚡ Mangusta 165', cost: 190000 },
+            { id: 'p_eclipse', name: '⚓ Мегаяхта Eclipse', cost: 500000 }, { id: 'p_history_yacht', name: '🔱 History Supreme', cost: 1800000 },
+            { id: 'p_hovercraft', name: '💨 Воздушная подушка', cost: 5000000 }, { id: 'p_sub_nuclear', name: '⚛️ Атомная подлодка', cost: 25000000 },
+            { id: 'p_flying_dutchman', name: '🏴‍☠️ Летучий Голландец', cost: 150000000 }, { id: 'p_space_yacht', name: '🚀 Межгалактическая Яхта', cost: 800000000 },
             { id: 'p_eternity_vessel', name: '♾️ Корабль Вечности', cost: 8000000000 }
         ];
 
@@ -338,6 +335,20 @@
             document.getElementById('prof-name').innerText = currentUser.nickname;
             document.getElementById('prof-id').innerText = `ID: ${currentUser.userId}`;
             document.getElementById('prof-citizen').innerText = currentUser.currentCitizenship;
+
+            if (currentUser.isModerator) document.getElementById('admin-panel').style.display = 'block';
+
+            if (!currentUser.hammam || !currentUser.hammam.permit) {
+                document.getElementById('hammam-locked-card').style.display = 'block';
+                document.getElementById('hammam-active-card').style.display = 'none';
+            } else {
+                document.getElementById('hammam-locked-card').style.display = 'none';
+                document.getElementById('hammam-active-card').style.display = 'block';
+                document.getElementById('hammam-lvl-lbl').innerText = `Уровень ${currentUser.hammam.level || 1}`;
+                document.getElementById('hammam-uncollected').innerText = `${(currentUser.hammam.uncollected || 0).toLocaleString()} $RJC`;
+                const nextCost = ((currentUser.hammam.level || 1) + 1) * 100000;
+                document.getElementById('hammam-upg-btn').innerText = `Улучшить (${nextCost.toLocaleString()} $RJC)`;
+            }
 
             renderCategoryShop('citizenship-shop', citizenshipList, 'citizen');
             renderCategoryShop('cars-shop', carsList, 'item');
@@ -367,175 +378,223 @@
             populateMortgageSelect();
         }
 
-        function switchScreen(name) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-            document.getElementById(`screen-${name}`).classList.add('active');
-            document.getElementById(`tab-${name}`).classList.add('active');
-            if (name === 'upgrader') drawUpgraderWheel(50);
+        // АНИМАЦИЯ СЛОТОВ
+        async function triggerSpin() {
+            const bet = Number(document.getElementById('slot-bet').value);
+            if(currentUser.balance < bet || bet <= 0) return alert("Недостаточно средств!");
+
+            const symbols = ['💎', '🍋', '🍒', '7️⃣', '👑'];
+            const r1 = symbols[Math.floor(Math.random() * symbols.length)];
+            const r2 = symbols[Math.floor(Math.random() * symbols.length)];
+            const r3 = symbols[Math.floor(Math.random() * symbols.length)];
+
+            document.getElementById('r1').innerText = r1;
+            document.getElementById('r2').innerText = r2;
+            document.getElementById('r3').innerText = r3;
+
+            let isWin = (r1 === r2 && r2 === r3);
+            let winAmount = isWin ? bet * 5 : 0;
+
+            let res = await fetch(`${API_URL}/api/game/result`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, winAmount, isWin }) });
+            currentUser = await res.json();
+            updateUI();
         }
 
-        function setMaxBet(id) { document.getElementById(id).value = currentUser.balance; onUpgraderInputsChange(); }
-        // РУЛЕТКА UPGRADED/PRO
+        // ДАЙС
+        async function playDice(condition) {
+            const bet = Number(document.getElementById('dice-bet').value);
+            const target = Number(document.getElementById('dice-target').value);
+            if(currentUser.balance < bet || bet <= 0) return alert("Ошибка ставки!");
+
+            let res = await fetch(`${API_URL}/api/games/dice`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, target, condition }) });
+            let data = await res.json();
+            if(data.error) return alert(data.error);
+
+            document.getElementById('dice-result').innerText = data.roll;
+            currentUser = data.user;
+            updateUI();
+        }
+
+        // МИНЫ
+        let isMinesPlaying = false;
+        async function handleMinesBtn() {
+            const btn = document.getElementById('mines-btn');
+            if(!isMinesPlaying) {
+                const bet = Number(document.getElementById('mines-bet').value);
+                const minesCount = Number(document.getElementById('mines-count').value);
+                let res = await fetch(`${API_URL}/api/games/mines/start`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, minesCount }) });
+                let data = await res.json();
+                if(data.error) return alert(data.error);
+                
+                isMinesPlaying = true;
+                btn.innerText = "ЗАБРАТЬ 0 $RJC";
+                btn.style.background = "var(--green)";
+                renderMinesGrid();
+                syncProfile();
+            } else {
+                let res = await fetch(`${API_URL}/api/games/mines/cashout`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId }) });
+                let data = await res.json();
+                if(data.error) return alert(data.error);
+                
+                alert(`Выиграно: ${data.winAmount.toLocaleString()} $RJC`);
+                isMinesPlaying = false;
+                btn.innerText = "СТАРТ";
+                btn.style.background = "linear-gradient(135deg, var(--gold), #d4af37)";
+                currentUser = data.user;
+                updateUI();
+            }
+        }
+
+        function renderMinesGrid() {
+            const board = document.getElementById('mines-board');
+            board.innerHTML = '';
+            for(let i=0; i<25; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'mine-btn';
+                btn.innerText = '❓';
+                btn.onclick = () => stepMine(i, btn);
+                board.appendChild(btn);
+            }
+        }
+
+        async function stepMine(cellIndex, btn) {
+            if(!isMinesPlaying) return;
+            let res = await fetch(`${API_URL}/api/games/mines/step`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, cellIndex }) });
+            let data = await res.json();
+            
+            if(data.isMine) {
+                alert("💥 БУМ! Проиграли.");
+                isMinesPlaying = false;
+                document.getElementById('mines-btn').innerText = "СТАРТ";
+                document.getElementById('mines-btn').style.background = "linear-gradient(135deg, var(--gold), #d4af37)";
+                currentUser = data.user;
+                updateUI();
+            } else {
+                btn.innerText = '💎';
+                btn.disabled = true;
+                document.getElementById('mines-btn').innerText = `ЗАБРАТЬ ${data.currentWin.toLocaleString()} $RJC`;
+            }
+        }
+
+        // UPGRADER
+        function onUpgraderInputsChange() {
+            const mortgageId = document.getElementById('upgrader-mortgage-select').value;
+            let betVal = Number(document.getElementById('upgrader-bet').value) || 0;
+            if (mortgageId) {
+                const house = housesList.find(h => h.id === mortgageId);
+                if (house) betVal = house.cost;
+            }
+            const targetVal = Number(document.getElementById('upgrader-target').value) || 0;
+            let chance = 0;
+            if (targetVal > betVal && betVal > 0) chance = Math.min(95, Math.max(1, (betVal / targetVal) * 95));
+            document.getElementById('upgrader-chance-lbl').innerText = `Шанс: ${chance.toFixed(2)}%`;
+            drawUpgraderWheel(chance);
+        }
+
+        function drawUpgraderWheel(winChancePercent) {
+            const canvas = document.getElementById('upgrader-canvas');
+            if(!canvas) return;
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 200, 200);
+            const winAngle = (winChancePercent / 100) * (2 * Math.PI);
+
+            ctx.beginPath();
+            ctx.moveTo(100, 100);
+            ctx.arc(100, 100, 95, -Math.PI/2, -Math.PI/2 + winAngle);
+            ctx.fillStyle = '#00e676';
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.moveTo(100, 100);
+            ctx.arc(100, 100, 95, -Math.PI/2 + winAngle, 1.5 * Math.PI);
+            ctx.fillStyle = '#ff5252';
+            ctx.fill();
+        }
+
+        async function triggerUpgraderSpin() {
+            const mortgageItemId = document.getElementById('upgrader-mortgage-select').value;
+            const bet = Number(document.getElementById('upgrader-bet').value);
+            const targetPayout = Number(document.getElementById('upgrader-target').value);
+
+            let res = await fetch(`${API_URL}/api/games/upgrader`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId, bet, mortgageItemId, targetPayout }) });
+            let data = await res.json();
+            if(data.error) return alert(data.error);
+
+            alert(data.isWin ? `🎉 ПОБЕДА! Выигрыш: ${targetPayout} $RJC` : (data.lostMortgage ? "💥 Вы проиграли заложенный предмет!" : "❌ Не повезло!"));
+            currentUser = data.user;
+            updateUI();
+            populateMortgageSelect();
+        }
+
+        // ХАММАМ И REJEWPAY
+        async function upgradeHammam() {
+            let res = await fetch(`${API_URL}/api/hammam/upgrade`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId }) });
+            let data = await res.json();
+            if (data.error) return alert(data.error);
+            currentUser = data.user;
+            updateUI();
+        }
+
+        async function collectHammamCash() {
+            let res = await fetch(`${API_URL}/api/hammam/collect`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ userId }) });
+            let data = await res.json();
+            if (data.error) return alert(data.error);
+            alert(`Собрано ${data.collected.toLocaleString()} $RJC!`);
+            currentUser = data.user;
+            updateUI();
+        }
+
+        async function grantHammamPermit() {
+            const targetUsername = document.getElementById('grant-hammam-user').value;
+            if (!targetUsername) return alert("Укажи юзернейм!");
+            let res = await fetch(`${API_URL}/api/admin/hammam/grant`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ targetUsername }) });
+            let data = await res.json();
+            if (data.error) return alert(data.error);
+            alert(data.message);
+        }
+
+        async function sendRejewPay() {
+            const receiverUsername = document.getElementById('pay-target').value;
+            const amount = document.getElementById('pay-amount').value;
+            let res = await fetch(`${API_URL}/api/rejewpay/transfer`, { method: 'POST', headers: getSecureHeaders(), body: JSON.stringify({ senderId: userId, receiverUsername, amount, comment: 'RejewPay Transfer' }) });
+            let data = await res.json();
+            if (data.error) return alert(data.error);
+            alert("Перевод успешно отправлен!");
+            syncProfile();
+        }
+
         function populateMortgageSelect() {
             const select = document.getElementById('upgrader-mortgage-select');
-            if (!select) return;
-            select.innerHTML = '<option value="">-- Без залога (Обычная ставка) --</option>';
-            if (currentUser.ownedProperties) {
-                currentUser.ownedProperties.forEach(propId => {
-                    const house = housesList.find(h => h.id === propId);
-                    if (house) {
+            if(!select) return;
+            select.innerHTML = '<option value="">-- Без залога --</option>';
+            if(currentUser.ownedProperties) {
+                currentUser.ownedProperties.forEach(id => {
+                    const house = housesList.find(h => h.id === id);
+                    if(house) {
                         const opt = document.createElement('option');
                         opt.value = house.id;
-                        opt.innerText = `${house.name} (Залог: ${house.cost.toLocaleString()} $RJC)`;
+                        opt.innerText = `${house.name} (${house.cost.toLocaleString()} $RJC)`;
                         select.appendChild(opt);
                     }
                 });
             }
         }
 
-        function calculateUpgraderChance() {
-            const select = document.getElementById('upgrader-mortgage-select');
-            const betInput = document.getElementById('upgrader-bet');
-            const targetInput = document.getElementById('upgrader-target');
-            
-            let betVal = parseInt(betInput.value) || 0;
-            if (select.value) {
-                const house = housesList.find(h => h.id === select.value);
-                if (house) betVal = house.cost;
-            }
-
-            let targetVal = parseInt(targetInput.value) || 0;
-            if (targetVal <= betVal || betVal <= 0) return 0;
-
-            let chance = Math.min(95, Math.max(1, (betVal / targetVal) * 95));
-            return parseFloat(chance.toFixed(2));
+        function switchScreen(name) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
+            document.getElementById(`screen-${name}`).classList.add('active');
+            document.getElementById(`tab-${name}`).classList.add('active');
         }
 
-        function onUpgraderInputsChange() {
-            let chance = calculateUpgraderChance();
-            document.getElementById('upgrader-chance-lbl').innerText = `Шанс победы: ${chance}%`;
-            drawUpgraderWheel(chance);
-        }
-
-        function drawUpgraderWheel(winChancePercent, currentRotation = 0) {
-            const canvas = document.getElementById('upgrader-canvas');
-            if (!canvas) return;
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, 220, 220);
-
-            const centerX = 110, centerY = 110, radius = 100;
-            const winAngle = (winChancePercent / 100) * Math.PI * 2;
-
-            ctx.save();
-            ctx.translate(centerX, centerY);
-            ctx.rotate(currentRotation);
-            ctx.translate(-centerX, -centerY);
-
-            // Зеленая зона (Выигрыш)
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.arc(centerX, centerY, radius, -Math.PI / 2, -Math.PI / 2 + winAngle);
-            ctx.fillStyle = '#00e676';
-            ctx.fill();
-
-            // Красная/темная зона (Проигрыш)
-            ctx.beginPath();
-            ctx.moveTo(centerX, centerY);
-            ctx.arc(centerX, centerY, radius, -Math.PI / 2 + winAngle, -Math.PI / 2 + Math.PI * 2);
-            ctx.fillStyle = '#1f1f24';
-            ctx.fill();
-
-            ctx.restore();
-        }
-
-        let isSpinningUpgrader = false;
-        async function triggerUpgraderSpin() {
-            if (isSpinningUpgrader) return;
-
-            const select = document.getElementById('upgrader-mortgage-select');
-            const bet = parseInt(document.getElementById('upgrader-bet').value);
-            const targetPayout = parseInt(document.getElementById('upgrader-target').value);
-            const mortgageItemId = select.value || null;
-
-            if (!mortgageItemId && (isNaN(bet) || bet <= 0)) return alert("Введите корректную ставку!");
-            if (isNaN(targetPayout) || targetPayout <= 0) return alert("Укажите выигрыш!");
-
-            isSpinningUpgrader = true;
-            document.getElementById('upgrader-btn').disabled = true;
-
-            try {
-                let res = await fetch(`${API_URL}/api/games/upgrader`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, bet, mortgageItemId, targetPayout })
-                });
-                let data = await res.json();
-                if (data.error) {
-                    alert(data.error);
-                    isSpinningUpgrader = false;
-                    document.getElementById('upgrader-btn').disabled = false;
-                    return;
-                }
-
-                // Плавная анимация вращения круга Upgrader
-                let start = null;
-                let totalRotation = Math.PI * 2 * 6 + ((100 - data.roll) / 100) * Math.PI * 2;
-                let duration = 3500;
-
-                function animateWheel(timestamp) {
-                    if (!start) start = timestamp;
-                    let progress = (timestamp - start) / duration;
-                    if (progress > 1) progress = 1;
-
-                    let easeOut = 1 - Math.pow(1 - progress, 3);
-                    let currentRot = easeOut * totalRotation;
-
-                    drawUpgraderWheel(data.winChance, currentRot);
-
-                    if (progress < 1) {
-                        requestAnimationFrame(animateWheel);
-                    } else {
-                        currentUser = data.user;
-                        updateUI();
-                        populateMortgageSelect();
-                        if (data.isWin) {
-                            alert(`🎉 ПОБЕДА! Забрал ${targetPayout.toLocaleString()} $RJC!`);
-                        } else {
-                            if (data.lostMortgage) alert(`💥 Неудача! Твоя недвижимость сгорела!`);
-                            else alert(`❌ Не повезло! Попробуй еще раз.`);
-                        }
-                        isSpinningUpgrader = false;
-                        document.getElementById('upgrader-btn').disabled = false;
-                    }
-                }
-
-                requestAnimationFrame(animateWheel);
-            } catch(e) {
-                isSpinningUpgrader = false;
-                document.getElementById('upgrader-btn').disabled = false;
-            }
-        }
-
-        function triggerSpin() {
-            const bet = parseInt(document.getElementById('slot-bet').value);
-            if (isNaN(bet) || bet < 10) return alert("Минимум 10 коинов!");
-            fetch(`${API_URL}/api/game/result`, {
-                method: 'POST', headers: getSecureHeaders(),
-                body: JSON.stringify({ userId, bet, winAmount: bet * 2, isWin: Math.random() < 0.4 })
-            }).then(r => r.json()).then(u => { currentUser = u; updateUI(); });
-        }
+        function setMaxBet(id) { document.getElementById(id).value = currentUser.balance; }
 
         function executeCoinClick() {
             currentUser.balance += 1;
             document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
         }
 
-        window.onload = () => {
-            syncProfile();
-            drawUpgraderWheel(50);
-        };
+        window.onload = () => { syncProfile(); onUpgraderInputsChange(); };
     </script>
 </body>
 </html>
-
