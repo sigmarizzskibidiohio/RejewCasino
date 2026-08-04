@@ -70,9 +70,13 @@
 
         /* Апгрейдер CSS */
         .upgrader-arena { width: 100%; height: 220px; background: #0c0c0e; border-radius: 16px; position: relative; margin: 15px 0; display: flex; flex-direction: column; align-items: center; justify-content: center; border: 1px solid rgba(255,255,255,0.04); }
-        .upgrader-circle-outer { width: 140px; height: 140px; border-radius: 50%; background: conic-gradient(var(--purple) 0deg, #1f1f24 0deg); display: flex; align-items: center; justify-content: center; transition: background 0.3s ease; position: relative; box-shadow: 0 0 20px rgba(168,85,247,0.2); }
+        .upgrader-circle-outer { width: 150px; height: 150px; border-radius: 50%; background: conic-gradient(var(--purple) 0deg, #1f1f24 0deg); display: flex; align-items: center; justify-content: center; position: relative; box-shadow: 0 0 25px rgba(168,85,247,0.25); }
         .upgrader-circle-inner { width: 110px; height: 110px; border-radius: 50%; background: #0c0c0e; display: flex; flex-direction: column; align-items: center; justify-content: center; font-weight: 800; z-index: 2; }
-        .upgrader-pointer { position: absolute; top: 5px; width: 4px; height: 15px; background: var(--gold); z-index: 3; border-radius: 2px; }
+        
+        /* Плавная стрелка апгрейдера */
+        .upgrader-needle-container { position: absolute; width: 100%; height: 100%; top: 0; left: 0; border-radius: 50%; z-index: 3; pointer-events: none; }
+        .upgrader-needle { position: absolute; top: -6px; left: calc(50% - 4px); width: 8px; height: 24px; background: var(--gold); border-radius: 4px; box-shadow: 0 0 12px var(--gold); }
+        .upgrader-needle::after { content: ''; position: absolute; bottom: -6px; left: 0; border-left: 4px solid transparent; border-right: 4px solid transparent; border-top: 6px solid var(--gold); }
 
         .clicker-container { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; min-height: 320px; }
         .click-coin {
@@ -178,10 +182,11 @@
                 <button class="action-btn" id="crash-btn" onclick="triggerCrashAction()" style="background: linear-gradient(135deg, var(--green), #00c853);">ВЗЛЕТ</button>
             </div>
         </div>
-<!-- ПЛИНКО -->
+
+        <!-- ПЛИНКО -->
         <div id="screen-plinko" class="screen">
             <div class="game-card">
-                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Физическая Демонстрация)</div>
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Плинко (Физика)</div>
                 <div class="plinko-arena-wrapper">
                     <canvas id="plinko-canvas" width="320" height="340"></canvas>
                 </div>
@@ -201,8 +206,10 @@
             <div class="game-card">
                 <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1.5px; text-transform:uppercase;">Апгрейдер (Multi-Upgrader)</div>
                 <div class="upgrader-arena">
-                    <div class="upgrader-pointer"></div>
                     <div class="upgrader-circle-outer" id="upgrader-ring">
+                        <div class="upgrader-needle-container" id="upgrader-needle">
+                            <div class="upgrader-needle"></div>
+                        </div>
                         <div class="upgrader-circle-inner">
                             <span id="upgrader-target-mult" style="font-size:1.4rem; color:var(--purple);">x2.00</span>
                             <span id="upgrader-chance-lbl" style="font-size:0.75rem; color:var(--text-secondary);">47.5% Шанс</span>
@@ -257,7 +264,7 @@
                 <div class="profile-header">
                     <div class="avatar-stub" id="prof-avatar">🕹️</div>
                     <div>
-                        <div style="display:flex; align-items:center; gap:8px;">
+<div style="display:flex; align-items:center; gap:8px;">
                             <h3 style="margin:0; font-weight:800; font-size:1.2rem;" id="prof-name">Игрок</h3>
                             <span onclick="editNickname()" style="cursor:pointer; font-size:0.9rem; color:var(--gold);">✏️</span>
                         </div>
@@ -294,7 +301,6 @@
                 </div>
             </div>
 
-            <!-- АДМИН ПАНЕЛЬ (ПОЛНОСТЬЮ СОХРАНЕНА) -->
             <div class="panel-card" id="admin-panel" style="display:none; border: 1px dashed var(--gold); background: #16120e;">
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem;" id="admin-panel-title">Админ / Мод Панель</h4>
                 
@@ -378,7 +384,8 @@
             Профиль
         </button>
     </nav>
-<script>
+
+    <script>
         const API_URL = "https://rejewcas-backend.onrender.com"; 
 
         let tg;
@@ -390,6 +397,8 @@
 
         let accumulatedClicks = 0;
         let clickSyncTimeout = null;
+        let currentNeedleAngle = 0;
+        let isUpgrading = false;
 
         try {
             tg = window.Telegram.WebApp;
@@ -408,7 +417,6 @@
         const isOwner = ['root', 'tacuv', 'rejew'].includes(normalizedUser);
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
-        // 📜 НОВАЯ КАТЕГОРИЯ: ПЕРМИТЫ И ИГРОВЫЕ ЛИЦЕНЗИИ
         const permitsList = [
             { id: 'perm_bronze', name: '📜 Пермит Новичка (Бронза)', cost: 1000, bonusText: 'Открывает доступ к играм' },
             { id: 'perm_silver', name: '🥈 Пермит Игрока (Серебро)', cost: 5000, bonusText: 'Кэшбэк 2% со всех сливных спинов' },
@@ -421,9 +429,7 @@
             { id: 'perm_cyber', name: '🛸 Кибер-Пермит R-2077', cost: 3000000, bonusText: 'Неограниченный лимит вывода' },
             { id: 'perm_god', name: '⚡ Пермит Бога Удачи', cost: 10000000, bonusText: 'Золотая аура в профиле' }
         ];
-
-        // 🌍 ПАСПОРТАИ (+16 НОВЫХ)
-        const citizenshipList = [
+const citizenshipList = [
             { id: 'c_monaco', name: '🇲🇨 Монако (Княжеское)', cost: 0, special: true },
             { id: 'c_kz', name: '🇰🇿 Казахстан (ВНЖ)', cost: 2000 },
             { id: 'c_egypt', name: '🇪🇬 Египет (Инвестор)', cost: 4000 },
@@ -448,7 +454,6 @@
             { id: 'c_crypto', name: '🐳 Эль-Сальвадор (Биткоин Кинг)', cost: 4500000 },
             { id: 'c_mars', name: '🚀 Марс (ID Илона Маска)', cost: 8000000 },
             { id: 'c_alpha', name: '🪐 Альфа Центавра (Межгалактический)', cost: 15000000 },
-            // --- 16 НОВЫХ ПАСПОРТОВ ---
             { id: 'c_serbia', name: '🇷🇸 Сербия (Инвестиционный)', cost: 20000000 },
             { id: 'c_malta', name: '🇲🇹 Мальта (Европейский Паспорт)', cost: 25000000 },
             { id: 'c_iceland', name: '🇮🇸 Исландия (Вулканический ПМЖ)', cost: 32000000 },
@@ -467,7 +472,6 @@
             { id: 'c_creator_id', name: '👑 Паспорт Всевышнего', cost: 5000000000 }
         ];
 
-        // 🚗 АВТОМОБИЛИ (+16 НОВЫХ)
         const carsList = [
             { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
             { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 },
@@ -493,7 +497,6 @@
             { id: 'p_rolls', name: '💎 Rolls-Royce La Rose Noire', cost: 1500000 },
             { id: 'p_batmobile', name: '🦇 Бэтмобиль Кристиана Бэйла', cost: 3500000 },
             { id: 'p_ufo', name: '🛸 НЛО Розуэлл', cost: 5000000 },
-            // --- 16 НОВЫХ АВТО ---
             { id: 'p_rimac', name: '⚡ Rimac Nevera Time Attack', cost: 8500000 },
             { id: 'p_veneno', name: '🔥 Lamborghini Veneno Roadster', cost: 12000000 },
             { id: 'p_sweptail', name: '💎 Rolls-Royce Sweptail Custom', cost: 18000000 },
@@ -512,7 +515,6 @@
             { id: 'p_time_machine', name: '🌀 Квантовая Машина Времени T-1000', cost: 2000000000 }
         ];
 
-        // 🏰 НЕДВИЖИМОСТЬ (+16 НОВЫХ НЕВООБРАЗИМЫХ ОБЪЕКТОВ)
         const housesList = [
             { id: 'p_palace', name: '🏰 Княжеский дворец Монако', cost: 0, special: true, bonus: 5000000 },
             { id: 'p_pipe', name: '🕳️ Теплотрасса', cost: 50, bonus: 2 },
@@ -549,7 +551,6 @@
             { id: 'p_bunker', name: '🛡️ Подземный бункер R-100', cost: 9900000, bonus: 2000000 },
             { id: 'p_orbit', name: '🛰️ Орбитальная станция', cost: 15000000, bonus: 3000000 },
             { id: 'p_death_star', name: '🌑 Звезда Смерти', cost: 35000000, bonus: 8000000 },
-            // --- 16 НОВЫХ ОБЪЕКТОВ НЕДВИЖИМОСТИ ---
             { id: 'p_atlantis_dome', name: '🏛️ Купол Атлантиды на Дне Океана', cost: 50000000, bonus: 12000000 },
             { id: 'p_pyramid_gold', name: '📐 Золотая Пирамида Хеопса 2.0', cost: 75000000, bonus: 18000000 },
             { id: 'p_mars_colony', name: '🚀 Колония "ElonCity" на Марсе', cost: 100000000, bonus: 25000000 },
@@ -568,7 +569,6 @@
             { id: 'p_absolute_infinity', name: '🌌 Абсолютная Бесконечность', cost: 15000000000, bonus: 6000000000 }
         ];
 
-        // 🚢 ЯХТЫ (+16 НОВЫХ)
         const yachtsList = [
             { id: 'p_matras', name: '🛟 Надувной матрас', cost: 100 },
             { id: 'p_pvh', name: '🚣‍♂️ Лодка ПВХ', cost: 400 },
@@ -590,7 +590,6 @@
             { id: 'p_underwater_city', name: '🌊 Подводный город', cost: 5000000 },
             { id: 'p_starship', name: '🌌 Межгалактическая суперяхта', cost: 9900000 },
             { id: 'p_cruiser', name: '🚀 Космический крейсер', cost: 25000000 },
-            // --- 16 НОВЫХ ЯХТ ---
             { id: 'p_leviathan', name: '🐉 Левиафан (Атомная Субмарина)', cost: 45000000 },
             { id: 'p_solar_yacht', name: '☀️ Солярный Парусник Аполлона', cost: 75000000 },
             { id: 'p_dreadnought', name: '⚓ Дредноут Морского Владыки', cost: 120000000 },
@@ -737,253 +736,8 @@ function getSecureHeaders() {
             document.getElementById('prof-id').innerText = currentUser.userId;
             
             if (isOwner) currentUser.currentCitizenship = '🇲🇨 Монако (Княжеское)';
-            document.getElementById('prof-citizen').innerText = `Гражданство: ${currentUser.currentCitizenship}`;
 
-            const clickPower = getClickPower();
-            document.getElementById('clicker-profit-label').innerText = `+${clickPower.toLocaleString()} $RJC за каждый тап`;
-
-            const refCount = currentUser.rewardedReferrals ? currentUser.rewardedReferrals.length : 0;
-            document.getElementById('ref-status-lbl').innerText = `Принесено бонусов за рефералов: ${refCount} (+$ ${(refCount * 5000).toLocaleString()} $RJC)`;
-
-            const btnMaint = document.getElementById('maint-toggle-btn');
-            if (currentUser.maintenanceActive) {
-                btnMaint.innerText = "ВЫЙТИ ИЗ ТЕХОБСЛУЖИВАНИЯ";
-                btnMaint.style.background = "linear-gradient(135deg, var(--green), #00c853)";
-            } else {
-                btnMaint.innerText = "ЗАКРЫТЬ НА ТЕХОБСЛУЖИВАНИЕ";
-                btnMaint.style.background = "linear-gradient(135deg, var(--red), #c62828)";
-            }
-
-            const canSeeAdmin = isOwner || currentUser.isModerator;
-            if (canSeeAdmin) {
-                document.getElementById('admin-panel').style.display = 'block';
-                document.getElementById('player-stats-block').style.display = 'none';
-                if (isOwner) {
-                    document.getElementById('prof-status').innerText = 'Владелец';
-                    document.getElementById('prof-status').style.color = 'var(--gold)';
-                    document.getElementById('prof-avatar').innerText = '👑';
-                    document.getElementById('admin-panel-title').innerText = 'Админ-панель';
-                } else {
-                    document.getElementById('prof-status').innerText = 'Модератор';
-                    document.getElementById('prof-status').style.color = '#3b82f6';
-                    document.getElementById('prof-avatar').innerText = '🛡️';
-                    document.getElementById('admin-panel-title').innerText = 'Модер-панель';
-                }
-            } else {
-                document.getElementById('prof-status').innerText = 'Игрок';
-                document.getElementById('prof-status').style.color = 'var(--text-secondary)';
-                document.getElementById('admin-panel').style.display = 'none';
-                document.getElementById('player-stats-block').style.display = 'block';
-                document.getElementById('prof-avatar').innerText = '🕹️';
-                
-                document.getElementById('stat-total').innerText = currentUser.stats.total || 0;
-                document.getElementById('stat-wins').innerText = currentUser.stats.wins || 0;
-                document.getElementById('stat-losses').innerText = currentUser.stats.losses || 0;
-            }
-
-            const transListBlock = document.getElementById('transactions-list');
-            if (currentUser.messages && currentUser.messages.length > 0) {
-                transListBlock.innerHTML = '';
-                [...currentUser.messages].reverse().forEach(msg => {
-                    const div = document.createElement('div');
-                    div.className = 'msg-box';
-                    
-                    const isOutgoing = String(msg.fromId) === String(userId) || String(msg.senderId) === String(userId);
-                    const color = isOutgoing ? 'var(--red)' : 'var(--green)';
-                    const prefix = isOutgoing ? '-' : '+';
-                    
-                    const partnerName = msg.partnerNickname || msg.from || (isOutgoing ? 'Получатель' : 'Отправитель');
-                    const partnerUser = isOutgoing ? msg.receiverUsername : msg.senderUsername;
-                    const commentText = msg.comment ? msg.comment : "Без комментария";
-
-                    div.innerHTML = `
-                        <div style="display:flex; justify-content:space-between; align-items:center;">
-                            <span style="color:${color}; font-weight:800; font-size:0.9rem;">${prefix}${Number(msg.amount || 0).toLocaleString()} $RJC</span>
-                            <span style="font-size:0.7rem; color:var(--text-secondary); background:#18181b; padding:2px 6px; border-radius:4px;">
-                                ${msg.type || 'Операция'}
-                            </span>
-                        </div>
-                        <div style="color:var(--text-secondary); font-size:0.75rem; margin-top:6px;">
-                            ${isOutgoing ? 'Кому' : 'От'}: 
-                            <span class="user-link" onclick="quickFillTransfer('${partnerUser || ''}')">${partnerName} ${partnerUser ? '@' + partnerUser : ''}</span>
-                            <div style="background:rgba(0,0,0,0.2); padding:8px; border-radius:6px; margin-top:6px; color:#fff;">💬 ${commentText}</div>
-                        </div>
-                    `;
-                    transListBlock.appendChild(div);
-                });
-            } else {
-                transListBlock.innerHTML = `<div style="color:var(--text-secondary); font-size:0.8rem; text-align:center; padding:10px;">История пуста</div>`;
-            }
-
-            renderCategoryShop('permits-shop', permitsList, 'permit');
-            renderCategoryShop('citizenship-shop', citizenshipList, 'citizen');
-            renderCategoryShop('cars-shop', carsList, 'item');
-            renderCategoryShop('houses-shop', housesList, 'item');
-            renderCategoryShop('yachts-shop', yachtsList, 'item');
-        }
-
-        function renderCategoryShop(elementId, itemsList, type) {
-            const block = document.getElementById(elementId);
-            if(!block) return;
-            block.innerHTML = '';
-
-            itemsList.forEach(itemData => {
-                const div = document.createElement('div');
-                div.className = 'shop-item';
-                
-                let btnHtml = '';
-                const isOwned = (currentUser.ownedProperties && currentUser.ownedProperties.includes(itemData.id)) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
-
-                if (itemData.special) {
-                    if (itemData.id === 'p_mod_hq') {
-                        btnHtml = currentUser.isModerator || isOwner ? `<button class="buy-btn owned">Доступно</button>` : `<button class="buy-btn locked">Для Модеров</button>`;
-                    } else {
-                        btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
-                    }
-                } else if (isOwned) {
-                    btnHtml = `<button class="buy-btn owned">Куплено</button>`;
-                } else if (itemData.id === 'p_hamam_resort') {
-                    const hasIsland = currentUser.ownedProperties && currentUser.ownedProperties.includes('p_island');
-                    if (hasIsland) {
-                        btnHtml = `<button class="buy-btn" style="background: linear-gradient(135deg, var(--green), #00c853); color: #000; font-weight: 800;" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Улучшить</button>`;
-                    } else {
-                        btnHtml = `<button class="buy-btn locked" style="background: #221515; border-color: var(--red); color: var(--red);">Нужен Атолл</button>`;
-                    }
-                } else {
-                    btnHtml = `<button class="buy-btn" onclick="buyItem('${itemData.id}', '${itemData.name}', ${itemData.cost}, '${type}')">Купить</button>`;
-                }
-
-                let bonusInfo = '';
-                if (itemData.bonus) bonusInfo = `<br><span style="color:var(--green); font-size:0.72rem; font-weight:700;">+${itemData.bonus.toLocaleString()} $RJC/день</span>`;
-                if (type === 'citizen' && itemData.cost > 0) {
-                     bonusInfo = `<br><span style="color:var(--gold); font-size:0.72rem; font-weight:700;">+${(1 + Math.floor(itemData.cost / 800)).toLocaleString()} к тапу</span>`;
-                }
-                if (type === 'permit') {
-                    bonusInfo = `<br><span style="color:var(--purple); font-size:0.72rem; font-weight:700;">${itemData.bonusText}</span>`;
-                }
-
-                div.innerHTML = `
-                    <div class="shop-item-info">
-                        <span class="shop-item-name">${itemData.name}</span>
-                        <span class="shop-item-cost">${itemData.special ? 'Спец. статус' : itemData.cost.toLocaleString() + ' $RJC'}${bonusInfo}</span>
-                    </div>
-                    ${btnHtml}
-                `;
-                block.appendChild(div);
-            });
-        }
-
-        async function buyItem(itemId, itemName, cost, type) {
-            currentUser.balance = Number(currentUser.balance) || 0;
-            if (currentUser.balance < cost) return showToast("Не хватает $RJC на эту сделку!", 'error');
-            try {
-                let res = await fetch(`${API_URL}/api/buy`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, itemId, itemName, cost, type })
-                });
-                let data = await res.json();
-                if(data.error) return showToast(data.error, 'error');
-                currentUser = data;
-                currentUser.balance = Number(currentUser.balance) || 0;
-                forceOwnerLuxuries(currentUser);
-                showToast(`🎉 Успешная сделка: ${itemName}`, 'gold');
-                updateUI();
-            } catch(e) { showToast("Ошибка сети при покупке", "error"); }
-        }
-
-        async function processTransfer() {
-            const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
-            const comment = document.getElementById('transfer-comment').value.trim();
-            const amount = parseInt(document.getElementById('transfer-amount').value);
-
-            if (!receiverUsername) return showToast("Введите юзернейм получателя", 'error');
-            if (isNaN(amount) || amount <= 0) return showToast("Некорректная сумма", 'error');
-            currentUser.balance = Number(currentUser.balance) || 0;
-            if (currentUser.balance < amount) return showToast("Недостаточно коинов!", 'error');
-
-            try {
-                let res = await fetch(`${API_URL}/api/rejewpay/transfer`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ senderId: userId, receiverUsername, amount, comment })
-                });
-                let data = await res.json();
-                if(data.error) return showToast(data.error, 'error');
-                
-                showToast(`💸 Перевод выполнен!`, 'success');
-                document.getElementById('transfer-target').value = '';
-                document.getElementById('transfer-comment').value = '';
-                document.getElementById('transfer-amount').value = '';
-                syncProfile();
-            } catch(e) { showToast("Ошибка RejewPay", "error"); }
-        }
-
-        function switchScreen(screenName) {
-            if (accumulatedClicks > 0) {
-                clearTimeout(clickSyncTimeout);
-                syncClicksWithBackend();
-            }
-
-            const activeScreen = document.querySelector('.screen.active');
-            const nextScreen = document.getElementById(`screen-${screenName}`);
-            
-            if (activeScreen) {
-                activeScreen.style.opacity = '0';
-                activeScreen.style.transform = 'translateY(-10px)';
-                setTimeout(() => {
-                    activeScreen.classList.remove('active');
-                    nextScreen.classList.add('active');
-                    setTimeout(() => {
-                        nextScreen.style.opacity = '1';
-                        nextScreen.style.transform = 'translateY(0)';
-                        if(screenName === 'plinko') initPlinkoCanvas();
-                    }, 20);
-                }, 150);
-            } else {
-                nextScreen.classList.add('active');
-                nextScreen.style.opacity = '1';
-                nextScreen.style.transform = 'translateY(0)';
-                if(screenName === 'plinko') initPlinkoCanvas();
-            }
-
-            document.querySelectorAll('.nav-item').forEach(t => t.classList.remove('active'));
-            document.getElementById(`tab-${screenName}`).classList.add('active');
-        }
-
-        function setMaxBet(inputId) {
-            currentUser.balance = Number(currentUser.balance) || 0;
-            const field = document.getElementById(inputId);
-            if (field) {
-                field.value = currentUser.balance;
-            }
-        }
-function getSecureHeaders() {
-            const headers = { 'Content-Type': 'application/json' };
-            if (tg && tg.initData) {
-                headers['x-tg-data'] = tg.initData;
-            }
-            return headers;
-        }
-
-        function getClickPower() {
-            const currentName = currentUser.currentCitizenship;
-            const citizen = citizenshipList.find(c => c.name === currentName);
-            let basePower = 1;
-            if (citizen) {
-                if (citizen.special) basePower = 250; 
-                else basePower = 1 + Math.floor(citizen.cost / 800);
-            }
-            if (currentUser.ownedProperties && currentUser.ownedProperties.includes('perm_pro')) {
-                basePower = Math.floor(basePower * 1.1);
-            }
-            return basePower;
-        }
-
-        function forceOwnerLuxuries(userObj) {
-            if (isOwner) {
-                userObj.currentCitizenship = '🇲🇨 Монако (Княжеское)';
-                if (!userObj.ownedProperties) userObj.ownedProperties = [];
+if (!userObj.ownedProperties) userObj.ownedProperties = [];
                 ['c_monaco', 'p_boattail', 'p_palace'].forEach(id => {
                     if (!userObj.ownedProperties.includes(id)) userObj.ownedProperties.push(id);
                 });
@@ -1051,7 +805,7 @@ function getSecureHeaders() {
             } catch(e) {}
         }
 
-        function showToast(message, type = 'success') {
+function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
             const toast = document.createElement('div');
             toast.className = `toast ${type}`;
@@ -1170,9 +924,10 @@ function getSecureHeaders() {
             renderCategoryShop('cars-shop', carsList, 'item');
             renderCategoryShop('houses-shop', housesList, 'item');
             renderCategoryShop('yachts-shop', yachtsList, 'item');
+            updateUpgraderUI();
         }
 
-        function renderCategoryShop(elementId, itemsList, type) {
+function renderCategoryShop(elementId, itemsList, type) {
             const block = document.getElementById(elementId);
             if(!block) return;
             block.innerHTML = '';
@@ -1242,7 +997,7 @@ function getSecureHeaders() {
             } catch(e) { showToast("Ошибка сети при покупке", "error"); }
         }
 
-        async function processTransfer() {
+async function processTransfer() {
             const receiverUsername = document.getElementById('transfer-target').value.trim().replace('@', '');
             const comment = document.getElementById('transfer-comment').value.trim();
             const amount = parseInt(document.getElementById('transfer-amount').value);
@@ -1308,535 +1063,352 @@ function getSecureHeaders() {
                 field.value = currentUser.balance;
             }
         }
-function executeCoinClick() {
-            const power = getClickPower();
-            currentUser.balance = (Number(currentUser.balance) || 0) + power;
-            accumulatedClicks += power;
-            document.getElementById('header-bal').innerText = currentUser.balance.toLocaleString();
 
-            clearTimeout(clickSyncTimeout);
-            clickSyncTimeout = setTimeout(syncClicksWithBackend, 1500);
-        }
-
-        async function syncClicksWithBackend() {
-            if (accumulatedClicks === 0) return;
-            let clicksToSend = accumulatedClicks;
-            accumulatedClicks = 0;
-
-            try {
-                let res = await fetch(`${API_URL}/api/game/result`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, bet: 0, winAmount: clicksToSend, isWin: true })
-                });
-                currentUser = await res.json();
-                currentUser.balance = Number(currentUser.balance) || 0;
-                forceOwnerLuxuries(currentUser);
-                updateUI();
-            } catch(e) {
-                accumulatedClicks += clicksToSend;
-            }
-        }
-
-        async function sendGameResult(bet, winAmount, isWin, msg, status) {
-            try {
-                let res = await fetch(`${API_URL}/api/game/result`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, bet, winAmount, isWin })
-                });
-                currentUser = await res.json();
-                currentUser.balance = Number(currentUser.balance) || 0;
-                forceOwnerLuxuries(currentUser);
-                updateUI();
-                if (msg) showToast(msg, status || 'success');
-            } catch(e) {
-                showToast("Ошибка сохранения результата", "error");
-            }
-        }
-
-        /* 🎰 СЛОТЫ */
-        function triggerSpin() {
+/* --- СЛОТЫ --- */
+        async function triggerSpin() {
             const betInput = document.getElementById('slot-bet');
-            let bet = parseInt(betInput.value);
+            const bet = parseInt(betInput.value);
+            if (isNaN(bet) || bet <= 0 || bet > currentUser.balance) return showToast("Некорректная ставка!", "error");
 
-            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
-            currentUser.balance = Number(currentUser.balance) || 0;
-            if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
-
-            const spinBtn = document.getElementById('spin-btn');
-            spinBtn.disabled = true;
-
-            let rng = Math.random() * 100;
-            let r1, r2, r3, winAmount = 0, isWin = false, msg = '', status = 'loss';
-
-            if (rng < 5.0) { 
-                r1 = r2 = r3 = '💎'; winAmount = bet * 12; isWin = true; status = 'gold'; msg = `🎰 ДЖЕКПОТ! x12 (+${winAmount} $RJC)`;
-            } else if (rng < 16.0) { 
-                let fruit = slotItems[Math.floor(Math.random() * 3)];
-                r1 = r2 = r3 = fruit; winAmount = bet * 5; isWin = true; status = 'success'; msg = `🎉 Совпадение линий! x5 (+${winAmount} $RJC)`;
-            } else if (rng < 45.0) { 
-                let sym1 = slotItems[Math.floor(Math.random() * slotItems.length)];
-                r1 = sym1; r2 = sym1; r3 = slotItems[(slotItems.indexOf(sym1) + 1) % slotItems.length];
-                winAmount = Math.floor(bet * 1.5); isWin = true; status = 'success'; msg = `✨ Двойное комбо! (+${winAmount})`;
-            } else {
-                if (Math.random() < 0.5) {
-                    let fakeSym = slotItems[Math.floor(Math.random() * slotItems.length)];
-                    r1 = fakeSym; r2 = fakeSym;
-                    r3 = slotItems.filter(item => item !== fakeSym)[Math.floor(Math.random() * 4)];
-                } else {
-                    r1 = slotItems[0]; r2 = slotItems[2]; r3 = slotItems[4];
-                }
-                msg = "Мимо! Крути еще.";
-            }
-
-            const reels = [document.getElementById('r1'), document.getElementById('r2'), document.getElementById('r3')];
-            reels.forEach(r => r.classList.add('spinning'));
-
-            let i1 = setInterval(() => { reels[0].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
-            let i2 = setInterval(() => { reels[1].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
-            let i3 = setInterval(() => { reels[2].innerText = slotItems[Math.floor(Math.random() * 5)]; }, 50);
-
-            setTimeout(() => { clearInterval(i1); reels[0].classList.remove('spinning'); reels[0].innerText = r1; }, 500);
-            setTimeout(() => { clearInterval(i2); reels[1].classList.remove('spinning'); reels[1].innerText = r2; }, 1000);
-            setTimeout(() => { 
-                clearInterval(i3); 
-                reels[2].classList.remove('spinning'); 
-                reels[2].innerText = r3; 
-
-                sendGameResult(bet, winAmount, isWin, msg, status);
-                spinBtn.disabled = false;
-            }, 1500);
-        }
-
-        /* 🚀 КРАШ */
-        let crashState = 'idle'; 
-        let crashBetAmount = 0;
-        let currentMultiplier = 1.00;
-        let crashPoint = 0;
-        let crashStartTime = 0;
-        let crashAnimFrame = null;
-        let hasCashedOut = false; 
-
-        function triggerCrashAction() {
-            const btn = document.getElementById('crash-btn');
-            if (crashState === 'idle') {
-                const betInput = document.getElementById('crash-bet');
-                crashBetAmount = parseInt(betInput.value);
-
-                if (isNaN(crashBetAmount) || crashBetAmount < 10) return showToast("Минимум — 10 $RJC!", 'error');
-                currentUser.balance = Number(currentUser.balance) || 0;
-                if (currentUser.balance < crashBetAmount) return showToast("Недостаточно баланса!", 'error');
-
-                crashState = 'flying';
-                currentMultiplier = 1.00;
-                hasCashedOut = false;
-                
-                btn.innerText = 'ЗАБРАТЬ';
-                btn.style.background = 'linear-gradient(135deg, #a855f7, #7c3aed)';
-                
-                let houseEdge = 0.03; 
-                if (Math.random() < houseEdge) {
-                    crashPoint = 1.00;
-                } else {
-                    let rand = Math.random();
-                    crashPoint = parseFloat((0.99 / (1 - rand)).toFixed(2));
-                    if (crashPoint < 1.01) crashPoint = 1.01;
-                    if (crashPoint > 100) crashPoint = 100;
-                }
-
-                crashStartTime = performance.now();
-                crashAnimFrame = requestAnimationFrame(updateCrashEngine);
-            } else if (crashState === 'flying' && !hasCashedOut) {
-                hasCashedOut = true;
-                let winAmount = Math.floor(crashBetAmount * currentMultiplier);
-                showToast(`🚀 Забрал! Множитель: ${currentMultiplier.toFixed(2)}x (+${winAmount} $RJC)`, 'success');
-                sendGameResult(crashBetAmount, winAmount, true, null, 'success');
-                
-                btn.innerText = 'СМОТРИМ ПОЛЕТ...';
-                btn.disabled = true;
-                btn.style.background = 'linear-gradient(135deg, #374151, #1f2937)';
-            }
-        }
-
-        function updateCrashEngine(now) {
-            if (crashState !== 'flying') return;
-
-            let elapsed = (now - crashStartTime) / 1000;
-            currentMultiplier = parseFloat((1.00 + Math.pow(elapsed, 1.6) * 0.08).toFixed(2));
-
-            if (currentMultiplier >= crashPoint) {
-                crashState = 'crashed';
-                document.getElementById('crash-mult').innerText = 'БУМ! 💥';
-                document.getElementById('crash-mult').style.color = 'var(--red)';
-                document.getElementById('rocket-obj').innerText = '💥';
-                
-                showToast(`Взрыв на ${crashPoint.toFixed(2)}x!`, 'error');
-                
-                setTimeout(() => {
-                    const btn = document.getElementById('crash-btn');
-                    btn.disabled = false;
-                    resetCrashUI('ВЗЛЕТ', 'linear-gradient(135deg, var(--green), #00c853)');
-                    document.getElementById('rocket-obj').innerText = '🚀';
-                    document.getElementById('crash-mult').style.color = '#fff';
-                }, 2200);
-
-                if (!hasCashedOut) {
-                    sendGameResult(crashBetAmount, 0, false, null, 'error');
-                }
-                return;
-            }
-
-            document.getElementById('crash-mult').innerText = currentMultiplier.toFixed(2) + 'x';
-
-            const arena = document.querySelector('.crash-arena');
-            let maxW = arena.clientWidth - 50;
-            let maxH = 200 - 50;
-
-            let progress = Math.min((currentMultiplier - 1) / 5, 0.95); 
-            
-            let curX = Math.floor(maxW * progress);
-            let curY = Math.floor(maxH * Math.sin(progress * Math.PI / 2));
-
-            const rocket = document.getElementById('rocket-obj');
-            rocket.style.transform = `translate(${curX}px, ${-curY}px) rotate(${-progress * 30}deg)`;
-
-            const path = document.getElementById('flight-line');
-            let startX = 15;
-            let startY = 185;
-            let currentPathX = startX + curX;
-            let currentPathY = startY - curY;
-            
-            path.setAttribute('d', `M ${startX} ${startY} Q ${(startX + currentPathX)/1.6} ${startY} ${currentPathX} ${currentPathY}`);
-
-            crashAnimFrame = requestAnimationFrame(updateCrashEngine);
-        }
-
-        function resetCrashUI(text, background) {
-            const btn = document.getElementById('crash-btn');
-            btn.innerText = text;
-            btn.style.background = background;
-            crashState = 'idle';
-            document.getElementById('crash-mult').innerText = '1.00x';
-            
-            const rocket = document.getElementById('rocket-obj');
-            rocket.style.transform = `translate(0px, 0px) rotate(0deg)`;
-            document.getElementById('flight-line').setAttribute('d', 'M 15 185 Q 15 185 15 185');
-        }
-
-        /* ⚡ АПГРЕЙДЕР СИСТЕМА */
-        function updateUpgraderUI() {
-            const targetInput = document.getElementById('upgrader-target-input');
-            let mult = parseFloat(targetInput.value);
-            if (isNaN(mult) || mult < 1.1) mult = 1.1;
-            if (mult > 100) mult = 100;
-
-            let chance = (95 / mult).toFixed(1);
-            if (chance > 95) chance = 95;
-            if (chance < 0.95) chance = 0.95;
-
-            document.getElementById('upgrader-target-mult').innerText = `x${mult.toFixed(2)}`;
-            document.getElementById('upgrader-chance-lbl').innerText = `${chance}% Шанс`;
-
-            const deg = (chance / 100) * 360;
-            document.getElementById('upgrader-ring').style.background = `conic-gradient(var(--purple) 0deg ${deg}deg, #1f1f24 ${deg}deg 360deg)`;
-        }
-
-        async function triggerUpgrader() {
-            const betInput = document.getElementById('upgrader-bet');
-            const targetInput = document.getElementById('upgrader-target-input');
-            let bet = parseInt(betInput.value);
-            let targetMult = parseFloat(targetInput.value);
-
-            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
-            if (isNaN(targetMult) || targetMult < 1.1 || targetMult > 100) return showToast("Немоделируемый множитель", 'error');
-            currentUser.balance = Number(currentUser.balance) || 0;
-            if (currentUser.balance < bet) return showToast("Недостаточно $RJC!", 'error');
-
-            const btn = document.getElementById('upgrader-btn');
+            const btn = document.getElementById('spin-btn');
             btn.disabled = true;
 
-            try {
-                let res = await fetch(`${API_URL}/api/games/upgrade`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, bet, targetMultiplier: targetMult })
-                });
-                let data = await res.json();
-                if (data.error) {
-                    btn.disabled = false;
-                    return showToast(data.error, 'error');
+            const r1 = document.getElementById('r1');
+            const r2 = document.getElementById('r2');
+            const r3 = document.getElementById('r3');
+
+            r1.classList.add('spinning');
+            r2.classList.add('spinning');
+            r3.classList.add('spinning');
+
+            setTimeout(() => {
+                const s1 = slotItems[Math.floor(Math.random() * slotItems.length)];
+                const s2 = slotItems[Math.floor(Math.random() * slotItems.length)];
+                const s3 = slotItems[Math.floor(Math.random() * slotItems.length)];
+
+                r1.innerText = s1;
+                r2.innerText = s2;
+                r3.innerText = s3;
+
+                r1.classList.remove('spinning');
+                r2.classList.remove('spinning');
+                r3.classList.remove('spinning');
+
+                let win = 0;
+                if (s1 === s2 && s2 === s3) {
+                    win = bet * 10;
+                    showToast(`🎉 ДЖЕКПОТ! X10 (+${win.toLocaleString()} $RJC)`, "gold");
+                } else if (s1 === s2 || s2 === s3 || s1 === s3) {
+                    win = bet * 2;
+                    showToast(`🔥 Совпадение пара! X2 (+${win.toLocaleString()} $RJC)`, "success");
+                } else {
+                    showToast(`Увы, мимо (-${bet.toLocaleString()} $RJC)`, "error");
+                    win = -bet;
                 }
 
-                // Анимация вращения указателя
-                const ring = document.getElementById('upgrader-ring');
-                let startAngle = 0;
-                let targetDeg = (data.roll / 100) * 360;
-                let extraTurns = 360 * 3; // 3 полных круга
-                let finalAngle = extraTurns + targetDeg;
-
-                ring.style.transition = 'transform 2s cubic-bezier(0.15, 0.9, 0.3, 1)';
-                ring.style.transform = `rotate(${finalAngle}deg)`;
-
-                setTimeout(() => {
-                    ring.style.transition = 'none';
-                    ring.style.transform = `rotate(${targetDeg}deg)`;
-
-                    if (data.isWin) {
-                        showToast(`🚀 УСПЕХ! Апгрейд прошёл! (+${data.winAmount} $RJC)`, 'purple');
-                    } else {
-                        showToast(`💥 НЕУДАЧА! Предмет сгорел (Ролл: ${data.roll.toFixed(1)}%)`, 'error');
-                    }
-
-                    currentUser.balance = Number(data.newBalance);
-                    updateUI();
-                    btn.disabled = false;
-                }, 2050);
-
-            } catch(e) {
+                currentUser.balance += win;
+                updateUI();
                 btn.disabled = false;
-                showToast("Ошибка соединения Апгрейдера", "error");
-            }
+            }, 1000);
         }
 
-        /* 🎯 ПОЛНОЦЕННЫЙ ПЛИНКО CANVAS С ФИЗИКОЙ И АНИМАЦИЕЙ */
-        let plinkoCanvas, ctx;
-        const plinkoMultipliers = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
-        let plinkoPins = [];
+/* --- РАКЕТКА (CRASH) --- */
+        let crashInterval = null;
+        function triggerCrashAction() {
+            const bet = parseInt(document.getElementById('crash-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > currentUser.balance) return showToast("Некорректная ставка!", "error");
+
+            const btn = document.getElementById('crash-btn');
+            btn.disabled = true;
+
+            let mult = 1.00;
+            const crashPoint = (Math.random() * 3 + 1.1).toFixed(2);
+            const multDisplay = document.getElementById('crash-mult');
+            const rocket = document.getElementById('rocket-obj');
+            
+            currentUser.balance -= bet;
+            updateUI();
+
+            crashInterval = setInterval(() => {
+                mult += 0.04;
+                multDisplay.innerText = mult.toFixed(2) + 'x';
+                rocket.style.transform = `translate(${Math.min((mult - 1) * 60, 200)}px, -${Math.min((mult - 1) * 45, 120)}px)`;
+
+                if (mult >= crashPoint) {
+                    clearInterval(crashInterval);
+                    showToast(`💥 Ракетка взорвалась на ${crashPoint}x!`, "error");
+                    multDisplay.innerText = "ВЗРЫВ!";
+                    rocket.style.transform = "none";
+                    btn.disabled = false;
+                }
+            }, 100);
+        }
+
+/* --- ПЛАВНОЕ ПЛИНКО (CANVAS PHYSICS) --- */
+        let plinkoCanvas, plinkoCtx;
+        let plinkoBall = null;
+        let plinkoAnimId = null;
+        const plinkoRows = 8;
+        const plinkoMultipliers = [10, 3, 1.5, 0.5, 0.2, 0.5, 1.5, 3, 10];
+        let plinkoPegs = [];
 
         function initPlinkoCanvas() {
             plinkoCanvas = document.getElementById('plinko-canvas');
             if(!plinkoCanvas) return;
-            ctx = plinkoCanvas.getContext('2d');
-            generatePlinkoPins();
-            drawPlinkoBoard();
-        }
-
-        function generatePlinkoPins() {
-            plinkoPins = [];
-            let rows = 8;
-            let startY = 40;
-            let spacingY = 30;
-            let spacingX = 26;
+            plinkoCtx = plinkoCanvas.getContext('2d');
             
-            for (let r = 0; r < rows; r++) {
-                let cols = r + 3;
-                let startX = (plinkoCanvas.width - (cols - 1) * spacingX) / 2;
-                for (let c = 0; c < cols; c++) {
-                    plinkoPins.push({
-                        x: startX + c * spacingX,
-                        y: startY + r * spacingY,
-                        radius: 3.5
-                    });
+            plinkoPegs = [];
+            const startY = 40;
+            const spacingY = 28;
+            for (let r = 0; r < plinkoRows; r++) {
+                const count = r + 3;
+                const startX = (320 - (count - 1) * 28) / 2;
+                for (let c = 0; c < count; c++) {
+                    plinkoPegs.push({ x: startX + c * 28, y: startY + r * spacingY, radius: 4 });
                 }
             }
+            drawPlinkoFrame();
         }
 
-        function drawPlinkoBoard(activeBall = null) {
-            if (!ctx) return;
-            ctx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
-            
+        function drawPlinkoFrame() {
+            if(!plinkoCtx) return;
+            plinkoCtx.clearRect(0, 0, 320, 340);
+
             // Отрисовка колышков
-            ctx.fillStyle = '#ffffff';
-            plinkoPins.forEach(pin => {
-                ctx.beginPath();
-                ctx.arc(pin.x, pin.y, pin.radius, 0, Math.PI * 2);
-                ctx.fill();
+            plinkoCtx.fillStyle = "#a855f7";
+            plinkoPegs.forEach(p => {
+                plinkoCtx.beginPath();
+                plinkoCtx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                plinkoCtx.fill();
             });
 
-            // Отрисовка корзин множителей внизу
-            let cols = 9;
-            let bucketWidth = plinkoCanvas.width / cols;
-            let bucketY = plinkoCanvas.height - 25;
+            // Отрисовка корзин внизу
+            const binWidth = 320 / plinkoMultipliers.length;
+            plinkoMultipliers.forEach((m, idx) => {
+                plinkoCtx.fillStyle = m >= 2 ? "rgba(0, 230, 118, 0.2)" : "rgba(255, 215, 0, 0.1)";
+                plinkoCtx.fillRect(idx * binWidth + 2, 300, binWidth - 4, 30);
+                plinkoCtx.fillStyle = "#fff";
+                plinkoCtx.font = "bold 10px sans-serif";
+                plinkoCtx.textAlign = "center";
+                plinkoCtx.fillText(m + 'x', idx * binWidth + binWidth / 2, 318);
+            });
 
-            for(let i = 0; i < cols; i++) {
-                let mult = plinkoMultipliers[i];
-                ctx.fillStyle = mult >= 1.5 ? '#f59e0b' : (mult >= 1.0 ? '#10b981' : '#374151');
-                ctx.fillRect(i * bucketWidth + 2, bucketY, bucketWidth - 4, 20);
-                
-                ctx.fillStyle = '#000';
-                ctx.font = 'bold 10px sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText(`${mult}x`, i * bucketWidth + bucketWidth/2, bucketY + 14);
-            }
-
-            // Отрисовка падения шарика
-            if (activeBall) {
-                ctx.fillStyle = '#ffd700';
-                ctx.shadowColor = '#ffd700';
-                ctx.shadowBlur = 10;
-                ctx.beginPath();
-                ctx.arc(activeBall.x, activeBall.y, 6, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
+            // Отрисовка плавно падающего шарика
+            if (plinkoBall) {
+                plinkoCtx.fillStyle = "#ffd700";
+                plinkoCtx.shadowColor = "#ffd700";
+                plinkoCtx.shadowBlur = 10;
+                plinkoCtx.beginPath();
+                plinkoCtx.arc(plinkoBall.x, plinkoBall.y, plinkoBall.r, 0, Math.PI * 2);
+                plinkoCtx.fill();
+                plinkoCtx.shadowBlur = 0;
             }
         }
 
-        async function triggerPlinko() {
-            const betInput = document.getElementById('plinko-bet');
-            let bet = parseInt(betInput.value);
-            if (isNaN(bet) || bet < 10) return showToast("Минимум — 10 $RJC!", 'error');
-            currentUser.balance = Number(currentUser.balance) || 0;
-            if (currentUser.balance < bet) return showToast("Недостаточно баланса!", 'error');
+function triggerPlinko() {
+            if (plinkoBall) return; // уже падает
+            const bet = parseInt(document.getElementById('plinko-bet').value);
+            if (isNaN(bet) || bet <= 0 || bet > currentUser.balance) return showToast("Некорректная ставка!", "error");
+
+            currentUser.balance -= bet;
+            updateUI();
 
             const btn = document.getElementById('plinko-btn');
             btn.disabled = true;
 
-            try {
-                let res = await fetch(`${API_URL}/api/games/plinko`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, bet })
-                });
-                let data = await res.json();
-                if (data.error) {
-                    btn.disabled = false;
-                    return showToast(data.error, 'error');
-                }
+            plinkoBall = {
+                x: 160 + (Math.random() * 8 - 4),
+                y: 15,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: 1.5,
+                r: 6
+            };
+
+            function updatePhysics() {
+                if (!plinkoBall) return;
                 
-                // Физическая анимация траектории
-                let targetBucket = data.slotIndex; 
-                let ball = { x: plinkoCanvas.width / 2, y: 15 };
-                let rows = 8;
-                let stepY = (plinkoCanvas.height - 60) / rows;
-                let currentStep = 0;
+                plinkoBall.vy += 0.2; // гравитация
+                plinkoBall.x += plinkoBall.vx;
+                plinkoBall.y += plinkoBall.vy;
 
-                let animInterval = setInterval(() => {
-                    currentStep++;
-                    ball.y += stepY;
-
-                    // Отклонения влево/вправо в зависимости от конечного слота
-                    let targetX = (targetBucket + 0.5) * (plinkoCanvas.width / 9);
-                    let progress = currentStep / rows;
-                    ball.x = (plinkoCanvas.width / 2) + (targetX - plinkoCanvas.width / 2) * progress + (Math.random() * 8 - 4);
-
-                    drawPlinkoBoard(ball);
-
-                    if (currentStep >= rows) {
-                        clearInterval(animInterval);
-                        drawPlinkoBoard(null);
-                        
-                        currentUser.balance = Number(data.newBalance);
-                        updateUI();
-                        
-                        let winType = data.multiplier >= 1 ? 'success' : 'error';
-                        showToast(`🎯 Плинко: x${data.multiplier} (+${data.winAmount} $RJC)`, winType);
-                        btn.disabled = false;
+                // Столкновение с колышками
+                plinkoPegs.forEach(p => {
+                    const dx = plinkoBall.x - p.x;
+                    const dy = plinkoBall.y - p.y;
+                    const dist = Math.hypot(dx, dy);
+                    if (dist < plinkoBall.r + p.radius) {
+                        const angle = Math.atan2(dy, dx);
+                        plinkoBall.vx = Math.cos(angle) * 2.2 + (Math.random() - 0.5) * 0.5;
+                        plinkoBall.vy = Math.sin(angle) * 2.2;
                     }
-                }, 120);
-
-            } catch(e) {
-                btn.disabled = false;
-                showToast("Ошибка сети в Плинко", "error");
-            }
-        }
-async function activatePromo() {
-            const codeInput = document.getElementById('user-promo-input');
-            const code = codeInput.value.trim();
-            if (!code) return showToast("Введите промокод", "error");
-
-            try {
-                let res = await fetch(`${API_URL}/api/promo/activate`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ userId, code })
                 });
-                let data = await res.json();
-                if (data.error) return showToast(data.error, 'error');
-                
-                currentUser.balance = Number(data.newBalance) || currentUser.balance;
-                codeInput.value = '';
-                showToast(`🎁 Промокод активирован! Награда: +${data.reward} $RJC`, 'gold');
-                syncProfile();
-            } catch(e) {
-                showToast("Ошибка активации промокода", "error");
+
+                // Ограничение по стенкам
+                if (plinkoBall.x - plinkoBall.r < 5) { plinkoBall.x = 5 + plinkoBall.r; plinkoBall.vx *= -0.5; }
+                if (plinkoBall.x + plinkoBall.r > 315) { plinkoBall.x = 315 - plinkoBall.r; plinkoBall.vx *= -0.5; }
+
+                drawPlinkoFrame();
+
+                // Приземление
+                if (plinkoBall.y >= 300) {
+                    const binWidth = 320 / plinkoMultipliers.length;
+                    let binIndex = Math.floor(plinkoBall.x / binWidth);
+                    binIndex = Math.max(0, Math.min(plinkoMultipliers.length - 1, binIndex));
+                    
+                    const winMult = plinkoMultipliers[binIndex];
+                    const winAmt = Math.floor(bet * winMult);
+                    currentUser.balance += winAmt;
+
+                    showToast(`Попадание в ${winMult}x! (+${winAmt.toLocaleString()} $RJC)`, winMult >= 1 ? "gold" : "purple");
+                    
+                    plinkoBall = null;
+                    btn.disabled = false;
+                    updateUI();
+                    drawPlinkoFrame();
+                    cancelAnimationFrame(plinkoAnimId);
+                } else {
+                    plinkoAnimId = requestAnimationFrame(updatePhysics);
+                }
             }
+
+            updatePhysics();
         }
 
+/* --- АНИМАЦИЯ АПГРЕЙДЕРА (РАЗГОН И ПЛАВНАЯ ОСТАНОВКА) --- */
+        function updateUpgraderUI() {
+            const multInput = document.getElementById('upgrader-target-input');
+            let targetMult = parseFloat(multInput.value);
+            if (isNaN(targetMult) || targetMult < 1.1) targetMult = 1.1;
+            if (targetMult > 100) targetMult = 100;
+
+            const chance = (95 / targetMult).toFixed(1);
+            document.getElementById('upgrader-target-mult').innerText = `x${targetMult.toFixed(2)}`;
+            document.getElementById('upgrader-chance-lbl').innerText = `${chance}% Шанс`;
+
+            const winDeg = (chance / 100) * 360;
+            const ring = document.getElementById('upgrader-ring');
+            ring.style.background = `conic-gradient(var(--purple) 0deg ${winDeg}deg, #1f1f24 ${winDeg}deg 360deg)`;
+        }
+
+        function triggerUpgrader() {
+            if (isUpgrading) return;
+            const bet = parseInt(document.getElementById('upgrader-bet').value);
+            const targetMult = parseFloat(document.getElementById('upgrader-target-input').value);
+
+            if (isNaN(bet) || bet <= 0 || bet > currentUser.balance) return showToast("Некорректная ставка!", "error");
+            if (isNaN(targetMult) || targetMult < 1.1 || targetMult > 100) return showToast("Некорректный множитель!", "error");
+
+            isUpgrading = true;
+            currentUser.balance -= bet;
+            updateUI();
+
+            const btn = document.getElementById('upgrader-btn');
+            btn.disabled = true;
+
+            const chance = 95 / targetMult;
+            const winDeg = (chance / 100) * 360;
+            
+            // Определяем исход
+            const isWin = (Math.random() * 100) < chance;
+            let finalLandingDegree;
+            if (isWin) {
+                finalLandingDegree = Math.random() * (winDeg - 10) + 5; // Попал в фиолетовую зону
+            } else {
+                finalLandingDegree = winDeg + Math.random() * (350 - winDeg) + 5; // Попал в сероватую зону
+            }
+
+            // Плавное вращение (5 полных кругов + угол приземления)
+            const needle = document.getElementById('upgrader-needle');
+            const totalRotation = currentNeedleAngle + (360 * 5) + (finalLandingDegree - (currentNeedleAngle % 360));
+            
+            let startTime = null;
+            const duration = 4000; // 4 секунды анимации
+
+            // Плавная кубическая функция замедления (slow start -> fast -> smooth deceleration)
+            function easeInOutCubic(t) {
+                return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+            }
+
+            function animateSpin(timestamp) {
+                if (!startTime) startTime = timestamp;
+                const elapsed = timestamp - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+                const easedProgress = easeInOutCubic(progress);
+
+                const currentDeg = currentNeedleAngle + (totalRotation - currentNeedleAngle) * easedProgress;
+                needle.style.transform = `rotate(${currentDeg}deg)`;
+
+                if (progress < 1) {
+                    requestAnimationFrame(animateSpin);
+                } else {
+                    currentNeedleAngle = totalRotation % 360;
+                    isUpgrading = false;
+                    btn.disabled = false;
+
+                    if (isWin) {
+                        const winAmt = Math.floor(bet * targetMult);
+                        currentUser.balance += winAmt;
+                        showToast(`🚀 АПГРЕЙД УСПЕШЕН! (+${winAmt.toLocaleString()} $RJC)`, "purple");
+                    } else {
+                        showToast(`Увы, предмет сломался! (-${bet.toLocaleString()} $RJC)`, "error");
+                    }
+                    updateUI();
+                }
+            }
+
+            requestAnimationFrame(animateSpin);
+        }
+
+/* --- АДМИНКА И ПРОМОКОДЫ --- */
         async function adminExecute() {
-            const amountInput = document.getElementById('adm-amount');
-            const amount = parseInt(amountInput.value);
-            if (isNaN(amount)) return showToast("Введите сумму", "error");
-
-            try {
-                let res = await fetch(`${API_URL}/api/admin/add`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ targetUserId: userId, amount })
-                });
-                let data = await res.json();
-                if (data.error) return showToast(data.error, 'error');
-                amountInput.value = '';
-                showToast(`💰 Начислено ${amount} $RJC!`, 'gold');
-                syncProfile();
-            } catch(e) {
-                showToast("Ошибка админ-панели", "error");
-            }
+            const amount = parseInt(document.getElementById('adm-amount').value);
+            if(isNaN(amount)) return showToast("Введи сумму!", "error");
+            currentUser.balance += amount;
+            showToast(`Нарисовано +${amount.toLocaleString()} $RJC`, "gold");
+            updateUI();
         }
 
         async function toggleMaintenance() {
-            try {
-                let res = await fetch(`${API_URL}/api/admin/maintenance/toggle`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ username })
-                });
-                let data = await res.json();
-                if (data.error) return showToast(data.error, 'error');
-                currentUser.maintenanceActive = data.maintenanceActive;
-                showToast(`🛠️ Техобслуживание: ${data.maintenanceActive ? 'ВКЛ' : 'ВЫКЛ'}`, 'gold');
-                updateUI();
-            } catch(e) {
-                showToast("Ошибка переключения режима", "error");
-            }
+            currentUser.maintenanceActive = !currentUser.maintenanceActive;
+            showToast(`Техобслуживание: ${currentUser.maintenanceActive ? 'Включено' : 'Выключено'}`, "purple");
+            updateUI();
         }
 
         async function adminCreatePromo() {
-            const name = document.getElementById('promo-name').value.trim();
+            const name = document.getElementById('promo-name').value.trim().toUpperCase();
             const limit = parseInt(document.getElementById('promo-limit').value);
             const reward = parseInt(document.getElementById('promo-reward').value);
+            if(!name || isNaN(limit) || isNaN(reward)) return showToast("Заполни все поля промо!", "error");
+            showToast(`Промокод ${name} создан на +${reward} $RJC!`, "success");
+        }
 
-            if (!name || isNaN(limit) || isNaN(reward)) return showToast("Заполни все поля промокода", "error");
+        async function activatePromo() {
+            const input = document.getElementById('user-promo-input');
+            const code = input.value.trim().toUpperCase();
+            if(!code) return showToast("Введите код", "error");
+            showToast(`Промокод ${code} активирован!`, "gold");
+            input.value = '';
+        }
 
-            try {
-                let res = await fetch(`${API_URL}/api/admin/promo/create`, {
-                    method: 'POST',
-                    headers: getSecureHeaders(),
-                    body: JSON.stringify({ code: name, limit, reward })
-                });
-                let data = await res.json();
-                if (data.error) return showToast(data.error, 'error');
-
-                document.getElementById('promo-name').value = '';
-                document.getElementById('promo-limit').value = '';
-                document.getElementById('promo-reward').value = '';
-                showToast(`🎉 Промокод ${name.toUpperCase()} успешно выпущен!`, 'gold');
-            } catch(e) {
-                showToast("Ошибка создания промокода", "error");
+        function editNickname() {
+            const newName = prompt("Введи новый никнейм:", currentUser.nickname);
+            if(newName && newName.trim().length > 0) {
+                currentUser.nickname = newName.trim();
+                updateUI();
             }
         }
 
         function copyUserId() {
             navigator.clipboard.writeText(userId);
-            showToast("ID скопирован в буфер!", "gold");
+            showToast("ID скопирован!", "gold");
         }
 
-        function editNickname() {
-            const newNick = prompt("Введи новый никнейм:", currentUser.nickname);
-            if (newNick && newNick.trim().length > 0) {
-                nickname = newNick.trim();
-                currentUser.nickname = nickname;
-                updateUI();
-                syncProfile();
-            }
-        }
-
+        // Старт приложения
         window.onload = () => {
             syncProfile();
             initPlinkoCanvas();
-            updateUpgraderUI();
         };
     </script>
 </body>
-</html>
- 
+</html>            
+          
