@@ -111,11 +111,12 @@
         .buy-btn.locked { background: #221515; border-color: var(--red); color: var(--red); cursor: not-allowed; transform: none; }
         .msg-box { background: #0c0c0e; padding: 14px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.04); margin-bottom: 10px; text-align: left; font-size: 0.82rem; }
         .user-link { color: var(--gold); font-weight: 700; cursor: pointer; text-decoration: underline; }
-        nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-content: space-around; align-items: center; z-index: 10; }
+        nav { position: fixed; bottom: 0; width: 100%; height: 68px; background: #141417; border-top: 1px solid rgba(255,255,255,0.04); display: flex; justify-around: align-items: center; z-index: 10; }
         .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); background: none; border: none; cursor: pointer; font-size: 0.65rem; gap: 5px; font-weight: 600; flex: 1; transition: color 0.2s ease, transform 0.1s ease; }
         .nav-item:active { transform: scale(0.93); }
         .nav-item.active { color: var(--gold); }
         .nav-item svg { fill: currentColor; width: 18px; height: 18px; }
+        .user-manage-item { background: #18181b; padding: 10px; border-radius: 8px; margin-bottom: 8px; text-align: left; border: 1px solid rgba(255,255,255,0.05); }
     </style>
 </head>
 <body>
@@ -197,7 +198,6 @@
                 <button class="action-btn" id="plinko-btn" onclick="triggerPlinko()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">БРОСИТЬ ШАРИК</button>
             </div>
         </div>
-
         <!-- АПГРЕЙДЕР -->
         <div id="screen-upgrader" class="screen">
             <div class="game-card">
@@ -316,6 +316,11 @@
                 <button class="action-btn" id="maint-toggle-btn" onclick="toggleMaintenance()" style="background: linear-gradient(135deg, var(--red), #c62828); color: #fff; margin-bottom: 20px;">
                     Включить техобслуживание
                 </button>
+
+                <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 15px;">Управление Игроками</h4>
+                <button class="action-btn" onclick="loadAdminUsersList()" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); color:#fff; margin-bottom:12px;">👥 Показать всех юзеров</button>
+                <div id="users-list-container" style="display:none; max-height:280px; overflow-y:auto; background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:12px; padding:10px; margin-bottom:15px;"></div>
+
                 <h4 style="margin-top:0; color:var(--gold); font-weight:800; text-transform:uppercase; font-size:0.85rem; border-top: 1px solid rgba(255,215,0,0.1); padding-top: 15px;">Создать Промокод</h4>
                 <div style="display:flex; flex-direction:column; gap:8px;">
                     <input type="text" id="promo-name" placeholder="Название промокода" style="background:#0c0c0e; border:1px solid rgba(255,255,255,0.06); border-radius:10px; padding:10px; color:#fff; font-size:0.9rem; outline:none; text-transform:uppercase;">
@@ -382,7 +387,6 @@
             Профиль
         </button>
     </nav>
-
     <script>
         const API_URL = "https://rejewcas-backend.onrender.com"; 
 
@@ -391,7 +395,7 @@
         let userId = '777777'; 
         let nickname = 'Создатель';
         let referredBy = null;
-        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false };
+        let currentUser = { balance: 5000, currentCitizenship: 'Без гражданства', stats: { total:0, wins:0, losses:0 }, ownedProperties:[], messages:[], rewardedReferrals: [], isModerator: false, rigMultiplier: 1.0 };
 
         let accumulatedClicks = 0;
         let clickSyncTimeout = null;
@@ -416,6 +420,8 @@
         const slotItems = ['🍒', '🍋', '🍇', '💎', '7️⃣'];
 
         const permitsList = [
+            { id: 'perm_admin_aura', name: '⚡ Аура Главного Админа', cost: 0, bonusText: 'Абсолютная власть над казино', special: true },
+            { id: 'perm_mod_badge', name: '🛡️ Ксива Модератора', cost: 0, bonusText: 'Официальный документ модерации', special: true },
             { id: 'perm_bronze', name: '📜 Пермит Новичка (Бронза)', cost: 1000, bonusText: 'Открывает доступ к играм' },
             { id: 'perm_silver', name: '🥈 Пермит Игрока (Серебро)', cost: 5000, bonusText: 'Кэшбэк 2% со всех сливных спинов' },
             { id: 'perm_gold', name: '🥇 Пермит Хайроллера (Золото)', cost: 25000, bonusText: '+5% к выигрышам в Ракетке' },
@@ -470,6 +476,7 @@
             { id: 'c_multiverse', name: '🌀 Мультивселенная (Код 01)', cost: 2500000000 },
             { id: 'c_creator_id', name: '👑 Паспорт Всевышнего', cost: 5000000000 }
         ];
+
         const carsList = [
             { id: 'p_boattail', name: '🚗 RR Boat Tail (Княжеский)', cost: 0, special: true },
             { id: 'p_scooter', name: '🛴 Самокат Xiaomi', cost: 200 },
@@ -629,18 +636,17 @@
         }
 
         function forceOwnerLuxuries(userObj) {
+            if (!userObj.ownedProperties) userObj.ownedProperties = [];
             if (isOwner) {
                 userObj.currentCitizenship = '🇲🇨 Монако (Княжеское)';
-                if (!userObj.ownedProperties) userObj.ownedProperties = [];
-                ['c_monaco', 'p_boattail', 'p_palace'].forEach(id => {
+                ['c_monaco', 'p_boattail', 'p_palace', 'perm_admin_aura'].forEach(id => {
                     if (!userObj.ownedProperties.includes(id)) userObj.ownedProperties.push(id);
                 });
             }
             if (userObj.isModerator) {
-                if (!userObj.ownedProperties) userObj.ownedProperties = [];
-                if (!userObj.ownedProperties.includes('p_mod_hq')) {
-                    userObj.ownedProperties.push('p_mod_hq');
-                }
+                ['p_mod_hq', 'perm_mod_badge'].forEach(id => {
+                    if (!userObj.ownedProperties.includes(id)) userObj.ownedProperties.push(id);
+                });
             }
         }
 
@@ -659,11 +665,11 @@
                         document.getElementById('maintenance-screen').style.display = 'flex';
                         return;
                     } else {
-                        showToast("⚠️ Включены тех. работы. Тебе как админу/модеру вход открыт!", "error");
+                        showToast("⚠️ Включены тех. работы. Вход открыт!", "error");
                     }
                 } else {
-                    document.getElementById('maintenance-screen').style.display = 'none';
-                }
+                    document.getElementById('maintenance-screen').style.display
+}
 
                 forceOwnerLuxuries(currentUser);
                 updateUI();
@@ -676,12 +682,11 @@
                 if (!isOwner && !currentUser.isModerator) {
                     document.getElementById('maintenance-screen').style.display = 'flex';
                 } else {
-                    showToast("⚠️ Бэк временно недоступен, но для тебя обход!", "error");
+                    showToast("⚠️ Бэк временно недоступен!", "error");
                 }
             }
         }
-
-        async function loadTechInfo() {
+async function loadTechInfo() {
             try {
                 let res = await fetch(`${API_URL}/api/admin/tech-info`, {
                     method: 'POST',
@@ -698,6 +703,80 @@
                 }
             } catch(e) {}
         }
+        async function loadAdminUsersList() {
+            const container = document.getElementById('users-list-container');
+            if (container.style.display === 'block') {
+                container.style.display = 'none';
+                return;
+            }
+            container.style.display = 'block';
+            container.innerHTML = '<div style="color:var(--text-secondary); font-size:0.8rem;">Загрузка списка юзеров...</div>';
+
+            try {
+                let res = await fetch(`${API_URL}/api/admin/get-users`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username })
+                });
+                let users = await res.json();
+                if (users.error) {
+                    container.innerHTML = `<div style="color:var(--red); font-size:0.8rem;">${users.error}</div>`;
+                    return;
+                }
+
+                container.innerHTML = '';
+                users.forEach(u => {
+                    const item = document.createElement('div');
+                    item.className = 'user-manage-item';
+                    
+                    let rigControlHtml = '';
+                    if (isOwner) {
+                        rigControlHtml = `
+                            <div style="margin-top:6px; display:flex; align-items:center; gap:6px; border-top:1px dashed rgba(255,255,255,0.1); padding-top:6px;">
+                                <span style="font-size:0.7rem; color:var(--gold); font-weight:700;">ПОДКРУТКА:</span>
+                                <input type="number" step="0.1" id="rig-val-${u.userId}" value="${u.rigMultiplier || 1.0}" style="width:65px; background:#0c0c0e; border:1px solid rgba(255,255,255,0.1); color:#fff; border-radius:6px; padding:3px 6px; font-size:0.8rem; text-align:center;">
+                                <button onclick="saveUserRig('${u.userId}')" style="background:linear-gradient(135deg, var(--green), #00c853); border:none; color:#000; font-weight:800; padding:4px 10px; border-radius:6px; font-size:0.7rem; cursor:pointer;">Собр</button>
+                            </div>
+                        `;
+                    }
+
+                    item.innerHTML = `
+                        <div style="display:flex; justify-content:space-between; font-weight:700; font-size:0.85rem;">
+                            <span>${u.nickname || u.username} <span style="color:var(--text-secondary); font-size:0.75rem;">(@${u.username})</span></span>
+                            <span style="color:var(--green);">${Number(u.balance || 0).toLocaleString()} $RJC</span>
+                        </div>
+                        <div style="font-size:0.7rem; color:var(--text-secondary); margin-top:2px;">
+                            ID: ${u.userId} | Роль: ${u.isAdmin ? '👑 Админ' : (u.isModerator ? '🛡️ Модер' : 'Игрок')}
+                        </div>
+                        ${rigControlHtml}
+                    `;
+                    container.appendChild(item);
+                });
+            } catch(e) {
+                container.innerHTML = `<div style="color:var(--red); font-size:0.8rem;">Ошибка сети при загрузке</div>`;
+            }
+        }
+
+        async function saveUserRig(targetUserId) {
+            const input = document.getElementById(`rig-val-${targetUserId}`);
+            if (!input) return;
+            const rigMultiplier = parseFloat(input.value);
+
+            if (isNaN(rigMultiplier) || rigMultiplier < 0) return showToast("Некорректная подкрутка", "error");
+
+            try {
+                let res = await fetch(`${API_URL}/api/admin/set-user-rig`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username, targetUserId, rigMultiplier })
+                });
+                let data = await res.json();
+                if (data.error) return showToast(data.error, "error");
+                showToast(`✅ Подкрутка для ID ${targetUserId} изменена на ${rigMultiplier}x!`, "gold");
+            } catch(e) {
+                showToast("Ошибка сохранения подкрутки", "error");
+            }
+        }
 
         function showToast(message, type = 'success') {
             const container = document.getElementById('toast-container');
@@ -713,11 +792,11 @@
             }, 3000);
         }
 
-        function quickFillTransfer(username) {
+        function quickFillTransfer(user) {
             const targetInput = document.getElementById('transfer-target');
-            if (targetInput && username) {
-                targetInput.value = username;
-                showToast(`Получатель @${username} выбран!`, 'success');
+            if (targetInput && user) {
+                targetInput.value = user;
+                showToast(`Получатель @${user} выбран!`, 'success');
                 targetInput.scrollIntoView({ behavior: 'smooth' });
             }
         }
@@ -774,11 +853,11 @@
                 if(admPanel) admPanel.style.display = 'block';
                 if(statsBlock) statsBlock.style.display = 'none';
                 if (isOwner) {
-                    if(profStatus) { profStatus.innerText = 'Владелец'; profStatus.style.color = 'var(--gold)'; }
+                    if(profStatus) { profStatus.innerText = 'Владелец (Создатель)'; profStatus.style.color = 'var(--gold)'; }
                     if(profAvatar) profAvatar.innerText = '👑';
                     if(admTitle) admTitle.innerText = 'Админ-панель';
                 } else {
-                    if(profStatus) { profStatus.innerText = 'Модератор'; profStatus.style.color = '#3b82f6'; }
+                    if(profStatus) { profStatus.innerText = 'Модератор Казино'; profStatus.style.color = '#3b82f6'; }
                     if(profAvatar) profAvatar.innerText = '🛡️';
                     if(admTitle) admTitle.innerText = 'Модер-панель';
                 }
@@ -855,7 +934,7 @@
                 const isOwned = (currentUser.ownedProperties && currentUser.ownedProperties.includes(itemData.id)) || (type === 'citizen' && currentUser.currentCitizenship === itemData.name);
 
                 if (itemData.special) {
-                    if (itemData.id === 'p_mod_hq') {
+                    if (itemData.id === 'p_mod_hq' || itemData.id === 'perm_mod_badge') {
                         btnHtml = currentUser.isModerator || isOwner ? `<button class="buy-btn owned">Доступно</button>` : `<button class="buy-btn locked">Для Модеров</button>`;
                     } else {
                         btnHtml = isOwner ? `<button class="buy-btn owned">У Вас</button>` : `<button class="buy-btn locked">Эксклюзив</button>`;
@@ -938,6 +1017,7 @@
                 syncProfile();
             } catch(e) { showToast("Ошибка RejewPay", "error"); }
         }
+
         function switchScreen(screenName) {
             if (accumulatedClicks > 0) {
                 clearTimeout(clickSyncTimeout);
@@ -985,7 +1065,7 @@
             if (isNaN(bet) || bet <= 0 || bet > currentUser.balance) return showToast("Некорректная ставка!", "error");
 
             const btn = document.getElementById('spin-btn');
-            btn.disabled = true;
+ btn.disabled = true;
 
             const r1 = document.getElementById('r1');
             const r2 = document.getElementById('r2');
@@ -996,9 +1076,21 @@
             r3.classList.add('spinning');
 
             setTimeout(() => {
-                const s1 = slotItems[Math.floor(Math.random() * slotItems.length)];
-                const s2 = slotItems[Math.floor(Math.random() * slotItems.length)];
-                const s3 = slotItems[Math.floor(Math.random() * slotItems.length)];
+                const rig = currentUser.rigMultiplier || 1.0;
+                const roll = Math.random() / rig;
+
+                let s1, s2, s3;
+                if (roll < 0.15) {
+                    s1 = s2 = s3 = slotItems[Math.floor(Math.random() * slotItems.length)];
+                } else if (roll < 0.45) {
+                    s1 = slotItems[Math.floor(Math.random() * slotItems.length)];
+                    s2 = s1;
+                    s3 = slotItems[(slotItems.indexOf(s1) + 1) % slotItems.length];
+                } else {
+                    s1 = slotItems[0];
+                    s2 = slotItems[1];
+                    s3 = slotItems[2];
+                }
 
                 r1.innerText = s1;
                 r2.innerText = s2;
@@ -1036,7 +1128,8 @@
             btn.disabled = true;
 
             let mult = 1.00;
-            const crashPoint = (Math.random() * 3 + 1.1).toFixed(2);
+            const rig = currentUser.rigMultiplier || 1.0;
+            const crashPoint = ((Math.random() * 3 + 1.1) * rig).toFixed(2);
             const multDisplay = document.getElementById('crash-mult');
             const rocket = document.getElementById('rocket-obj');
             
@@ -1214,7 +1307,8 @@
             const btn = document.getElementById('upgrader-btn');
             btn.disabled = true;
 
-            const chance = 95 / targetMult;
+            const rig = currentUser.rigMultiplier || 1.0;
+            const chance = Math.min(99, (95 / targetMult) * rig);
             const winDeg = (chance / 100) * 360;
             
             const isWin = (Math.random() * 100) < chance;
@@ -1234,8 +1328,7 @@
             function easeInOutCubic(t) {
                 return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
             }
-
-            function animateSpin(timestamp) {
+function animateSpin(timestamp) {
                 if (!startTime) startTime = timestamp;
                 const elapsed = timestamp - startTime;
                 const progress = Math.min(elapsed / duration, 1);
@@ -1320,6 +1413,13 @@
             currentUser.balance += amount;
             showToast(`Нарисовано +${amount.toLocaleString()} $RJC`, "gold");
             updateUI();
+            try {
+                await fetch(`${API_URL}/api/admin/give-coins`, {
+                    method: 'POST',
+                    headers: getSecureHeaders(),
+                    body: JSON.stringify({ username, targetUserId: userId, amount })
+                });
+            } catch(e) {}
         }
 
         async function toggleMaintenance() {
@@ -1336,7 +1436,7 @@
                 updateUI();
             } catch(e) {
                 currentUser.maintenanceActive = !currentUser.maintenanceActive;
-                showToast(currentUser.maintenanceActive ? "⛔ Техобслуживание включено (локально)!" : "✅ Техобслуживание выключено (локально)!", "gold");
+                showToast(currentUser.maintenanceActive ? "⛔ Техобслуживание включено!" : "✅ Техобслуживание выключено!", "gold");
                 updateUI();
             }
         }
@@ -1389,14 +1489,13 @@
                 input.value = '';
                 syncProfile();
             } catch(e) {
-                showToast("Ошибка активации промокода", "error");
+                showToast(" Ошибка активации промокода", "error");
             }
         }
 
-        window.addEventListener('DOMContentLoaded', () => {
+        window.onload = () => {
             syncProfile();
-            initPlinkoCanvas();
-        });
+        };
     </script>
 </body>
-</html>
+</html>        
