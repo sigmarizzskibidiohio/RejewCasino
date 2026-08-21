@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RejewCas Mini App</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg: #09090b;
+            --surface: #141417;
+            --surface-accent: #1f1f24;
+            --gold: #ffd700;
+            --green: #00e676;
+            --red: #ff5252;
+            --purple: #a855f7;
+            --text: #ffffff;
+            --text-secondary: #71717a;
+            --blue: #3b82f6;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Maintenance Overlay */
+        #maintenance-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(9, 9, 11, 0.98);
+            z-index: 99999;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 30px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Custom Toast Notification System */
+        #toast-container {
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            left: 20px;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: #18181b;
+            color: #fff;
+            padding: 14px 18px;
+            border-radius: 16px;
+            font-size: 0.88rem;
+            font-weight: 600;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+            opacity: 0;
+            transform: translateY(-20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            border-left: 4px solid var(--gold);
+            pointer-events: auto;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+
+        .toast.success { border-left-color: var(--green); }
+        .toast.error { border-left-color: var(--red); }
+        .toast.gold { border-left-color: var(--gold); }
+        .toast.purple { border-left-color: var(--purple); }
+
+        /* Header & Navigation */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 18px;
+            background: rgba(20, 20, 23, 0.85);
+            backdrop-filter: blur(12px);
+            position: fixed;
+            top: 0;
+            width: 100%;
+            z-index: 50;
+            border-bottom: 1px solid rgba(255, 215, 0, 0.08);
+        }
+
+        .brand {
+            font-size: 1.35rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            color: #fff;
+        }
+
+        .brand span {
+            color: var(--gold);
+            text-shadow: 0 0 12px rgba(255, 215, 0, 0.5);
+        }
+
+        .header-capsules {
+            display: flex;
+            gap: 8px;
+        }
+
+        .capsule {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 20px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: transform 0.2s ease, border-color 0.2s;
+        }
+
+        .capsule:active { transform: scale(0.95); }
+        .capsule.wallet { border-color: rgba(0, 230, 118, 0.3); color: var(--green); }
+
+        .main-container {
+            flex: 1;
+            margin-top: 68px;
+            margin-bottom: 72px;
+            position: relative;
+            width: 100%;
+            z-index: 2;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        .screen {
+            display: none;
+            padding: 16px;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+            min-height: 100%;
+            opacity: 0;
+            transform: translateY(12px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .screen.active {
+            display: flex;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .game-card, .panel-card {
+            background: var(--surface);
+            border: 1px solid rgba(255, 215, 0, 0.08);
+            border-radius: 24px;
+            padding: 20px;
+            width: 100%;
+            max-width: 440px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.4);
+            margin-bottom: 16px;
+        }
+
+        /* Slots Styles */
+        .reels {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0;
+            background: #0c0c0e;
+            padding: 16px;
+            border-radius: 20px;
+            width: 100%;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .reel {
+            font-size: 3rem;
+            width: 70px;
+            text-align: center;
+            height: 80px;
+            line-height: 80px;
+            background: #141418;
+            border-radius: 14px;
+            border: 1px solid rgba(255,255,255,0.05);
+            transition: transform 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.35), filter 0.1s ease;
+        }
+
+        .reel.spinning {
+            filter: blur(4px);
+            transform: scale(1.05) translateY(-4px);
+        }
+
+        /* Crash Game Styles */
+        .crash-arena {
+            width: 100%;
+            height: 220px;
+            background: #0c0c0e;
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            margin: 16px 0;
+            border: 1px solid rgba(255,255,255,0.06);
+        }
+
+        .rocket {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 2.5rem;
+            z-index: 5;
+            transition: transform 0.1s linear;
+        }
+
+        .crash-multiplier {
+            position: absolute;
+            top: 40%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 3.2rem;
+            font-weight: 900;
+            color: #fff;
+            z-index: 4;
+            text-shadow: 0 0 25px rgba(255, 215, 0, 0.3);
+        }
+
+        /* Plinko Arena */
+        .plinko-arena-wrapper {
+            width: 100%;
+            background: #0c0c0e;
+            border-radius: 20px;
+            padding: 12px;
+            margin: 16px 0;
+            border: 1px solid rgba(255,255,255,0.05);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #plinko-canvas {
+            max-width: 100%;
+            height: auto;
+            display: block;
+            background: transparent;
+        }
+
+        /* Upgrader Styles */
+        .upgrader-arena {
+            width: 100%;
+            height: 210px;
+            background: #0c0c0e;
+            border-radius: 20px;
+            position: relative;
+            margin: 16px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .upgrader-circle-outer {
+            width: 155px;
+            height: 155px;
+            border-radius: 50%;
+            background: conic-gradient(var(--purple) 0deg, #1f1f24 0deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            box-shadow: 0 0 30px rgba(168,85,247,0.25);
+            transition: background 0.3s;
+        }
+
+        .upgrader-circle-inner {
+            width: 115px;
+            height: 115px;
+            border-radius: 50%;
+            background: #0c0c0e;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            z-index: 2;
+        }
+
+        .upgrader-needle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            border-radius: 50%;
+            z-index: 3;
+            pointer-events: none;
+            transition: transform 3s cubic-bezier(0.15, 0.9, 0.2, 1);
+        }
+
+        .upgrader-needle {
+            position: absolute;
+            top: -8px;
+            left: calc(50% - 4px);
+            width: 8px;
+            height: 24px;
+            background: var(--gold);
+            border-radius: 4px;
+            box-shadow: 0 0 12px var(--gold);
+        }
+
+        /* Tap Miner Clicker */
+        .clicker-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            flex: 1;
+            min-height: 350px;
+        }
+
+        .click-coin {
+            width: 190px;
+            height: 190px;
+            background: radial-gradient(circle at 30% 30%, #ffe566, #d4af37 60%, #aa820a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 5.5rem;
+            cursor: pointer;
+            user-select: none;
+            box-shadow: 0 0 40px rgba(255, 215, 0, 0.4), inset 0 0 25px rgba(255,255,255,0.6);
+            transition: transform 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 8px solid #1c1917;
+            position: relative;
+        }
+
+        .click-coin:active {
+            transform: scale(0.90);
+            box-shadow: 0 0 60px rgba(255, 215, 0, 0.7), inset 0 0 15px rgba(255,255,255,0.3);
+        }
+
+        .click-pop {
+            position: absolute;
+            color: var(--gold);
+            font-weight: 900;
+            font-size: 1.5rem;
+            pointer-events: none;
+            animation: floatUp 0.8s ease-out forwards;
+            text-shadow: 0 0 10px rgba(0,0,0,0.8);
+        }
+
+        @keyframes floatUp {
+            0% { opacity: 1; transform: translateY(0) scale(1); }
+            100% { opacity: 0; transform: translateY(-70px) scale(1.3); }
+        }
+
+        /* Form Controls */
+        .bet-input-wrapper {
+            width: 100%;
+            margin-bottom: 14px;
+        }
+
+        .bet-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-weight: 700;
+            margin-bottom: 6px;
+            display: block;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .bet-field-group {
+            display: flex;
+            background: #0c0c0e;
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .bet-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            color: #fff;
+            font-size: 1.1rem;
+            font-weight: 700;
+            padding: 12px 14px;
+            outline: none;
+        }
+
+        .max-btn {
+            background: var(--surface-accent);
+            border: none;
+            color: var(--gold);
+            font-size: 0.8rem;
+            font-weight: 800;
+            padding: 0 16px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .max-btn:active { background: #2a2a30; }
+
+        .action-btn {
+            background: linear-gradient(135deg, var(--gold), #d4af37);
+            border: none;
+            color: #000;
+            font-weight: 800;
+            font-size: 1rem;
+            padding: 15px;
+            border-radius: 14px;
+            cursor: pointer;
+            width: 100%;
+            transition: all 0.2s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            box-shadow: 0 4px 15px rgba(255, 215, 0, 0.25);
+        }
+
+        .action-btn:active { transform: scale(0.97); opacity: 0.9; }
+        .action-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+        /* Shop Section */
+        .shop-section {
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .shop-title {
+            font-size: 0.82rem;
+            font-weight: 800;
+            color: var(--gold);
+            text-transform: uppercase;
+            margin: 22px 0 10px 0;
+            letter-spacing: 1px;
+            border-left: 3px solid var(--gold);
+            padding-left: 10px;
+        }
+
+        .shop-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--surface);
+            padding: 14px 16px;
+            border-radius: 16px;
+            margin-bottom: 8px;
+            border: 1px solid rgba(255,255,255,0.05);
+        }
+
+        .shop-item-info {
+            display: flex;
+            flex-direction: column;
+            text-align: left;
+            max-width: 65%;
+        }
+
+        .shop-item-name {
+            font-size: 0.9rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .shop-item-cost {
+            font-size: 0.78rem;
+            color: var(--gold);
+            font-weight: 700;
+            margin-top: 2px;
+        }
+
+        .shop-item-sub {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .buy-btn {
+            background: var(--surface-accent);
+            border: 1px solid rgba(255,255,255,0.12);
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 8px 14px;
+            border-radius: 10px;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.2s;
+        }
+
+        .buy-btn:active { transform: scale(0.93); }
+        .buy-btn.owned { background: transparent; border-color: var(--green); color: var(--green); cursor: default; }
+
+        /* Navigation Bar */
+        nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            height: 70px;
+            background: rgba(20, 20, 23, 0.95);
+            backdrop-filter: blur(16px);
+            border-top: 1px solid rgba(255,255,255,0.06);
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 50;
+            padding: 0 4px;
+        }
+
+        .nav-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: var(--text-secondary);
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 0.65rem;
+            gap: 4px;
+            font-weight: 700;
+            flex: 1;
+            transition: color 0.2s ease, transform 0.1s ease;
+        }
+
+        .nav-item i { font-size: 1.25rem; }
+        .nav-item:active { transform: scale(0.92); }
+        .nav-item.active { color: var(--gold); }
+
+        .sub-nav {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            width: 100%;
+            max-width: 440px;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+            scrollbar-width: none;
+        }
+        .sub-nav::-webkit-scrollbar { display: none; }
+
+        .sub-tab {
+            background: var(--surface);
+            border: 1px solid rgba(255,255,255,0.06);
+            color: var(--text-secondary);
+            padding: 8px 14px;
+            border-radius: 12px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            white-space: nowrap;
+            cursor: pointer;
+        }
+        .sub-tab.active {
+            background: var(--surface-accent);
+            color: var(--gold);
+            border-color: rgba(255, 215, 0, 0.3);
+        }
+    </style>
+</head>
+<body>
+    <!-- Maintenance Banner -->
+    <div id="maintenance-screen">
+        <h1 style="font-size: 3.8rem; margin: 0;">🛠️</h1>
+        <h2 style="color: var(--gold); text-transform: uppercase; font-weight: 900; margin-top: 10px;">Технические Работы</h2>
+        <p style="color: var(--text-secondary); max-width: 290px; font-size: 0.9rem; margin-top: 8px;">Казино RejewCas временно на обслуживании. Обнови страницу позже!</p>
+    </div>
+
+    <!-- Notification Toast Host -->
+    <div id="toast-container"></div>
+
+    <!-- App Header -->
+    <header>
+        <div class="brand">Rejew<span>Cas</span></div>
+        <div class="header-capsules">
+            <div class="capsule wallet" onclick="switchScreen('profile')">
+                <i class="fa-solid fa-coins" style="color:var(--gold);"></i>
+                <span id="header-bal">0</span>
+                <span style="font-size:0.7rem; color:var(--gold); font-weight:800;">$RJC</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Screens Viewport -->
+    <div class="main-container">
+        
+        <!-- ================= GAMES SCREEN ================= -->
+        <div id="screen-games" class="screen active">
+            <!-- Game selector sub-tabs -->
+            <div class="sub-nav">
+                <button class="sub-tab active" onclick="switchGameTab('slots')"><i class="fa-solid fa-slot-machine"></i> Слоты</button>
+                <button class="sub-tab" onclick="switchGameTab('crash')"><i class="fa-solid fa-rocket"></i> Краш</button>
+                <button class="sub-tab" onclick="switchGameTab('plinko')"><i class="fa-solid fa-circle-dot"></i> Плинко</button>
+                <button class="sub-tab" onclick="switchGameTab('upgrader')"><i class="fa-solid fa-arrows-rotate"></i> Апгрейдер</button>
+                <button class="sub-tab" onclick="switchGameTab('clicker')"><i class="fa-solid fa-hand-pointer"></i> Кликер</button>
+            </div>
+
+            <!-- SLOTS SUB-GAME -->
+            <div id="game-slots" class="game-card">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase;">Classic Slots 3x3</div>
+                <div class="reels">
+                    <div class="reel" id="r1">💎</div>
+                    <div class="reel" id="r2">💎</div>
+                    <div class="reel" id="r3">💎</div>
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Ваша Ставка ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="slot-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('slot-bet')">MAX</button>
+                    </div>
+                </div>
+                <button class="action-btn" id="spin-btn" onclick="triggerSpin()">крутить</button>
+            </div>
+
+            <!-- CRASH SUB-GAME -->
+            <div id="game-crash" class="game-card" style="display: none;">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase;">Ракетка (Crash)</div>
+                <div class="crash-arena">
+                    <div class="crash-multiplier" id="crash-mult">1.00x</div>
+                    <div class="rocket" id="rocket-obj">🚀</div>
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Ставка на полет ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="crash-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('crash-bet')">MAX</button>
+                    </div>
+                </div>
+                <button class="action-btn" id="crash-btn" onclick="triggerCrashAction()" style="background: linear-gradient(135deg, var(--green), #00c853);">ВЗЛЕТ</button>
+            </div>
+
+            <!-- PLINKO SUB-GAME -->
+            <div id="game-plinko" class="game-card" style="display: none;">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase;">Плинко (Физика)</div>
+                <div class="plinko-arena-wrapper">
+                    <canvas id="plinko-canvas" width="320" height="320"></canvas>
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Ставка на шарик ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="plinko-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('plinko-bet')">MAX</button>
+                    </div>
+                </div>
+                <button class="action-btn" id="plinko-btn" onclick="triggerPlinko()" style="background: linear-gradient(135deg, #f59e0b, #d97706);">БРОСИТЬ ШАРИК</button>
+            </div>
+
+            <!-- UPGRADER SUB-GAME -->
+            <div id="game-upgrader" class="game-card" style="display: none;">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; letter-spacing:1px; text-transform:uppercase;">Апгрейдер (Multi-Upgrader)</div>
+                <div class="upgrader-arena">
+                    <div class="upgrader-circle-outer" id="upgrader-ring">
+                        <div class="upgrader-needle-container" id="upgrader-needle">
+                            <div class="upgrader-needle"></div>
+                        </div>
+                        <div class="upgrader-circle-inner">
+                            <span id="upgrader-target-mult" style="font-size:1.35rem; color:var(--purple);">x2.00</span>
+                            <span id="upgrader-chance-lbl" style="font-size:0.72rem; color:var(--text-secondary);">47.5% Шанс</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Сумма апгрейда ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="upgrader-bet" value="100" min="10">
+                        <button class="max-btn" onclick="setMaxBet('upgrader-bet')">MAX</button>
+                    </div>
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Целевой множитель (x1.10 - x100)</label>
+                    <div class="bet-field-group">
+                        <input type="number" step="0.1" class="bet-input" id="upgrader-target-input" value="2.0" min="1.1" max="100" oninput="updateUpgraderUI()">
+                    </div>
+                </div>
+                <button class="action-btn" id="upgrader-btn" onclick="triggerUpgrader()" style="background: linear-gradient(135deg, var(--purple), #7c3aed); color: #fff;">УЛУЧШИТЬ</button>
+            </div>
+
+            <!-- CLICKER SUB-GAME -->
+            <div id="game-clicker" class="game-card" style="display: none;">
+                <div class="clicker-container">
+                    <div style="color:var(--text-secondary); font-size:0.8rem; font-weight:800; letter-spacing:1px; text-transform:uppercase; margin-bottom: 25px;">Майнинг Кликами</div>
+                    <div class="click-coin" id="coin-element" onclick="executeCoinClick(event)">🟡</div>
+                    <div id="clicker-profit-label" style="margin-top:30px; font-weight:800; font-size:1rem; color:var(--gold);">+1 $RJC за каждый тап</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= REJEWPAY & PROMO SCREEN ================= -->
+        <div id="screen-pay" class="screen">
+            <div class="panel-card">
+                <div style="color:var(--gold); font-size:0.85rem; font-weight:800; text-transform:uppercase; margin-bottom:14px; letter-spacing:0.5px;">
+                    <i class="fa-solid fa-paper-plane"></i> RejewPay Переводы
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Юзернейм получателя (без @)</label>
+                    <div class="bet-field-group">
+                        <input type="text" class="bet-input" id="pay-target" placeholder="username">
+                    </div>
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Сумма перевода ($RJC)</label>
+                    <div class="bet-field-group">
+                        <input type="number" class="bet-input" id="pay-amount" placeholder="1000">
+                        <button class="max-btn" onclick="setMaxBet('pay-amount')">MAX</button>
+                    </div>
+                </div>
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Комментарий к переводу</label>
+                    <div class="bet-field-group">
+                        <input type="text" class="bet-input" id="pay-comment" placeholder="За долги...">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="executeTransfer()" style="background: linear-gradient(135deg, var(--blue), #2563eb); color: #fff;">ОТПРАВИТЬ</button>
+            </div>
+
+            <div class="panel-card">
+                <div style="color:var(--purple); font-size:0.85rem; font-weight:800; text-transform:uppercase; margin-bottom:14px; letter-spacing:0.5px;">
+                    <i class="fa-solid fa-gift"></i> Промокоды
+                </div>
+                <div class="bet-input-wrapper">
+                    <div class="bet-field-group">
+                        <input type="text" class="bet-input" id="promo-code-input" placeholder="ВВЕДИ ПРОМОКОД">
+                    </div>
+                </div>
+                <button class="action-btn" onclick="activatePromo()" style="background: linear-gradient(135deg, var(--purple), #7c3aed); color:#fff;">АКТИВИРОВАТЬ</button>
+            </div>
+        </div>
+
+        <!-- ================= MARKET / SHOP SCREEN ================= -->
+        <div id="screen-market" class="screen">
+            <div class="shop-section">
+                <div class="sub-nav">
+                    <button class="sub-tab active" onclick="switchMarketTab('houses')"><i class="fa-solid fa-house"></i> Недвижимость</button>
+                    <button class="sub-tab" onclick="switchMarketTab('cars')"><i class="fa-solid fa-car"></i> Автопарк</button>
+                    <button class="sub-tab" onclick="switchMarketTab('yachts')"><i class="fa-solid fa-ship"></i> Яхты</button>
+                    <button class="sub-tab" onclick="switchMarketTab('permits')"><i class="fa-solid fa-id-card"></i> Паспорта и Ксивы</button>
+                </div>
+
+                <div id="market-list-container">
+                    <!-- Dynamic rendering -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= PROFILE & STATS SCREEN ================= -->
+        <div id="screen-profile" class="screen">
+            <div class="panel-card">
+                <div class="flex items-center gap-4 mb-4">
+                    <div style="width:60px; height:60px; background:var(--surface-accent); border:2px solid var(--gold); border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:1.8rem; color:var(--gold)">
+                        <i class="fa-solid fa-user-astronaut"></i>
+                    </div>
+                    <div class="text-left">
+                        <div id="prof-nickname" style="font-weight:800; font-size:1.1rem; color:#fff;">Игрок</div>
+                        <div id="prof-username" style="font-size:0.8rem; color:var(--text-secondary);">@player</div>
+                        <div id="prof-passport" class="mt-1" style="font-size:0.75rem; color:var(--gold); font-weight:700;">Паспорт: Без гражданства</div>
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns: repeat(3, 1fr); gap:8px; margin: 15px 0;">
+                    <div style="background:#0c0c0e; padding:10px; border-radius:12px; text-align:center;">
+                        <div id="stat-games" style="font-weight:800; color:#fff;">0</div>
+                        <div style="font-size:0.65rem; color:var(--text-secondary); margin-top:2px;">ИГР</div>
+                    </div>
+                    <div style="background:#0c0c0e; padding:10px; border-radius:12px; text-align:center;">
+                        <div id="stat-wins" style="font-weight:800; color:var(--green);">0</div>
+                        <div style="font-size:0.65rem; color:var(--text-secondary); margin-top:2px;">ПОБЕД</div>
+                    </div>
+                    <div style="background:#0c0c0e; padding:10px; border-radius:12px; text-align:center;">
+                        <div id="stat-turnover" style="font-weight:800; color:var(--gold);">0</div>
+                        <div style="font-size:0.65rem; color:var(--text-secondary); margin-top:2px;">ОБОРОТ</div>
+                    </div>
+                </div>
+
+                <div class="text-left mt-2" style="background:#0c0c0e; padding:12px; border-radius:14px; font-size:0.8rem;">
+                    <div style="color:var(--text-secondary); font-size:0.7rem; font-weight:700; text-transform:uppercase;">Имущество</div>
+                    <div id="prof-house" class="mt-1">🏠 Дом: Нет</div>
+                    <div id="prof-car" class="mt-1">🏎️ Авто: Нет</div>
+                    <div id="prof-yacht" class="mt-1">🛥️ Яхта: Нет</div>
+                </div>
+
+                <!-- Referral Section -->
+                <div class="mt-4 text-left" style="background:#0c0c0e; padding:12px; border-radius:14px;">
+                    <div style="color:var(--gold); font-size:0.75rem; font-weight:800; text-transform:uppercase;">Реферальная ссылка (+5,000 $RJC)</div>
+                    <p style="font-size:0.7rem; color:var(--text-secondary); margin:4px 0 8px 0;">Получай бонус за каждого приглашенного игрока с оборотом > 2,000 $RJC</p>
+                    <button class="action-btn" onclick="copyRefLink()" style="font-size:0.78rem; padding:10px; background:var(--surface-accent); color:#fff; border:1px solid rgba(255,255,255,0.1)">Скопировать ссылку</button>
+                </div>
+            </div>
+
+            <!-- History Logs -->
+            <div class="panel-card">
+                <div style="color:var(--text-secondary); font-size:0.75rem; font-weight:800; text-transform:uppercase; margin-bottom:10px; text-align:left;">История Уведомлений и Транзакций</div>
+                <div id="prof-messages-list" style="display:flex; flex-direction:column; gap:8px; max-height:200px; overflow-y:auto;">
+                    <!-- Messages render dynamically -->
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= ADMIN / MOD PANEL SCREEN ================= -->
+        <div id="screen-admin" class="screen">
+            <div class="panel-card">
+                <div style="color:var(--red); font-size:0.85rem; font-weight:800; text-transform:uppercase; margin-bottom:14px; letter-spacing:0.5px;">
+                    <i class="fa-solid fa-shield-halved"></i> Панель Модератора / Админа
+                </div>
+                
+                <!-- Maintenance Switch -->
+                <button class="action-btn mb-3" onclick="toggleMaintenance()" style="background: #3f1212; color: var(--red); border: 1px solid var(--red);">
+                    Переключить Технический Режим
+                </button>
+
+                <!-- Search User -->
+                <div class="bet-input-wrapper mt-2">
+                    <label class="bet-label">Поиск Игрока (ID или Username)</label>
+                    <div class="bet-field-group">
+                        <input type="text" class="bet-input" id="admin-user-query" placeholder="root">
+                        <button class="max-btn" onclick="adminCheckUser()">НАЙТИ</button>
+                    </div>
+                </div>
+
+                <div id="admin-user-res" style="display:none; background:#0c0c0e; padding:12px; border-radius:12px; font-size:0.8rem; margin-bottom:14px; text-align:left;"></div>
+
+                <!-- Add Coins -->
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Выдать коины пользователю</label>
+                    <div class="bet-field-group">
+                        <input type="text" class="bet-input" id="admin-target-id" placeholder="ID игрока">
+                        <input type="number" class="bet-input" id="admin-add-amount" placeholder="Сумма">
+                    </div>
+                </div>
+                <button class="action-btn mb-4" onclick="adminAddBalance()" style="background: linear-gradient(135deg, var(--green), #00c853);">Начислить $RJC</button>
+
+                <!-- Set Rig -->
+                <div class="bet-input-wrapper">
+                    <label class="bet-label">Подкрутка (Multiplier)</label>
+                    <div class="bet-field-group">
+                        <input type="text" class="bet-input" id="admin-rig-id" placeholder="ID (пусто = всем)">
+                        <input type="number" step="0.1" class="bet-input" id="admin-rig-val" placeholder="1.0">
+                    </div>
+                </div>
+                <button class="action-btn mb-4" onclick="adminSetRig()" style="background: linear-gradient(135deg, var(--purple), #7c3aed); color:#fff;">Установить подкрутку</button>
+
+                <!-- Create Promo -->
+                <div style="border-top:1px solid rgba(255,255,255,0.08); padding-top:12px;" class="text-left">
+                    <div style="font-weight:700; font-size:0.8rem; color:var(--gold);" class="mb-2">Создать Промокод</div>
+                    <div class="bet-field-group mb-2">
+                        <input type="text" class="bet-input" id="admin-promo-code" placeholder="КОД">
+                        <input type="number" class="bet-input" id="admin-promo-reward" placeholder="Награда">
+                        <input type="number" class="bet-input" id="admin-promo-limit" placeholder="Лимит">
+                    </div>
+                    <button class="action-btn" onclick="adminCreatePromo()">Создать Промокод</button>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bottom Navigation Bar -->
+    <nav>
+        <button class="nav-item active" onclick="switchScreen('games')">
+            <i class="fa-solid fa-gamepad"></i>
+            Игры
+        </button>
+        <button class="nav-item" onclick="switchScreen('pay')">
+            <i class="fa-solid fa-wallet"></i>
+            RejewPay
+        </button>
+        <button class="nav-item" onclick="switchScreen('market')">
+            <i class="fa-solid fa-store"></i>
+            Маркет
+        </button>
+        <button class="nav-item" onclick="switchScreen('profile')">
+            <i class="fa-solid fa-user"></i>
+            Профиль
+        </button>
+        <button class="nav-item" id="nav-admin-btn" style="display:none;" onclick="switchScreen('admin')">
+            <i class="fa-solid fa-user-shield"></i>
+            Админ
+        </button>
+    </nav>
+
+    <script>
+        const API_URL = ''; // Relative path for backend API
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.ready(); tg.expand(); }
+
+        let currentUser = {
+            id: tg?.initDataUnsafe?.user?.id || '777777',
+            username: tg?.initDataUnsafe?.user?.username || 'root',
+            nickname: tg?.initDataUnsafe?.user?.first_name || 'Разрабочик',
+            balance: 5000,
+            games: 0,
+            wins: 0,
+            turnover: 0,
+            passport: 'Без гражданства',
+            house: null,
+            car: null,
+            yacht: null,
+            permit: null,
+            messages: [],
+            isModerator: true,
+            isAdmin: true
+        };
+
+        let activeTab = 'games';
+        let activeGame = 'slots';
+        let activeMarketTab = 'houses';
+        let clickBatchCount = 0;
+        let clickSyncTimer = null;
+
+        // Static shop dictionaries matching backend HOUSE_BONUSES & Items
+        const HOUSES = [
+            { id: 'p_pipe', name: '🪠 Труба', cost: 100, bonus: 2 },
+            { id: 'p_box', name: '📦 Коробка', cost: 500, bonus: 10 },
+            { id: 'p_tent', name: '⛺ Палатка', cost: 1200, bonus: 15 },
+            { id: 'p_garage', name: '🏚️ Гараж', cost: 3000, bonus: 30 },
+            { id: 'p_baza', name: '🛖 Бытовка', cost: 5000, bonus: 40 },
+            { id: 'p_basement', name: '🔒 Подвал', cost: 10000, bonus: 60 },
+            { id: 'p_communalka', name: '🏢 Коммуналка', cost: 25000, bonus: 90 },
+            { id: 'p_flat_ru', name: '🏠 Хрущевка', cost: 50000, bonus: 180 },
+            { id: 'p_hostel', name: '🛏️ Хостел', cost: 100000, bonus: 300 },
+            { id: 'p_studio', name: '🏙️ Студия', cost: 200000, bonus: 550 },
+            { id: 'p_dacha', name: '🏡 Дача', cost: 400000, bonus: 900 },
+            { id: 'p_cyber_village', name: '🤖 Кибер-Деревня', cost: 750000, bonus: 1400 },
+            { id: 'p_bali', name: '🌴 Вилла на Бали', cost: 1500000, bonus: 2300 },
+            { id: 'p_miami', name: '🌅 Особняк Майами', cost: 3500000, bonus: 4800 },
+            { id: 'p_moscow_city', name: '🏙️ Москва-Сити Апарт', cost: 5000000, bonus: 6000 },
+            { id: 'p_dubai', name: 'Пентхаус Дубай', cost: 8000000, bonus: 8200 },
+            { id: 'p_island', name: '🏝️ Личный Атолл', cost: 50000000, bonus: 600000 },
+            { id: 'p_hamam_resort', name: '🏛️ Хаммам-Курорт', cost: 80000000, bonus: 900000, req: 'p_island' },
+            { id: 'p_death_star', name: '🌌 Звезда Смерти', cost: 1000000000, bonus: 8000000 }
+        ];
+
+        const CARS = [
+            { id: 'car_vaz', name: '🚗 ВАЗ 2107', cost: 5000 },
+            { id: 'car_bmw', name: '🏎️ BMW M5 F90', cost: 150000 },
+            { id: 'car_lamborgini', name: '🏎️ Lamborghini Urus', cost: 600000 },
+            { id: 'car_bugatti', name: '⚡ Bugatti Chiron', cost: 3000000 }
+        ];
+
+        const YACHTS = [
+            { id: 'yacht_boat', name: '🚤 Лодка ПВХ', cost: 10000 },
+            { id: 'yacht_medium', name: '🛥️ Катер Sea Ray', cost: 500000 },
+            { id: 'yacht_super', name: '🛳️ Супер-яхта Eclipse', cost: 15000000 }
+        ];
+
+        const PERMITS = [
+            { id: 'c_rf', name: '🇷🇺 Гражданство РФ', cost: 15000, type: 'citizen' },
+            { id: 'c_usa', name: '🇺🇸 Green Card USA', cost: 100000, type: 'citizen' },
+            { id: 'c_dubai', name: '🇦🇪 Резидент ОАЭ', cost: 500000, type: 'citizen' },
+            { id: 'perm_mod_badge', name: '🛡️ Ксива Модератора', cost: 2000000, type: 'permit' },
+            { id: 'perm_admin_aura', name: '👑 Аура Админа', cost: 10000000, type: 'permit' }
+        ];
+
+        function showToast(msg, type = 'gold') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+
+            let icon = 'fa-info-circle';
+            if (type === 'success') icon = 'fa-circle-check';
+            if (type === 'error') icon = 'fa-triangle-exclamation';
+            if (type === 'purple') icon = 'fa-wand-magic-sparkles';
+
+            toast.innerHTML = `<i class="fa-solid ${icon}"></i> <span>${msg}</span>`;
+            container.appendChild(toast);
+
+            setTimeout(() => toast.classList.add('show'), 20);
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        async function apiRequest(endpoint, data = {}) {
+            try {
+                const headers = { 'Content-Type': 'application/json' };
+                if (tg?.initData) headers['x-tg-data'] = tg.initData;
+
+                const response = await fetch(`/api${endpoint}`, {
+                    method: 'POST',
+                    headers,
+                    body: JSON.stringify({
+                        userId: currentUser.id,
+                        tgId: currentUser.id,
+                        username: currentUser.username,
+                        nickname: currentUser.nickname,
+                        ...data
+                    })
+                });
+
+                if (response.status === 401 || response.status === 403) {
+                    console.warn('Auth issue or fallback mode active');
+                }
+
+                const resData = await response.json();
+                if (!response.ok) {
+                    throw new Error(resData.error || 'Ошибка соединения с сервером');
+                }
+                return resData;
+            } catch (err) {
+                console.error('[API Error]:', err.message);
+                throw err;
+            }
+        }
+
+        async function syncUser() {
+            try {
+                const data = await apiRequest('/user');
+                if (data && !data.error) {
+                    currentUser = { ...currentUser, ...data };
+                    updateUI();
+                }
+            } catch (e) {
+                updateUI();
+            }
+        }
+
+        function updateUI() {
+            document.getElementById('header-bal').innerText = Math.floor(currentUser.balance || 0).toLocaleString();
+            
+            // Maintenance check
+            if (currentUser.maintenanceActive && !currentUser.isAdmin) {
+                document.getElementById('maintenance-screen').style.display = 'flex';
+            } else {
+                document.getElementById('maintenance-screen').style.display = 'none';
+            }
+
+            // Admin button visibility
+            if (currentUser.isAdmin || currentUser.isModerator) {
+                document.getElementById('nav-admin-btn').style.display = 'flex';
+            }
+
+            // Profile info
+            document.getElementById('prof-nickname').innerText = currentUser.nickname || 'Игрок';
+            document.getElementById('prof-username').innerText = `@${currentUser.username || 'player'}`;
+            document.getElementById('prof-passport').innerText = `Паспорт: ${currentUser.passport || 'Без гражданства'}`;
+            document.getElementById('stat-games').innerText = currentUser.games || 0;
+            document.getElementById('stat-wins').innerText = currentUser.wins || 0;
+            document.getElementById('stat-turnover').innerText = (currentUser.turnover || 0).toLocaleString();
+
+            const houseObj = HOUSES.find(h => h.id === currentUser.house);
+            const carObj = CARS.find(c => c.id === currentUser.car);
+            const yachtObj = YACHTS.find(y => y.id === currentUser.yacht);
+
+            document.getElementById('prof-house').innerText = `🏠 Дом: ${houseObj ? houseObj.name : 'Нет'}`;
+            document.getElementById('prof-car').innerText = `🏎️ Авто: ${carObj ? carObj.name : 'Нет'}`;
+            document.getElementById('prof-yacht').innerText = `🛥️ Яхта: ${yachtObj ? yachtObj.name : 'Нет'}`;
+
+            // Messages log
+            const msgContainer = document.getElementById('prof-messages-list');
+            if (currentUser.messages && currentUser.messages.length > 0) {
+                msgContainer.innerHTML = currentUser.messages.slice(-10).reverse().map(m => `
+                    <div style="background:#0c0c0e; padding:10px; border-radius:10px; text-align:left; font-size:0.75rem;">
+                        <div style="display:flex; justify-between; font-weight:700;">
+                            <span style="color:var(--gold);">${m.type || 'Событие'}</span>
+                            <span style="color:var(--text-secondary);">${m.amount ? '+' + m.amount.toLocaleString() + ' $RJC' : ''}</span>
+                        </div>
+                        <div style="color:#aaa; margin-top:2px;">${m.comment || m.partnerNickname || ''}</div>
+                    </div>
+                `).join('');
+            } else {
+                msgContainer.innerHTML = `<div style="color:var(--text-secondary); font-size:0.75rem;">История пуста</div>`;
+            }
+
+            renderMarket();
+        }
+
+        function switchScreen(screenId) {
+            activeTab = screenId;
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+
+            const target = document.getElementById(`screen-${screenId}`);
+            if (target) target.classList.add('active');
+
+            const navBtn = Array.from(document.querySelectorAll('.nav-item')).find(b => b.getAttribute('onclick')?.includes(screenId));
+            if (navBtn) navBtn.classList.add('active');
+        }
+
+        function switchGameTab(gameId) {
+            activeGame = gameId;
+            document.querySelectorAll('.sub-nav .sub-tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.sub-tab').classList.add('active');
+
+            ['slots', 'crash', 'plinko', 'upgrader', 'clicker'].forEach(g => {
+                const el = document.getElementById(`game-${g}`);
+                if (el) el.style.display = (g === gameId) ? 'block' : 'none';
+            });
+
+            if (gameId === 'plinko') initPlinkoCanvas();
+        }
+
+        function setMaxBet(inputId) {
+            const input = document.getElementById(inputId);
+            if (input) input.value = Math.max(10, Math.floor(currentUser.balance || 0));
+        }
+
+        let isSpinning = false;
+        const SLOT_SYMBOLS = ['🍒', '🍋', '🍇', '🔔', '💎', '7️⃣'];
+
+        async function triggerSpin() {
+            if (isSpinning) return;
+            const betInput = document.getElementById('slot-bet');
+            const bet = parseInt(betInput.value);
+
+            if (isNaN(bet) || bet < 10) return showToast('Минимальная ставка 10 $RJC', 'error');
+            if (currentUser.balance < bet) return showToast('Недостаточно $RJC', 'error');
+
+            currentUser.balance -= bet;
+            currentUser.games += 1;
+            currentUser.turnover += bet;
+            updateUI();
+
+            isSpinning = true;
+            document.getElementById('spin-btn').disabled = true;
+
+            const r1 = document.getElementById('r1');
+            const r2 = document.getElementById('r2');
+            const r3 = document.getElementById('r3');
+
+            r1.classList.add('spinning');
+            r2.classList.add('spinning');
+            r3.classList.add('spinning');
+
+            const spinInterval = setInterval(() => {
+                r1.innerText = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+                r2.innerText = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+                r3.innerText = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+            }, 80);
+
+            setTimeout(() => {
+                clearInterval(spinInterval);
+                r1.classList.remove('spinning');
+                r2.classList.remove('spinning');
+                r3.classList.remove('spinning');
+
+                // Determine spin outcome
+                const rand = Math.random();
+                let sym1, sym2, sym3, winMult = 0;
+
+                if (rand < 0.22) {
+                    // Match 3
+                    const pick = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+                    sym1 = sym2 = sym3 = pick;
+                    winMult = pick === '7️⃣' ? 15 : (pick === '💎' ? 10 : 5);
+                } else if (rand < 0.50) {
+                    // Match 2
+                    const pick = SLOT_SYMBOLS[Math.floor(Math.random() * SLOT_SYMBOLS.length)];
+                    sym1 = sym2 = pick;
+                    sym3 = SLOT_SYMBOLS.find(s => s !== pick);
+                    winMult = 1.5;
+                } else {
+                    // Bust
+                    sym1 = '🍒'; sym2 = '🍋'; sym3 = '🔔';
+                    winMult = 0;
+                }
+
+                r1.innerText = sym1;
+                r2.innerText = sym2;
+                r3.innerText = sym3;
+
+                if (winMult > 0) {
+                    const winAmount = Math.floor(bet * winMult);
+                    currentUser.balance += winAmount;
+                    currentUser.wins += 1;
+                    showToast(`Занос! +${winAmount.toLocaleString()} $RJC (x${winMult})`, 'success');
+                } else {
+                    showToast('Не повезло, попробуй еще!', 'error');
+                }
+
+                isSpinning = false;
+                document.getElementById('spin-btn').disabled = false;
+                updateUI();
+            }, 1200);
+        }
+
+        let crashState = 'idle'; // idle, running, crashed
+        let crashMult = 1.00;
+        let crashTarget = 1.00;
+        let crashTimer = null;
+
+        function triggerCrashAction() {
+            const btn = document.getElementById('crash-btn');
+            const betInput = document.getElementById('crash-bet');
+            const bet = parseInt(betInput.value);
+
+            if (crashState === 'idle') {
+                if (isNaN(bet) || bet < 10) return showToast('Минимальная ставка 10 $RJC', 'error');
+                if (currentUser.balance < bet) return showToast('Недостаточно $RJC', 'error');
+
+                currentUser.balance -= bet;
+                currentUser.turnover += bet;
+                currentUser.games += 1;
+                updateUI();
+
+                // Determine crash outcome
+                const e = 2 ** (Math.random() * 5);
+                crashTarget = Math.max(1.05, Math.min(50.0, parseFloat(e.toFixed(2))));
+
+                crashState = 'running';
+                crashMult = 1.00;
+                btn.innerText = 'ЗАБРАТЬ';
+                btn.style.background = 'linear-gradient(135deg, var(--gold), #d4af37)';
+
+                const rocket = document.getElementById('rocket-obj');
+                const multTxt = document.getElementById('crash-mult');
+
+                crashTimer = setInterval(() => {
+                    crashMult += 0.03 * (1 + crashMult * 0.1);
+                    multTxt.innerText = crashMult.toFixed(2) + 'x';
+
+                    const prog = Math.min(1, (crashMult - 1) / 10);
+                    rocket.style.transform = `translate(${prog * 180}px, -${prog * 100}px)`;
+
+                    if (crashMult >= crashTarget) {
+                        // CRASHED
+                        clearInterval(crashTimer);
+                        crashState = 'crashed';
+                        multTxt.innerText = 'ВЗРЫВ!';
+                        multTxt.style.color = 'var(--red)';
+                        rocket.innerText = '💥';
+
+                        showToast(`Ракета взорвалась на x${crashTarget.toFixed(2)}`, 'error');
+
+                        setTimeout(() => {
+                            crashState = 'idle';
+                            multTxt.innerText = '1.00x';
+                            multTxt.style.color = '#fff';
+                            rocket.innerText = '🚀';
+                            rocket.style.transform = 'none';
+                            btn.innerText = 'ВЗЛЕТ';
+                            btn.style.background = 'linear-gradient(135deg, var(--green), #00c853)';
+                        }, 2000);
+                    }
+                }, 100);
+
+            } else if (crashState === 'running') {
+                // CASH OUT
+                clearInterval(crashTimer);
+                const winAmount = Math.floor(bet * crashMult);
+                currentUser.balance += winAmount;
+                currentUser.wins += 1;
+
+                showToast(`Забрано! +${winAmount.toLocaleString()} $RJC (x${crashMult.toFixed(2)})`, 'success');
+
+                crashState = 'idle';
+                document.getElementById('crash-mult').innerText = '1.00x';
+                const rocket = document.getElementById('rocket-obj');
+                rocket.style.transform = 'none';
+                btn.innerText = 'ВЗЛЕТ';
+                btn.style.background = 'linear-gradient(135deg, var(--green), #00c853)';
+                updateUI();
+            }
+        }
+
+        const PLINKO_MULT = [5.6, 1.6, 1.1, 0.6, 0.3, 0.6, 1.1, 1.6, 5.6];
+        let plinkoCanvas, plinkoCtx;
+        let plinkoBalls = [];
+
+        function initPlinkoCanvas() {
+            plinkoCanvas = document.getElementById('plinko-canvas');
+            if (!plinkoCanvas) return;
+            plinkoCtx = plinkoCanvas.getContext('2d');
+            requestAnimationFrame(drawPlinkoFrame);
+        }
+
+        function drawPlinkoFrame() {
+            if (!plinkoCtx) return;
+            plinkoCtx.clearRect(0, 0, plinkoCanvas.width, plinkoCanvas.height);
+
+            // Draw pegs
+            const rows = 7;
+            for (let r = 0; r < rows; r++) {
+                const count = r + 3;
+                const startX = (plinkoCanvas.width - (count - 1) * 32) / 2;
+                const y = 40 + r * 35;
+                for (let c = 0; c < count; c++) {
+                    const x = startX + c * 32;
+                    plinkoCtx.beginPath();
+                    plinkoCtx.arc(x, y, 4, 0, Math.PI * 2);
+                    plinkoCtx.fillStyle = '#71717a';
+                    plinkoCtx.fill();
+                }
+            }
+
+            // Draw multiplier bins
+            const binWidth = plinkoCanvas.width / PLINKO_MULT.length;
+            PLINKO_MULT.forEach((m, idx) => {
+                const x = idx * binWidth;
+                plinkoCtx.fillStyle = m >= 1.5 ? '#00e676' : (m < 1 ? '#ff5252' : '#ffd700');
+                plinkoCtx.fillRect(x + 2, plinkoCanvas.height - 25, binWidth - 4, 20);
+                plinkoCtx.fillStyle = '#000';
+                plinkoCtx.font = 'bold 10px sans-serif';
+                plinkoCtx.textAlign = 'center';
+                plinkoCtx.fillText(`${m}x`, x + binWidth / 2, plinkoCanvas.height - 11);
+            });
+
+            // Update & draw balls
+            for (let i = plinkoBalls.length - 1; i >= 0; i--) {
+                const b = plinkoBalls[i];
+                b.y += b.vy;
+                b.x += b.vx;
+                b.vy += 0.2; // gravity
+
+                // Draw ball
+                plinkoCtx.beginPath();
+                plinkoCtx.arc(b.x, b.y, 6, 0, Math.PI * 2);
+                plinkoCtx.fillStyle = '#ffd700';
+                plinkoCtx.fill();
+
+                // Check bounce on pegs
+                for (let r = 0; r < rows; r++) {
+                    const count = r + 3;
+                    const startX = (plinkoCanvas.width - (count - 1) * 32) / 2;
+                    const py = 40 + r * 35;
+                    for (let c = 0; c < count; c++) {
+                        const px = startX + c * 32;
+                        const dist = Math.hypot(b.x - px, b.y - py);
+                        if (dist < 10) {
+                            b.vy *= -0.3;
+                            b.vx += (Math.random() - 0.5) * 2;
+                        }
+                    }
+                }
+
+                // Check landing in bin
+                if (b.y >= plinkoCanvas.height - 30) {
+                    const binIdx = Math.min(PLINKO_MULT.length - 1, Math.max(0, Math.floor(b.x / binWidth)));
+                    const mult = PLINKO_MULT[binIdx];
+                    const winAmount = Math.floor(b.bet * mult);
+
+                    currentUser.balance += winAmount;
+                    if (mult >= 1) currentUser.wins += 1;
+
+                    showToast(`Шарик упал в x${mult}! +${winAmount.toLocaleString()} $RJC`, mult >= 1 ? 'success' : 'error');
+                    updateUI();
+                    plinkoBalls.splice(i, 1);
+                }
+            }
+
+            if (activeGame === 'plinko') requestAnimationFrame(drawPlinkoFrame);
+        }
+
+        function triggerPlinko() {
+            const betInput = document.getElementById('plinko-bet');
+            const bet = parseInt(betInput.value);
+
+            if (isNaN(bet) || bet < 10) return showToast('Минимальная ставка 10 $RJC', 'error');
+            if (currentUser.balance < bet) return showToast('Недостаточно $RJC', 'error');
+
+            currentUser.balance -= bet;
+            currentUser.turnover += bet;
+            currentUser.games += 1;
+            updateUI();
+
+            plinkoBalls.push({
+                x: plinkoCanvas.width / 2 + (Math.random() - 0.5) * 10,
+                y: 15,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: 1,
+                bet
+            });
+        }
+
+        function updateUpgraderUI() {
+            const targetInput = document.getElementById('upgrader-target-input');
+            const targetMult = parseFloat(targetInput.value) || 2.0;
+            const chance = Math.min(95, Math.max(1, (95 / targetMult))).toFixed(1);
+
+            document.getElementById('upgrader-target-mult').innerText = `x${targetMult.toFixed(2)}`;
+            document.getElementById('upgrader-chance-lbl').innerText = `${chance}% Шанс`;
+
+            const ring = document.getElementById('upgrader-ring');
+            const deg = (chance / 100) * 360;
+            ring.style.background = `conic-gradient(var(--purple) 0deg ${deg}deg, #1f1f24 ${deg}deg 360deg)`;
+        }
+
+        function triggerUpgrader() {
+            const betInput = document.getElementById('upgrader-bet');
+            const targetInput = document.getElementById('upgrader-target-input');
+
+            const bet = parseInt(betInput.value);
+            const targetMult = parseFloat(targetInput.value);
+
+            if (isNaN(bet) || bet < 10) return showToast('Минимальная ставка 10 $RJC', 'error');
+            if (currentUser.balance < bet) return showToast('Недостаточно $RJC', 'error');
+            if (isNaN(targetMult) || targetMult < 1.1 || targetMult > 100) return showToast('Множитель от x1.10 до x100', 'error');
+
+            currentUser.balance -= bet;
+            currentUser.turnover += bet;
+            currentUser.games += 1;
+            updateUI();
+
+            const chance = (95 / targetMult);
+            const win = (Math.random() * 100) <= chance;
+
+            const needle = document.getElementById('upgrader-needle');
+            const targetDeg = win ? (Math.random() * (chance / 100) * 360) : ((chance / 100) * 360 + 20 + Math.random() * 100);
+
+            needle.style.transform = `rotate(${3600 + targetDeg}deg)`;
+
+            document.getElementById('upgrader-btn').disabled = true;
+
+            setTimeout(() => {
+                if (win) {
+                    const winAmount = Math.floor(bet * targetMult);
+                    currentUser.balance += winAmount;
+                    currentUser.wins += 1;
+                    showToast(`Успешный апгрейд! +${winAmount.toLocaleString()} $RJC`, 'success');
+                } else {
+                    showToast('Апгрейд сорвался!', 'error');
+                }
+                document.getElementById('upgrader-btn').disabled = false;
+                needle.style.transition = 'none';
+                needle.style.transform = `rotate(${targetDeg}deg)`;
+                setTimeout(() => needle.style.transition = 'transform 3s cubic-bezier(0.15, 0.9, 0.2, 1)', 50);
+                updateUI();
+            }, 3000);
+        }
+
+        function executeCoinClick(e) {
+            currentUser.balance += 1;
+            clickBatchCount += 1;
+            
+            if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
+
+            // Floating indicator popup
+            const pop = document.createElement('div');
+            pop.className = 'click-pop';
+            pop.innerText = '+1';
+            
+            const coin = document.getElementById('coin-element');
+            const rect = coin.getBoundingClientRect();
+            
+            pop.style.left = `${e.clientX - rect.left}px`;
+            pop.style.top = `${e.clientY - rect.top}px`;
+            
+            coin.appendChild(pop);
+            setTimeout(() => pop.remove(), 800);
+
+            document.getElementById('header-bal').innerText = Math.floor(currentUser.balance).toLocaleString();
+
+            // Sync with backend via debounced batches
+            clearTimeout(clickSyncTimer);
+            clickSyncTimer = setTimeout(async () => {
+                try {
+                    await apiRequest('/click', { clicks: clickBatchCount });
+                    clickBatchCount = 0;
+                } catch (err) {}
+            }, 1000);
+        }
+
+        async function executeTransfer() {
+            const target = document.getElementById('pay-target').value.trim();
+            const amount = parseInt(document.getElementById('pay-amount').value);
+            const comment = document.getElementById('pay-comment').value.trim();
+
+            if (!target) return showToast('Укажи получателя', 'error');
+            if (isNaN(amount) || amount <= 0) return showToast('Некорректная сумма', 'error');
+            if (currentUser.balance < amount) return showToast('Недостаточно коинов', 'error');
+
+            try {
+                const res = await apiRequest('/rejewpay/transfer', {
+                    receiverUsername: target,
+                    amount,
+                    comment
+                });
+                if (res.success) {
+                    currentUser.balance = res.newBalance;
+                    showToast(`Перевод успешно отправлен @${target}`, 'success');
+                    document.getElementById('pay-target').value = '';
+                    document.getElementById('pay-amount').value = '';
+                    document.getElementById('pay-comment').value = '';
+                    updateUI();
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function activatePromo() {
+            const code = document.getElementById('promo-code-input').value.trim();
+            if (!code) return showToast('Введи промокод', 'error');
+
+            try {
+                const res = await apiRequest('/promo/activate', { code });
+                if (res.success) {
+                    currentUser.balance = res.newBalance;
+                    showToast(`Промокод активирован! +${res.reward.toLocaleString()} $RJC`, 'purple');
+                    document.getElementById('promo-code-input').value = '';
+                    updateUI();
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        function copyRefLink() {
+            const link = `https://t.me/RejewCas_bot?start=${currentUser.id}`;
+            navigator.clipboard?.writeText(link);
+            showToast('Ссылка скопирована!', 'success');
+        }
+
+        function switchMarketTab(tabId) {
+            activeMarketTab = tabId;
+            document.querySelectorAll('#screen-market .sub-tab').forEach(t => t.classList.remove('active'));
+            event.target.closest('.sub-tab').classList.add('active');
+            renderMarket();
+        }
+
+        function renderMarket() {
+            const container = document.getElementById('market-list-container');
+            if (!container) return;
+
+            let items = [];
+            if (activeMarketTab === 'houses') items = HOUSES;
+            if (activeMarketTab === 'cars') items = CARS;
+            if (activeMarketTab === 'yachts') items = YACHTS;
+            if (activeMarketTab === 'permits') items = PERMITS;
+
+            container.innerHTML = items.map(item => {
+                const isOwned = currentUser.house === item.id || currentUser.car === item.id || 
+                                currentUser.yacht === item.id || currentUser.passport === item.name ||
+                                currentUser.permit === item.id;
+
+                return `
+                    <div class="shop-item">
+                        <div class="shop-item-info">
+                            <span class="shop-item-name">${item.name}</span>
+                            <span class="shop-item-cost">${item.cost.toLocaleString()} $RJC</span>
+                            ${item.bonus ? `<span class="shop-item-sub">+${item.bonus.toLocaleString()} $RJC / день</span>` : ''}
+                        </div>
+                        <button class="buy-btn ${isOwned ? 'owned' : ''}" 
+                            onclick="buyShopItem('${item.id}', '${item.name}', ${item.cost}, '${item.type || 'house'}')">
+                            ${isOwned ? 'КУПЛЕНО' : 'КУПИТЬ'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        async function buyShopItem(itemId, itemName, cost, type) {
+            if (currentUser.balance < cost) return showToast('Недостаточно коинов!', 'error');
+
+            try {
+                const res = await apiRequest('/buy', { itemId, itemName, cost, type });
+                if (res) {
+                    currentUser = { ...currentUser, ...res };
+                    showToast(`Покупка успешна: ${itemName}`, 'success');
+                    updateUI();
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function toggleMaintenance() {
+            try {
+                const res = await apiRequest('/admin/maintenance/toggle');
+                showToast(`Тех. режим: ${res.maintenanceActive ? 'ВКЛЮЧЕН' : 'ВЫКЛЮЧЕН'}`, 'purple');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function adminCheckUser() {
+            const q = document.getElementById('admin-user-query').value.trim();
+            if (!q) return showToast('Введи поисковый запрос', 'error');
+
+            try {
+                const res = await apiRequest('/admin/check-user', { query: q });
+                if (res.user) {
+                    const u = res.user;
+                    const resBox = document.getElementById('admin-user-res');
+                    resBox.style.display = 'block';
+                    resBox.innerHTML = `
+                        <b>Игрок:</b> ${u.nickname} (@${u.username})<br>
+                        <b>ID:</b> ${u.id}<br>
+                        <b>Баланс:</b> ${u.balance.toLocaleString()} $RJC<br>
+                        <b>Подкрутка:</b> x${u.rigMultiplier || 1.0}
+                    `;
+                }
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function adminAddBalance() {
+            const targetUserId = document.getElementById('admin-target-id').value.trim();
+            const amount = parseInt(document.getElementById('admin-add-amount').value);
+
+            if (!targetUserId || isNaN(amount)) return showToast('Заполни поля', 'error');
+
+            try {
+                await apiRequest('/admin/add', { targetUserId, amount });
+                showToast(`Начислено ${amount} коинов игроку ${targetUserId}`, 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function adminSetRig() {
+            const targetUserId = document.getElementById('admin-rig-id').value.trim();
+            const rigMultiplier = parseFloat(document.getElementById('admin-rig-val').value);
+
+            try {
+                await apiRequest('/admin/set-rig', { targetUserId, rigMultiplier });
+                showToast(`Подкрутка установлена: x${rigMultiplier}`, 'purple');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        async function adminCreatePromo() {
+            const code = document.getElementById('admin-promo-code').value.trim();
+            const reward = parseInt(document.getElementById('admin-promo-reward').value);
+            const limit = parseInt(document.getElementById('admin-promo-limit').value);
+
+            try {
+                await apiRequest('/admin/promo/create', { code, reward, limit });
+                showToast(`Промокод ${code} успешно создан!`, 'success');
+            } catch (err) {
+                showToast(err.message, 'error');
+            }
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            syncUser();
+            updateUpgraderUI();
+        });
+    </script>
+</body>
+</html>
